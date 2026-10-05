@@ -1,41 +1,54 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+# BillKul app: notes for anyone (or any AI session) working on this code
 
-## Expo has changed — do not trust your training data
+BillKul is a quotation and invoice maker for small businesses, built with Expo (React Native) for
+Android first and iPhone second. The product plan and decisions live one folder up, in
+`BillKul-Product-Plan.md` and `BillKul-Project-Notes.md`. Read those before changing behaviour.
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+## Expo changes between versions
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+Expo ships breaking changes every SDK release. Before writing code that touches an Expo, EAS or
+React Native API, read the `expo` major version in `package.json` and check the matching docs at
+`https://docs.expo.dev/versions/v<major>.0.0/`. Do not answer from memory.
 
 ## Commands
 
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
-
 ```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
-npx expo-doctor             # diagnose dependency and config issues
-npx expo install --fix      # fix incompatible package versions
+npm test                 # logic, store and document template tests (vitest)
+npm run typecheck        # tsc --noEmit
+npm run build:web        # web build, then refreshes pc-preview/site
+npx expo install <pkg>   # always use this to add packages, so versions match the SDK
 ```
 
-Run lint and typecheck before declaring any task done.
+Run the tests and the type check before calling any change done. Where the machine has no access to
+api.expo.dev, set `EXPO_OFFLINE=1` for expo commands.
 
-## Navigation & Routing
+## Decisions that differ from the Expo template
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- **React Navigation, not Expo Router.** Navigation holds no URLs, so the web build runs from any
+  folder or address (the PC preview depends on this). Screens are registered in `App.tsx`.
+- **One storage path on every platform.** `index.ts` imports `expo-sqlite/localStorage/install`,
+  which backs `localStorage` with SQLite on the phone; in a browser it is the browser's own storage.
+  All reads and writes go through `src/data/store.ts`. Every change is saved at once (autosave).
+- **Phone and browser versions of a file.** `Name.tsx` is the phone version and `Name.web.tsx` the
+  browser version (see `src/platform`). Keep both in step.
+- **Android folders are generated.** Never create or edit `android/` or `ios/` by hand. Configure
+  native behaviour in `app.json`.
 
-## Building with EAS
+## Layout of the code
 
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
+- `src/logic` — money, totals, dates, monthly figures. No React. Fully tested.
+- `src/data` — types, the store (documents, customers, items, settings, backup), sample items.
+- `src/pdf/template.ts` — the quote/invoice page as HTML. Preview, print, PDF and image all use it.
+- `src/i18n` — English and Urdu text. Every string on screen comes from here.
+- `src/ui` — shared components. `T` picks the typeface from the words (Latin or Urdu script).
+- `src/screens` — one file per screen. `src/platform` — sharing, files, logo, contacts, preview.
+- `pc-preview` — the browser copy for testing on a PC, and the script that serves it.
 
-## Rules
+## Rules of the product
 
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+- Urdu is right-to-left. Use `paddingStart`/`marginEnd` style props, never left/right, and let rows
+  flip on their own. Amounts and document numbers always use the `latin` prop.
+- A user's data is never lost or locked: autosave on every edit, backup and restore stay free.
+- Documents are quotations and bills, not FBR tax invoices.
+- Not yet verified on a real phone: PDF sharing, image sharing, contact picking and Urdu text in
+  printed PDFs. Treat these as untested until someone runs the Android build.

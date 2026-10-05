@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# sync archive used when copying from the build workspace
+.sync/
+
+# built copy for testing on a PC; rebuilt by npm run build:web
+pc-preview/site/
