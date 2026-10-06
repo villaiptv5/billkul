@@ -1,5 +1,5 @@
 # Builds the signed app file (.aab) that is uploaded to Google Play.
-# Runs when a tag starting with "v" is pushed (for example v1.0.0-1), or on demand.
+# Runs when release/play-build.txt changes, or on demand from the Actions page.
 #
 # It needs two repository secrets (Settings > Secrets and variables > Actions):
 #   UPLOAD_KEYSTORE      the upload key file, as base64 text
@@ -11,7 +11,8 @@ name: Google Play build
 on:
   workflow_dispatch:
   push:
-    tags: ['v*']
+    branches: [main]
+    paths: ['release/play-build.txt']
 
 permissions:
   contents: write
@@ -23,7 +24,6 @@ jobs:
     env:
       UPLOAD_KEYSTORE: ${{ secrets.UPLOAD_KEYSTORE }}
       UPLOAD_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
-      KEY_FILE: ${{ runner.temp }}/upload.keystore
     steps:
       - uses: actions/checkout@v4
 
@@ -59,6 +59,8 @@ jobs:
 
       - name: Get the signing key
         run: |
+          KEY_FILE="$RUNNER_TEMP/upload.keystore"
+          echo "KEY_FILE=$KEY_FILE" >> "$GITHUB_ENV"
           if [ -n "$UPLOAD_KEYSTORE" ] && [ -n "$UPLOAD_KEY_PASSWORD" ]; then
             printf '%s' "$UPLOAD_KEYSTORE" | tr -d ' \r\n' | base64 -d > "$KEY_FILE"
             printf '%s' "$UPLOAD_KEY_PASSWORD" | tr -d '\r\n' > "$RUNNER_TEMP/key-password"

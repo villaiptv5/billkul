@@ -1,0 +1,4 @@
+Changing this file asks GitHub to make a signed app file for Google Play.
+Add one line per request, newest last.
+
+1  rehearsal, to prove the signed build works
