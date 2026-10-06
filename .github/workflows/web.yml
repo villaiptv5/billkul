@@ -1,0 +1,73 @@
+# Publishes the browser version of BillKul to the test address on every push to main:
+# https://billkul.smartcloud247.com (moves to billkul.app at public launch).
+#
+# It uploads by FTP to the owner's own hosting. Until the three repository secrets
+# FTP_SERVER, FTP_USERNAME and FTP_PASSWORD are set, the run does nothing and passes.
+# Optional repository variables: FTP_DIR (folder on the server, default ./) and
+# FTP_PROTOCOL (ftps or ftp, default ftps).
+name: Web version
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-version
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check that hosting details are set
+        id: check
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+        run: |
+          if [ -z "$FTP_SERVER" ]; then
+            echo "ready=no" >> "$GITHUB_OUTPUT"
+            echo "Hosting details are not set yet, so nothing was published."
+          else
+            echo "ready=yes" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.check.outputs.ready == 'yes'
+
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.ready == 'yes'
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install packages
+        if: steps.check.outputs.ready == 'yes'
+        run: npm ci
+
+      - name: Tests
+        if: steps.check.outputs.ready == 'yes'
+        run: npm test
+
+      - name: Build the browser version
+        if: steps.check.outputs.ready == 'yes'
+        run: |
+          npx expo export --platform web
+          node tools/make-preview.js
+
+      - name: Upload to the hosting
+        if: steps.check.outputs.ready == 'yes'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          local-dir: pc-preview/site/
+          server-dir: ${{ vars.FTP_DIR || './' }}
