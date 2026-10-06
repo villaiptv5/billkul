@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, Pressable, ScrollView, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { getLocales } from 'expo-localization';
 import { store, useAppState } from '../data/app';
 import type { BusinessType, Lang } from '../data/types';
@@ -36,7 +36,7 @@ function deviceCurrency() {
 }
 
 export function SetupScreen() {
-  const { t } = useLocale();
+  const { t, rtl } = useLocale();
   const { notify } = useDialogs();
   const settings = useAppState().settings;
   const [type, setType] = useState<BusinessType>('computer');
@@ -77,16 +77,12 @@ export function SetupScreen() {
   return (
     <Screen bg={C.surface}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 20, gap: 18 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        {/* The logo is never mirrored or translated: same order and same side in every language. */}
+        <View style={{ direction: 'ltr', flexDirection: 'row', alignItems: 'center', gap: 12 }} accessible accessibilityLabel="BillKul">
           <Image source={require('../../assets/icon.png')} style={{ width: 48, height: 48, borderRadius: 12 }} accessibilityIgnoresInvertColors />
-          <View style={{ flexDirection: 'row' }}>
-            <T size={24} w="bold" head latin>
-              Bill
-            </T>
-            <T size={24} w="bold" head latin color={C.greenDeep}>
-              Kul
-            </T>
-          </View>
+          <Text style={{ fontFamily: 'Sora_700Bold', fontSize: 24, lineHeight: 32, color: C.ink, writingDirection: 'ltr' }} testID="wordmark">
+            Bill<Text style={{ color: C.greenDeep }}>Kul</Text>
+          </Text>
         </View>
 
         <View style={{ gap: 6 }}>
@@ -153,9 +149,9 @@ export function SetupScreen() {
                   onPress={() => setType(item.value)}
                   testID={`type-${item.value}`}
                   style={{
-                    flexBasis: '31%',
+                    flexBasis: rtl ? '47%' : '31%',
                     flexGrow: 1,
-                    minHeight: 46,
+                    minHeight: rtl ? 52 : 46,
                     paddingHorizontal: 6,
                     borderRadius: 12,
                     borderWidth: on ? 2 : 1.5,

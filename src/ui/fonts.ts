@@ -44,6 +44,8 @@ export interface FontChoice {
   fontFamily: string;
   /** Nastaliq needs about twice the line height of Latin text or its strokes are cut off. */
   lineHeight: number;
+  /** Side room for Nastaliq, whose strokes reach past the width the phone measures for them. */
+  paddingHorizontal?: number;
 }
 
 const URDU_SCRIPT = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/;
@@ -61,7 +63,7 @@ export function pickFont(text: string, size: number, weight: Weight, opts: { hea
   if (opts.latin || !hasUrduScript(text)) return { fontFamily: latinFamily, lineHeight: Math.round(size * 1.35) };
   // A browser can mix faces within one line; the phone uses Nastaliq for the whole line.
   const fontFamily = Platform.OS === 'web' ? `${latinFamily}, ${URDU[weight]}` : URDU[weight];
-  return { fontFamily, lineHeight: Math.round(size * 2) };
+  return { fontFamily, lineHeight: Math.round(size * 2), paddingHorizontal: Math.max(4, Math.round(size * 0.3)) };
 }
 
 /** Plain text inside a React node, for choosing a face. */
