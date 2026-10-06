@@ -146,7 +146,7 @@ export function NumberField({ value, onChange, label, width = 104, height = 44, 
   );
 }
 
-export function SearchBox({ value, onChangeText, placeholder, autoFocus, tone = 'plain', testID }: { value: string; onChangeText: (t: string) => void; placeholder: string; autoFocus?: boolean; tone?: 'plain' | 'sunken'; testID?: string }) {
+export function SearchBox({ value, onChangeText, placeholder, autoFocus, tone = 'plain', testID, onSubmit }: { value: string; onChangeText: (t: string) => void; placeholder: string; autoFocus?: boolean; tone?: 'plain' | 'sunken'; testID?: string; onSubmit?: () => void }) {
   const { rtl } = useLocale();
   const [focused, setFocused] = useState(false);
   const font = pickFont(value || placeholder, 15, 'regular');
@@ -175,6 +175,8 @@ export function SearchBox({ value, onChangeText, placeholder, autoFocus, tone = 
         testID={testID}
         autoCapitalize="none"
         autoCorrect={false}
+        onSubmitEditing={onSubmit}
+        submitBehavior={onSubmit ? 'submit' : undefined}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         style={[

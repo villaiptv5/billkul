@@ -3,23 +3,22 @@ import { Image, Pressable, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { store, useAppState } from '../data/app';
 import type { Lang } from '../data/types';
-import { formatDayInline, formatTime, isoDate } from '../logic/dates';
 import { CURRENCIES, formatAmount } from '../logic/money';
 import { formatDocNumber } from '../logic/totals';
 import type { RootNav } from '../nav';
-import { pickBackupFile, saveBackupFile } from '../platform/files';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { Field, NumberField } from '../ui/Input';
-import { Card, Divider, Screen, Sheet, SheetScroll, TopBar, useDialogs } from '../ui/kit';
+import { Card, Divider, Screen, Sheet, SheetScroll, TopBar } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
+import { useBackupActions } from './backupActions';
 import { TaxSheet } from './EditorScreen';
 
-const APP_VERSION: string = require('../../app.json').expo.version;
+export const APP_VERSION: string = require('../../app.json').expo.version;
 
-function Row({ label, value, onPress, latinValue, testID }: { label: string; value?: string; onPress?: () => void; latinValue?: boolean; testID?: string }) {
+export function Row({ label, value, onPress, latinValue, testID }: { label: string; value?: string; onPress?: () => void; latinValue?: boolean; testID?: string }) {
   return (
     <Pressable accessibilityRole={onPress ? 'button' : undefined} onPress={onPress} disabled={!onPress} testID={testID} style={({ pressed }) => ({ minHeight: 52, paddingStart: 14, paddingEnd: 8, flexDirection: 'row', alignItems: 'center', gap: 8, opacity: pressed ? 0.6 : 1 })}>
       <View style={{ flex: 1 }}>
@@ -37,7 +36,7 @@ function Row({ label, value, onPress, latinValue, testID }: { label: string; val
   );
 }
 
-function Option({ label, selected, onPress, latin, testID }: { label: string; selected: boolean; onPress: () => void; latin?: boolean; testID?: string }) {
+export function Option({ label, selected, onPress, latin, testID }: { label: string; selected: boolean; onPress: () => void; latin?: boolean; testID?: string }) {
   return (
     <Pressable accessibilityRole="button" accessibilityState={{ selected }} onPress={onPress} testID={testID} style={{ minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: 1, borderBottomColor: C.lineSoft }}>
       <View style={{ flex: 1 }}>
@@ -52,37 +51,11 @@ function Option({ label, selected, onPress, latin, testID }: { label: string; se
 
 export function SettingsScreen() {
   const nav = useNavigation<RootNav>();
-  const { t, lang } = useLocale();
-  const { confirm, notify } = useDialogs();
+  const { t } = useLocale();
   const { settings } = useAppState();
   const [sheet, setSheet] = useState<'language' | 'currency' | 'tax' | 'numbers' | null>(null);
 
-  const backupWhen = settings.lastBackupAt
-    ? t('lastBackup', { when: `${formatDayInline(isoDate(new Date(settings.lastBackupAt)), lang)}, ${formatTime(settings.lastBackupAt, lang)}` })
-    : t('noBackupYet');
-
-  const saveBackup = async () => {
-    try {
-      const ok = await saveBackupFile(`BillKul-backup-${isoDate()}.json`, store.exportBackup());
-      if (ok) {
-        store.updateSettings({ lastBackupAt: new Date().toISOString() });
-        notify(t('backupSaved'));
-      }
-    } catch {
-      notify(t('shareFailed'));
-    }
-  };
-
-  const restore = async () => {
-    if (!(await confirm({ title: t('restoreTitle'), body: t('restoreBody'), confirmLabel: t('restore') }))) return;
-    try {
-      const json = await pickBackupFile();
-      if (json == null) return;
-      notify(store.importBackup(json) ? t('restoreDone') : t('restoreBad'));
-    } catch {
-      notify(t('restoreBad'));
-    }
-  };
+  const backup = useBackupActions();
 
   const taxValue = settings.taxPercent > 0 ? `${settings.taxLabel.trim() || t('tax')} ${formatAmount(settings.taxPercent)}%` : t('taxNotAdded');
 
@@ -131,7 +104,7 @@ export function SettingsScreen() {
                 {t('backup')}
               </T>
               <T size={13} color={C.onInkMuted} testID="backup-status">
-                {backupWhen}
+                {backup.status}
               </T>
             </View>
           </View>
@@ -139,8 +112,8 @@ export function SettingsScreen() {
             {t('backupExplain')}
           </T>
           <View style={{ gap: 8 }}>
-            <Button label={t('saveBackup')} icon="download" variant="onInk" onPress={saveBackup} testID="save-backup" />
-            <Button label={t('restoreBackup')} icon="upload" variant="onInkOutline" onPress={restore} testID="restore-backup" />
+            <Button label={t('saveBackup')} icon="download" variant="onInk" onPress={backup.saveBackup} testID="save-backup" />
+            <Button label={t('restoreBackup')} icon="upload" variant="onInkOutline" onPress={backup.restore} testID="restore-backup" />
           </View>
           <T size={13} color={C.mint}>
             {t('backupDriveSoon')}
@@ -174,7 +147,7 @@ export function SettingsScreen() {
   );
 }
 
-function NumbersSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+export function NumbersSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const { t } = useLocale();
   const settings = useAppState().settings;
   const [quotePrefix, setQuotePrefix] = useState(settings.quotePrefix);

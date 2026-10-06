@@ -1,12 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { store, useAppState } from '../data/app';
-import { uid } from '../data/store';
-import type { Customer, Doc, DocLine, Item } from '../data/types';
+import type { Customer, Item } from '../data/types';
 import { formatDate } from '../logic/dates';
 import { formatAmount, money } from '../logic/money';
-import { docTotals, lineTotal } from '../logic/totals';
+import { lineTotal } from '../logic/totals';
 import type { RootNav, RootParams } from '../nav';
 import { C } from '../theme';
 import { Button, IconButton } from '../ui/Button';
@@ -17,32 +16,19 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { CustomerPicker } from './CustomerPicker';
 import { showDoc } from './shared';
-
-export function matchItems(items: Item[], query: string, limit = 6): Item[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
-  const starts: Item[] = [];
-  const contains: Item[] = [];
-  for (const item of items) {
-    const name = item.name.toLowerCase();
-    if (name.startsWith(q)) starts.push(item);
-    else if (name.includes(q)) contains.push(item);
-  }
-  return [...starts, ...contains].slice(0, limit);
-}
+import { matchItems, useDocEditor } from './useDocEditor';
 
 export function EditorScreen() {
   const nav = useNavigation<RootNav>();
   const { docId } = useRoute<RouteProp<RootParams, 'Editor'>>().params;
   const { t, lang } = useLocale();
   const { notify } = useDialogs();
-  const { docs, items, settings } = useAppState();
-  const doc = docs.find((d) => d.id === docId);
+  const { items, settings } = useAppState();
+  const editor = useDocEditor(docId);
+  const doc = editor?.doc;
   const [query, setQuery] = useState('');
   const [pickingCustomer, setPickingCustomer] = useState(false);
   const [editingTax, setEditingTax] = useState(false);
-  // Items that had no price when this screen opened: the price typed here is saved to the price list too.
-  const pricing = useRef(new Set<string>());
 
   // A document opened and left blank is thrown away when the screen closes.
   useEffect(() => nav.addListener('beforeRemove', () => void store.discardIfEmpty(docId)), [nav, docId]);
@@ -51,35 +37,19 @@ export function EditorScreen() {
   }, [doc, nav]);
 
   const suggestions = useMemo(() => matchItems(items, query), [items, query]);
-  if (!doc) return null;
+  if (!editor || !doc) return null;
 
-  const totals = docTotals(doc);
-  const save = (patch: Partial<Doc>) => store.saveDoc({ ...doc, ...patch });
+  const { totals, save, changeLine } = editor;
   const name = query.trim();
   const exact = items.some((i) => i.name.toLowerCase() === name.toLowerCase());
 
   const addItem = (item: Item) => {
-    const existing = doc.lines.find((l) => l.itemId === item.id);
-    const lines = existing
-      ? doc.lines.map((l) => (l === existing ? { ...l, qty: l.qty + 1 } : l))
-      : [...doc.lines, { id: uid(), itemId: item.id, name: item.name, unit: item.unit, qty: 1, price: item.price }];
-    save({ lines });
+    editor.addItem(item);
     setQuery('');
   };
 
-  const changeLine = (line: DocLine, patch: Partial<DocLine>) => {
-    save({ lines: doc.lines.map((l) => (l.id === line.id ? { ...l, ...patch } : l)) });
-    if (patch.price !== undefined && line.itemId) {
-      const item = items.find((i) => i.id === line.itemId);
-      if (item && (!item.price || pricing.current.has(item.id))) {
-        pricing.current.add(item.id);
-        store.saveItem({ id: item.id, name: item.name, price: patch.price });
-      }
-    }
-  };
-
   const pickCustomer = (c: Customer) => {
-    save({ customerId: c.id, customerName: c.name, customerPhone: c.phone });
+    editor.pickCustomer(c);
     setPickingCustomer(false);
   };
 
@@ -172,7 +142,7 @@ export function EditorScreen() {
                 {!exact ? (
                   <Pressable
                     accessibilityRole="button"
-                    onPress={() => addItem(store.saveItem({ name, unit: '', price: 0 }))}
+                    onPress={() => { editor.addNewItem(name); setQuery(''); }}
                     testID="item-add-new"
                     style={{ minHeight: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}
                   >
@@ -225,7 +195,7 @@ export function EditorScreen() {
                           </T>
                         ) : null}
                       </View>
-                      <IconButton icon="trash" label={t('removeItem', { name: line.name })} color={C.muted} onPress={() => save({ lines: doc.lines.filter((l) => l.id !== line.id) })} testID={`remove-${i}`} />
+                      <IconButton icon="trash" label={t('removeItem', { name: line.name })} color={C.muted} onPress={() => editor.removeLine(line)} testID={`remove-${i}`} />
                     </View>
                   </View>
                 ))

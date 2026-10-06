@@ -212,6 +212,19 @@ export const en = {
   backupSaved: 'Backup file saved.',
   privacyPolicy: 'Privacy policy',
   version: 'Version',
+  // desktop layout
+  colNumber: 'Number',
+  colStatus: 'Status',
+  backToDocuments: 'Back to documents',
+  preferences: 'Preferences',
+  enterToAdd: 'Press Enter to add the first match.',
+  openInvoice: 'Open invoice {number}',
+  about: 'About',
+  backupExplainPc:
+    'Your work is kept in this browser, on this computer. Save a backup file and keep it somewhere safe, such as your Google Drive. To bring your data to another computer or to your phone, restore from that file there.',
+  restoreBodyPc: 'Everything in BillKul on this computer is replaced with the contents of the backup file.',
+  shopProfileOnDocs: 'This appears at the top of every quote and invoice.',
+  colDocuments: 'Documents',
   english: 'English',
   urdu: 'اردو',
 };

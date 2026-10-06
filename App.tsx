@@ -7,6 +7,7 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppState } from './src/data/app';
+import { DesktopApp } from './src/desktop/DesktopApp';
 import type { StringKey } from './src/i18n';
 import type { RootParams, TabParams } from './src/nav';
 import { CustomerEditScreen } from './src/screens/CustomerEditScreen';
@@ -24,6 +25,7 @@ import { C } from './src/theme';
 import { FONT_ASSETS } from './src/ui/fonts';
 import { Icon, type IconName } from './src/ui/Icon';
 import { DialogHost } from './src/ui/kit';
+import { useWide } from './src/ui/layout';
 import { useLocale } from './src/ui/locale';
 import { T } from './src/ui/T';
 
@@ -92,11 +94,23 @@ export default function App() {
   const [fontsReady] = useFonts(FONT_ASSETS);
   const { ready, settings } = useAppState();
 
-  // On a computer screen the app keeps a phone's width, centred, so it looks as it will on the phone.
+  // In a browser the app has two layouts: the desktop one on a wide window, and the phone one,
+  // kept at a phone's width and centred, on a narrow window.
   const { width } = useWindowDimensions();
+  const wide = useWide();
   const framed = Platform.OS === 'web' && width > PHONE_WIDTH + 40;
 
   if (!fontsReady || !ready) return <View style={{ flex: 1, backgroundColor: C.ink }} />;
+
+  if (wide) {
+    return (
+      <SafeAreaProvider>
+        <DialogHost>
+          <DesktopApp />
+        </DialogHost>
+      </SafeAreaProvider>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: framed ? '#06130E' : C.bg, alignItems: framed ? 'center' : 'stretch' }}>

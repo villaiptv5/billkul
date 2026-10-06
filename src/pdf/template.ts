@@ -33,11 +33,11 @@ body {
   font-size: 15px; line-height: 1.45; color: #0B1F17;
   -webkit-print-color-adjust: exact; print-color-adjust: exact;
 }
-html[lang="ur"] body { font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', 'Noto Naskh Arabic', serif; line-height: 2.1; }
+html[lang="ur"] body { font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Urdu Typesetting', 'Noto Naskh Arabic', 'Segoe UI', Tahoma, sans-serif; line-height: 2.1; }
 @media screen { body { padding: 12mm; } }
 .num, .latin { font-family: 'DM Sans', 'Segoe UI', Roboto, Arial, sans-serif; line-height: 1.45; direction: ltr; unicode-bidi: isolate; }
 .display { font-family: 'Sora', 'DM Sans', 'Segoe UI', Roboto, Arial, sans-serif; }
-html[lang="ur"] .display { font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif; }
+html[lang="ur"] .display { font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Segoe UI', Tahoma, sans-serif; }
 .muted { color: #51635A; }
 .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
 .shop { display: flex; align-items: center; gap: 14px; min-width: 0; }

@@ -202,6 +202,18 @@ export const ur: Strings = {
   backupSaved: 'بیک اپ فائل محفوظ ہو گئی۔',
   privacyPolicy: 'پرائیویسی پالیسی',
   version: 'ورژن',
+  colNumber: 'نمبر',
+  colStatus: 'حالت',
+  backToDocuments: 'دستاویزات پر واپس',
+  preferences: 'ترجیحات',
+  enterToAdd: 'پہلا نتیجہ شامل کرنے کے لیے Enter دبائیں۔',
+  openInvoice: 'انوائس {number} کھولیں',
+  about: 'ایپ کے بارے میں',
+  backupExplainPc:
+    'آپ کا کام اسی کمپیوٹر کے اسی براؤزر میں محفوظ ہے۔ بیک اپ فائل محفوظ کریں اور اسے کسی محفوظ جگہ رکھیں، جیسے اپنی گوگل ڈرائیو۔ اپنا ڈیٹا دوسرے کمپیوٹر یا فون پر لانے کے لیے وہاں اسی فائل سے بحال کریں۔',
+  restoreBodyPc: 'اس کمپیوٹر پر BillKul کا سارا ڈیٹا بیک اپ فائل کے ڈیٹا سے بدل جائے گا۔',
+  shopProfileOnDocs: 'یہ ہر کوٹیشن اور انوائس کے اوپر نظر آتا ہے۔',
+  colDocuments: 'دستاویزات',
   english: 'English',
   urdu: 'اردو',
 };

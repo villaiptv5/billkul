@@ -31,6 +31,12 @@ api.expo.dev, set `EXPO_OFFLINE=1` for expo commands.
   All reads and writes go through `src/data/store.ts`. Every change is saved at once (autosave).
 - **Phone and browser versions of a file.** `Name.tsx` is the phone version and `Name.web.tsx` the
   browser version (see `src/platform`). Keep both in step.
+- **Two layouts in the browser.** A window at least 1000 px wide gets the desktop layout
+  (`src/desktop`: sidebar, tables, editor with a live preview beside it). Narrower windows, and the
+  phone app, get the phone layout (`src/screens`). The widths are in `src/ui/layout.ts`. The desktop
+  layout has its own small router (`src/desktop/route.ts`) that mirrors the page in the address
+  after `#`, so Back, Forward and Reload work without the server knowing any paths. Logic shared by
+  both layouts lives in hooks (`useDocEditor`, `useBackupActions`), not in the screens.
 - **Android folders are generated.** Never create or edit `android/` or `ios/` by hand. Configure
   native behaviour in `app.json`.
 
@@ -41,7 +47,8 @@ api.expo.dev, set `EXPO_OFFLINE=1` for expo commands.
 - `src/pdf/template.ts` — the quote/invoice page as HTML. Preview, print, PDF and image all use it.
 - `src/i18n` — English and Urdu text. Every string on screen comes from here.
 - `src/ui` — shared components. `T` picks the typeface from the words (Latin or Urdu script).
-- `src/screens` — one file per screen. `src/platform` — sharing, files, logo, contacts, preview.
+- `src/screens` — the phone layout, one file per screen. `src/desktop` — the desktop layout, one
+  file per page. `src/platform` — sharing, files, logo, contacts, preview.
 - `pc-preview` — the browser copy for testing on a PC, and the script that serves it.
 
 ## Rules of the product

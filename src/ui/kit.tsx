@@ -5,6 +5,7 @@ import { STATUS_TONES, C } from '../theme';
 import type { DocStatus } from '../data/types';
 import type { StringKey } from '../i18n';
 import { Button, IconButton } from './Button';
+import { useWide } from './layout';
 import { useLocale } from './locale';
 import { T } from './T';
 
@@ -173,6 +174,27 @@ const SHEET_MAX_WIDTH = Platform.OS === 'web' ? 412 : 9999;
 export function Sheet({ visible, onClose, title, children, full }: { visible: boolean; onClose: () => void; title: string; children: React.ReactNode; full?: boolean }) {
   const insets = useSafeAreaInsets();
   const { rtl, t } = useLocale();
+  const wide = useWide();
+  if (wide) {
+    return (
+      <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32, backgroundColor: 'rgba(11,31,23,0.45)' }}>
+          <Pressable accessibilityLabel={t('close')} onPress={onClose} style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} />
+          <View style={{ width: '100%', maxWidth: 480, height: full ? '80%' : undefined, maxHeight: '88%', backgroundColor: C.surface, borderRadius: 20, paddingBottom: 16, direction: rtl ? 'rtl' : 'ltr' }}>
+            <View style={{ minHeight: 60, flexDirection: 'row', alignItems: 'center', paddingStart: 20, paddingEnd: 8 }}>
+              <View style={{ flex: 1 }}>
+                <T size={17} w="semibold" head accessibilityRole="header">
+                  {title}
+                </T>
+              </View>
+              <IconButton icon="close" label={t('close')} onPress={onClose} testID="sheet-close" />
+            </View>
+            {children}
+          </View>
+        </View>
+      </Modal>
+    );
+  }
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1, justifyContent: 'flex-end', alignItems: 'center', backgroundColor: 'rgba(11,31,23,0.45)' }}>
