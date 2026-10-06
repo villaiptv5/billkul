@@ -195,29 +195,52 @@ describe('backup with the books', () => {
   });
 });
 
-import { profitReport, stockValue } from '../src/logic/profit';
+import { salesReport } from '../src/logic/sales';
 
-describe('profit and loss', () => {
-  const report = (month = '2026-10') => profitReport(store.getState().docs, store.getState().items, rows(), month);
+describe('sales report', () => {
+  const report = (period = '2026-10') => salesReport(store.getState().docs, store.getState().items, period);
 
-  function sell(lines: { itemId: string; name: string; qty: number; price: number; cost?: number }[], extra: { discount?: number; taxPercent?: number; date?: string } = {}) {
+  function sell(lines: { itemId: string; name: string; qty: number; price: number; cost?: number }[], extra: { discount?: number; taxPercent?: number; date?: string; customer?: string } = {}) {
     const doc = store.createDoc('invoice', extra.date ?? '2026-10-06');
-    const saved = store.saveDoc({ ...doc, discount: extra.discount ?? 0, taxPercent: extra.taxPercent ?? 0, lines: lines.map((l, i) => ({ id: `l${i}`, unit: '', ...l })) });
+    const saved = store.saveDoc({ ...doc, customerName: extra.customer ?? '', discount: extra.discount ?? 0, taxPercent: extra.taxPercent ?? 0, lines: lines.map((l, i) => ({ id: `l${i}`, unit: '', ...l })) });
     store.markSent(saved.id);
     return saved;
   }
 
-  it('is the sale price less the purchase price, for what was sold', () => {
+  it('counts what sold and the profit on it: sale price less purchase price', () => {
     const ssd = store.saveItem({ name: 'SSD 256 GB', price: 7800, cost: 6000 });
     sell([{ itemId: ssd.id, name: ssd.name, qty: 3, price: 7800, cost: 6000 }]);
-    expect(report()).toMatchObject({ sales: 23400, cost: 18000, gross: 5400, expenses: 0, net: 5400 });
-    expect(report().byItem).toEqual([{ key: ssd.id, name: 'SSD 256 GB', qty: 3, sales: 23400, cost: 18000, profit: 5400 }]);
+    expect(report()).toMatchObject({ invoices: 1, qty: 3, sales: 23400, profit: 5400 });
+    expect(report().byItem).toEqual([{ key: ssd.id, label: 'SSD 256 GB', detail: '', qty: 3, sales: 23400, profit: 5400, invoices: 0 }]);
   });
 
   it('shows a loss when an item sells below its purchase price', () => {
     const ram = store.saveItem({ name: 'RAM', price: 6500, cost: 7000 });
     sell([{ itemId: ram.id, name: 'RAM', qty: 2, price: 6500, cost: 7000 }]);
-    expect(report().gross).toBe(-1000);
+    expect(report().profit).toBe(-1000);
+  });
+
+  it('gives one day or a whole month, with the month broken down day by day', () => {
+    const mouse = store.saveItem({ name: 'Mouse', price: 900, cost: 600 });
+    sell([{ itemId: mouse.id, name: 'Mouse', qty: 2, price: 900, cost: 600 }], { date: '2026-10-05' });
+    sell([{ itemId: mouse.id, name: 'Mouse', qty: 1, price: 900, cost: 600 }], { date: '2026-10-06' });
+    sell([{ itemId: mouse.id, name: 'Mouse', qty: 4, price: 900, cost: 600 }], { date: '2026-10-06' });
+    sell([{ itemId: mouse.id, name: 'Mouse', qty: 9, price: 900, cost: 600 }], { date: '2026-09-30' });
+    expect(report('2026-10-06')).toMatchObject({ invoices: 2, qty: 5, sales: 4500, profit: 1500 });
+    expect(report('2026-10-05')).toMatchObject({ invoices: 1, qty: 2, sales: 1800, profit: 600 });
+    expect(report('2026-10-04')).toMatchObject({ invoices: 0, qty: 0, sales: 0, profit: 0 });
+    const month = report('2026-10');
+    expect(month).toMatchObject({ invoices: 3, qty: 7, sales: 6300, profit: 2100 });
+    expect(month.byDay.map((d) => [d.label, d.invoices, d.qty, d.sales, d.profit])).toEqual([
+      ['2026-10-06', 2, 5, 4500, 1500],
+      ['2026-10-05', 1, 2, 1800, 600],
+    ]);
+  });
+
+  it('lists the invoices of the period with the profit on each', () => {
+    const mouse = store.saveItem({ name: 'Mouse', price: 900, cost: 600 });
+    const first = sell([{ itemId: mouse.id, name: 'Mouse', qty: 2, price: 900, cost: 600 }], { customer: 'Bilal Traders' });
+    expect(report('2026-10-06').byInvoice).toEqual([{ key: first.id, label: 'INV-0001', detail: 'Bilal Traders', qty: 2, sales: 1800, profit: 600, invoices: 1 }]);
   });
 
   it('takes the invoice discount off the profit and leaves tax out', () => {
@@ -226,33 +249,31 @@ describe('profit and loss', () => {
     sell([{ itemId: a.id, name: 'A', qty: 1, price: 800, cost: 600 }, { itemId: b.id, name: 'B', qty: 1, price: 200, cost: 100 }], { discount: 100, taxPercent: 17 });
     const r = report();
     expect(r.sales).toBe(900);
-    expect(r.gross).toBe(200);
-    expect(r.byItem.map((i) => [i.name, i.sales, i.profit])).toEqual([['A', 720, 120], ['B', 180, 80]]);
+    expect(r.profit).toBe(200);
+    expect(r.byItem.map((i) => [i.label, i.sales, i.profit])).toEqual([['A', 720, 120], ['B', 180, 80]]);
   });
 
-  it('counts only issued invoices dated in the month', () => {
+  it('counts only issued invoices: not drafts, not quotes', () => {
     const item = store.saveItem({ name: 'Mouse', price: 900, cost: 600 });
     const draft = store.createDoc('invoice', '2026-10-06');
     store.saveDoc({ ...draft, lines: [{ id: 'l', itemId: item.id, name: 'Mouse', unit: '', qty: 5, price: 900, cost: 600 }] });
     const quote = store.createDoc('quote', '2026-10-06');
     store.saveDoc({ ...quote, lines: [{ id: 'l', itemId: item.id, name: 'Mouse', unit: '', qty: 5, price: 900, cost: 600 }] });
     store.markSent(quote.id);
-    sell([{ itemId: item.id, name: 'Mouse', qty: 1, price: 900, cost: 600 }], { date: '2026-09-30' });
-    expect(report().sales).toBe(0);
-    expect(report('2026-09').gross).toBe(300);
+    expect(report()).toMatchObject({ invoices: 0, sales: 0, profit: 0 });
   });
 
   it('keeps the purchase price an invoice was sold at when the price changes later', () => {
     const ssd = store.saveItem({ name: 'SSD', price: 7800, cost: 6000 });
     sell([{ itemId: ssd.id, name: 'SSD', qty: 1, price: 7800, cost: 6000 }]);
     store.saveItem({ id: ssd.id, name: 'SSD', cost: 7000 });
-    expect(report().gross).toBe(1800);
+    expect(report().profit).toBe(1800);
   });
 
   it('uses the purchase price of today for invoices written before purchase prices existed', () => {
     const ssd = store.saveItem({ name: 'SSD', price: 7800, cost: 6000 });
     sell([{ itemId: ssd.id, name: 'SSD', qty: 2, price: 7800 }]);
-    expect(report().cost).toBe(12000);
+    expect(report().profit).toBe(3600);
   });
 
   it('treats a service with no purchase price as all profit, and names goods that are missing one', () => {
@@ -260,25 +281,14 @@ describe('profit and loss', () => {
     const cable = store.saveItem({ name: 'Cable', price: 300, trackStock: true });
     sell([{ itemId: install.id, name: install.name, qty: 1, price: 1500 }, { itemId: cable.id, name: 'Cable', qty: 2, price: 300 }]);
     const r = report();
-    expect(r.gross).toBe(2100);
+    expect(r.profit).toBe(2100);
     expect(r.missingCost).toEqual(['Cable']);
   });
 
-  it('takes shop expenses off for the net profit, but not stock bought or personal spending', () => {
-    const ssd = store.saveItem({ name: 'SSD', price: 7800, cost: 6000 });
-    store.addStock(ssd.id, 10, { cost: 60000, unitCost: 6000, date: '2026-10-01' });
-    sell([{ itemId: ssd.id, name: 'SSD', qty: 5, price: 7800, cost: 6000 }]);
-    store.saveCash({ kind: 'out', amount: 4000, category: 'rent', date: '2026-10-02' });
-    store.saveCash({ kind: 'out', amount: 2500, category: 'personal', date: '2026-10-02' });
-    expect(report()).toMatchObject({ gross: 9000, expenses: 4000, net: 5000 });
-  });
-
-  it('sets the purchase price from the last stock bought, and values the shelf at it', () => {
+  it('sets the purchase price from the last stock bought', () => {
     const ssd = store.saveItem({ name: 'SSD', price: 7800 });
     store.addStock(ssd.id, 10, { unitCost: 6200 });
     expect(store.getState().items[0].cost).toBe(6200);
-    const s = store.getState();
-    expect(stockValue(s.items, stockLevels(s.items, s.stockMoves, s.docs))).toBe(62000);
   });
 
   it('reads the purchase price again when a quote becomes an invoice', () => {
@@ -288,31 +298,25 @@ describe('profit and loss', () => {
     store.saveItem({ id: ssd.id, name: 'SSD', cost: 6500 });
     const invoice = store.convertToInvoice(quote.id, '2026-10-06');
     expect(invoice?.lines[0].cost).toBe(6500);
-    expect(report().gross).toBe(1300);
+    expect(report().profit).toBe(1300);
   });
-});
 
-describe('profit rounding', () => {
-  it('keeps the total exact when a discount does not divide evenly between lines', () => {
+  it('keeps the totals exact when a discount does not divide evenly between lines', () => {
     const a = store.saveItem({ name: 'A', cost: 6000 });
     const b = store.saveItem({ name: 'B', cost: 7000 });
     const c = store.saveItem({ name: 'C', cost: 3400 });
-    const doc = store.createDoc('invoice', '2026-10-06');
-    store.saveDoc({
-      ...doc,
-      discount: 1000,
-      lines: [
-        { id: '1', itemId: a.id, name: 'A', unit: '', qty: 3, price: 7800, cost: 6000 },
-        { id: '2', itemId: b.id, name: 'B', unit: '', qty: 1, price: 6500, cost: 7000 },
-        { id: '3', itemId: c.id, name: 'C', unit: '', qty: 2, price: 4200, cost: 3400 },
-        { id: '4', itemId: '', name: 'Service', unit: '', qty: 1, price: 1500 },
+    sell(
+      [
+        { itemId: a.id, name: 'A', qty: 3, price: 7800, cost: 6000 },
+        { itemId: b.id, name: 'B', qty: 1, price: 6500, cost: 7000 },
+        { itemId: c.id, name: 'C', qty: 2, price: 4200, cost: 3400 },
+        { itemId: '', name: 'Service', qty: 1, price: 1500 },
       ],
-    });
-    store.markSent(doc.id);
-    const r = profitReport(store.getState().docs, store.getState().items, rows(), '2026-10');
+      { discount: 1000 },
+    );
+    const r = report();
     expect(r.sales).toBe(38800);
-    expect(r.gross).toBe(7000);
-    expect(Math.round(r.byItem.reduce((sum, i) => sum + i.sales, 0) * 100) / 100).toBe(38800);
-    expect(Math.round(r.byItem.reduce((sum, i) => sum + i.profit, 0) * 100) / 100).toBe(7000);
+    expect(r.profit).toBe(7000);
+    expect(r.byDay[0]).toMatchObject({ sales: 38800, profit: 7000 });
   });
 });

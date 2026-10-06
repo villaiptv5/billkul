@@ -19,7 +19,7 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { ItemEditScreen } from './src/screens/ItemEditScreen';
 import { ItemsScreen } from './src/screens/ItemsScreen';
 import { PreviewScreen } from './src/screens/PreviewScreen';
-import { ProfitScreen } from './src/screens/profit';
+import { SalesScreen } from './src/screens/sales';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SetupScreen } from './src/screens/SetupScreen';
 import { ShopProfileScreen } from './src/screens/ShopProfileScreen';
@@ -129,7 +129,7 @@ export default function App() {
                 <Stack.Screen name="CustomerEdit" component={CustomerEditScreen} />
                 <Stack.Screen name="ItemEdit" component={ItemEditScreen} />
                 <Stack.Screen name="Settings" component={SettingsScreen} />
-                <Stack.Screen name="Profit" component={ProfitScreen} />
+                <Stack.Screen name="Sales" component={SalesScreen} />
                 <Stack.Screen name="ShopProfile" component={ShopProfileScreen} />
               </>
             ) : (

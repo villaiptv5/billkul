@@ -18,7 +18,7 @@ export type RootParams = {
   CustomerEdit: { id?: string } | undefined;
   ItemEdit: { id?: string } | undefined;
   Settings: undefined;
-  Profit: undefined;
+  Sales: undefined;
   ShopProfile: undefined;
 };
 

@@ -44,8 +44,8 @@ api.expo.dev, set `EXPO_OFFLINE=1` for expo commands.
   Only what is typed by hand is stored: cash entries and stock put in or corrected.
 - **Purchase price and profit.** An item has a sale price (`price`) and a purchase price (`cost`).
   A line copies the purchase price when it is added (`DocLine.cost`), so later price changes do not
-  rewrite past profit. `src/logic/profit.ts` works the report out from issued invoices; the purchase
-  price is never printed or shown to the customer.
+  rewrite past profit. `src/logic/sales.ts` works the sales report out from issued invoices, for a
+  day or a month; the purchase price is never printed or shown to the customer.
 - **Android folders are generated.** Never create or edit `android/` or `ios/` by hand. Configure
   native behaviour in `app.json`.
 

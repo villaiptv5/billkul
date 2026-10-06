@@ -9,7 +9,7 @@ import { docTotals } from '../logic/totals';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
 import { useCashBook, useStock } from '../screens/books';
-import { useMonthProfit } from '../screens/profit';
+import { useMonthSales } from '../screens/sales';
 import { Icon } from '../ui/Icon';
 import { Empty, StatusPill } from '../ui/kit';
 import { useLocale } from '../ui/locale';
@@ -49,7 +49,7 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
   const recent = useMemo(() => sortDocs(docs).slice(0, 8), [docs]);
   const book = useCashBook();
   const { low } = useStock();
-  const profit = useMonthProfit();
+  const sales = useMonthSales();
 
   return (
     <View style={{ gap: 20 }}>
@@ -64,7 +64,7 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
         <Stat label={t('cashInHand')} value={book.inHand} symbol={settings.currency.symbol} color={book.inHand < 0 ? C.orange : C.ink} onPress={() => go({ page: 'cash' })} testID="home-cash" />
-        <Stat label={`${t(profit.gross < 0 ? 'lossOnSales' : 'profitOnSales')} · ${t('thisMonth')}`} value={Math.abs(profit.gross)} symbol={settings.currency.symbol} color={profit.gross < 0 ? C.danger : C.greenText} onPress={() => go({ page: 'profit' })} testID="home-profit" />
+        <Stat label={`${t(sales.profit < 0 ? 'lossOnSales' : 'profitOnSales')} · ${t('thisMonth')}`} value={Math.round(Math.abs(sales.profit))} symbol={settings.currency.symbol} color={sales.profit < 0 ? C.danger : C.greenText} onPress={() => go({ page: 'sales' })} testID="home-profit" />
         {low.length ? (
           <Pressable accessibilityRole="link" onPress={() => go({ page: 'items' })} testID="home-low-stock" style={{ flexGrow: 2, flexBasis: 416 }}>
             <View style={{ flex: 1, borderRadius: 16, borderWidth: 1, borderColor: '#F3C9A4', backgroundColor: '#FFF4E8', paddingHorizontal: 20, paddingVertical: 16, gap: 6, justifyContent: 'center' }}>

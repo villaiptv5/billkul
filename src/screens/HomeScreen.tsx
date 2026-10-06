@@ -17,7 +17,7 @@ import { Card, Empty } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { useCashBook, useStock } from './books';
-import { useMonthProfit } from './profit';
+import { useMonthSales } from './sales';
 import { DocRow, openDoc } from './shared';
 
 function Stat({ label, value, symbol, color = C.onInk, onPress, testID }: { label: string; value: number; symbol: string; color?: string; onPress?: () => void; testID?: string }) {
@@ -55,7 +55,7 @@ export function HomeScreen() {
   const recent = useMemo(() => sortDocs(docs).slice(0, 4), [docs]);
   const book = useCashBook();
   const { low } = useStock();
-  const profit = useMonthProfit();
+  const sales = useMonthSales();
 
   const create = (type: DocType) => {
     const doc = store.createDoc(type);
@@ -109,7 +109,7 @@ export function HomeScreen() {
 
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Stat label={t('cashInHand')} value={book.inHand} symbol={settings.currency.symbol} color={book.inHand < 0 ? C.orangeOnInk : C.onInk} onPress={() => nav.navigate('Tabs', { screen: 'Cash' })} testID="home-cash" />
-            <Stat label={t(profit.gross < 0 ? 'lossOnSales' : 'profitOnSales')} value={Math.abs(profit.gross)} symbol={settings.currency.symbol} color={profit.gross < 0 ? C.orangeOnInk : C.green} onPress={() => nav.navigate('Profit')} testID="home-profit" />
+            <Stat label={t(sales.profit < 0 ? 'lossOnSales' : 'profitOnSales')} value={Math.round(Math.abs(sales.profit))} symbol={settings.currency.symbol} color={sales.profit < 0 ? C.orangeOnInk : C.green} onPress={() => nav.navigate('Sales')} testID="home-profit" />
           </View>
         </View>
 
