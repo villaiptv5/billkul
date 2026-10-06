@@ -45,6 +45,8 @@ while ($listener.IsListening) {
         if ([string]::IsNullOrEmpty($relative)) { $relative = 'index.html' }
         $file = [IO.Path]::GetFullPath((Join-Path $root $relative))
         $inside = $file.StartsWith($root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)
+        # A folder such as privacy/ shows its own index.html.
+        if ($inside -and (Test-Path $file -PathType Container)) { $file = Join-Path $file 'index.html' }
         if (-not $inside -or -not (Test-Path $file -PathType Leaf)) {
             $file = Join-Path $root 'index.html'
         }

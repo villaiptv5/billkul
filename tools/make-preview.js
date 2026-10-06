@@ -71,4 +71,26 @@ body { overflow: hidden; }
 `,
 );
 
+// 4. Plain pages that sit beside the app, such as the privacy policy at privacy/.
+//    %ASSET:name% becomes the path of that font or image in a/.
+const site = JSON.parse(fs.readFileSync(path.join(root, 'web', 'site.json'), 'utf8'));
+const assetNames = assets.map((file) => path.basename(file));
+function fillPage(html) {
+  return html
+    .replace(/%ASSET:([A-Za-z0-9_]+)%/g, (_, name) => {
+      const file = assetNames.find((f) => f.startsWith(`${name}.`) && !/@\dx\./.test(f));
+      if (!file) throw new Error(`No asset called ${name}`);
+      return `../a/${file}`;
+    })
+    .replace(/%DATE%/g, site.policyDate)
+    .replace(
+      /%CONTACT%/g,
+      site.contactEmail
+        ? `Questions about this policy or about your data: <a href="mailto:${site.contactEmail}">${site.contactEmail}</a>.`
+        : "Questions about this policy or about your data: write to the developer email address shown on BillKul's page on Google Play.",
+    );
+}
+fs.mkdirSync(path.join(out, 'privacy'), { recursive: true });
+fs.writeFileSync(path.join(out, 'privacy', 'index.html'), fillPage(fs.readFileSync(path.join(root, 'web', 'privacy.html'), 'utf8')));
+
 console.log(`pc-preview/site is ready: ${assets.length} assets, ${rewritten} paths rewritten, script ${(js.length / 1024).toFixed(0)} KB.`);

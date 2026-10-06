@@ -96,31 +96,32 @@ export function CustomersScreen() {
                 <T size={15} w="semibold" numberOfLines={1}>
                   {item.name}
                 </T>
-                <View style={{ flexDirection: 'row', gap: 5 }}>
-                  {item.phone ? (
-                    <T size={13} color={C.muted} latin>
-                      {item.phone}
-                    </T>
-                  ) : null}
-                  <T size={13} color={C.muted}>
-                    {item.phone ? `· ${countText}` : countText}
-                  </T>
-                </View>
-              </View>
-              {due > 0 ? (
-                <View style={{ alignItems: 'flex-end', gap: 1 }}>
-                  <T size={12} w="semibold" color={C.orange}>
-                    {t('due')}
-                  </T>
-                  <T size={15} w="semibold" latin color={C.orange}>
-                    {money(due, settings.currency)}
-                  </T>
-                </View>
-              ) : (
-                <T size={13} color={C.muted}>
-                  {t('nothingDue')}
+                <T size={13} color={C.muted} latin={!!item.phone} numberOfLines={1}>
+                  {item.phone || countText}
                 </T>
-              )}
+              </View>
+              {/* The count sits on the right so the phone number is never squeezed on a narrow phone. */}
+              <View style={{ alignItems: 'flex-end', gap: 1 }}>
+                {item.phone ? (
+                  <T size={13} color={C.muted}>
+                    {countText}
+                  </T>
+                ) : null}
+                {due > 0 ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 5 }}>
+                    <T size={12.5} w="semibold" color={C.orange}>
+                      {t('due')}
+                    </T>
+                    <T size={14.5} w="semibold" latin color={C.orange}>
+                      {money(due, settings.currency)}
+                    </T>
+                  </View>
+                ) : (
+                  <T size={12.5} color={C.muted}>
+                    {t('nothingDue')}
+                  </T>
+                )}
+              </View>
             </Pressable>
           );
         }}

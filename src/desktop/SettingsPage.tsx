@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Image, Pressable, View } from 'react-native';
+import { Image, Linking, Pressable, View } from 'react-native';
+import { PRIVACY_URL } from '../config';
 import { store, useAppState } from '../data/app';
 import type { Lang } from '../data/types';
 import { CURRENCIES, formatAmount } from '../logic/money';
@@ -124,6 +125,8 @@ export function SettingsPage() {
           </View>
 
           <Panel>
+            <Row label={t('privacyPolicy')} onPress={() => void Linking.openURL(PRIVACY_URL)} testID="row-privacy" />
+            <Divider />
             <Row label={t('version')} value={APP_VERSION} latinValue />
           </Panel>
         </View>

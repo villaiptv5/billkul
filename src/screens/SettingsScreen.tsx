@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { PRIVACY_URL } from '../config';
 import { store, useAppState } from '../data/app';
 import type { Lang } from '../data/types';
 import { CURRENCIES, formatAmount } from '../logic/money';
@@ -121,6 +122,8 @@ export function SettingsScreen() {
         </View>
 
         <Card>
+          <Row label={t('privacyPolicy')} onPress={() => void Linking.openURL(PRIVACY_URL)} testID="row-privacy" />
+          <Divider />
           <Row label={t('version')} value={APP_VERSION} latinValue />
         </Card>
       </ScrollView>
