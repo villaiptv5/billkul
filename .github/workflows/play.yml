@@ -1,0 +1,117 @@
+# Builds the signed app file (.aab) that is uploaded to Google Play.
+# Runs when a tag starting with "v" is pushed (for example v1.0.0-1), or on demand.
+#
+# It needs two repository secrets (Settings > Secrets and variables > Actions):
+#   UPLOAD_KEYSTORE      the upload key file, as base64 text
+#   UPLOAD_KEY_PASSWORD  the password of that key file
+# Without them the run is a rehearsal: it signs with a throwaway key to prove the
+# build works, and publishes nothing.
+name: Google Play build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      UPLOAD_KEYSTORE: ${{ secrets.UPLOAD_KEYSTORE }}
+      UPLOAD_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
+      KEY_FILE: ${{ runner.temp }}/upload.keystore
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install packages
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      # Google Play needs a higher number on every upload; the run number always goes up.
+      - name: Set the version number
+        run: |
+          node -e "
+            const fs = require('fs');
+            const app = JSON.parse(fs.readFileSync('app.json', 'utf8'));
+            app.expo.android.versionCode = Number(process.env.GITHUB_RUN_NUMBER);
+            fs.writeFileSync('app.json', JSON.stringify(app, null, 2));
+            console.log('Version', app.expo.version, 'build', app.expo.android.versionCode);
+          "
+
+      - name: Get the signing key
+        run: |
+          if [ -n "$UPLOAD_KEYSTORE" ] && [ -n "$UPLOAD_KEY_PASSWORD" ]; then
+            printf '%s' "$UPLOAD_KEYSTORE" | tr -d ' \r\n' | base64 -d > "$KEY_FILE"
+            printf '%s' "$UPLOAD_KEY_PASSWORD" | tr -d '\r\n' > "$RUNNER_TEMP/key-password"
+            echo "REAL=yes" >> "$GITHUB_ENV"
+          else
+            printf 'rehearsal-only' > "$RUNNER_TEMP/key-password"
+            keytool -genkeypair -noprompt -storetype PKCS12 -keystore "$KEY_FILE" -alias upload \
+              -keyalg RSA -keysize 2048 -validity 30 -dname "CN=BillKul rehearsal" \
+              -storepass:file "$RUNNER_TEMP/key-password"
+            echo "REAL=no" >> "$GITHUB_ENV"
+            echo "::notice::Rehearsal: the signing secrets are not set, so this run signs with a throwaway key and publishes nothing."
+          fi
+          keytool -list -v -keystore "$KEY_FILE" -alias upload -storepass:file "$RUNNER_TEMP/key-password" \
+            | grep 'SHA256:' | tr -d ' \t' > "$RUNNER_TEMP/key-fingerprint"
+
+      - name: Generate the Android project
+        run: npx expo prebuild --platform android --no-install
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build and sign the app file
+        working-directory: android
+        run: |
+          PASSWORD="$(cat "$RUNNER_TEMP/key-password")"
+          ./gradlew bundleRelease --no-daemon \
+            -Pandroid.injected.signing.store.file="$KEY_FILE" \
+            -Pandroid.injected.signing.store.password="$PASSWORD" \
+            -Pandroid.injected.signing.key.alias=upload \
+            -Pandroid.injected.signing.key.password="$PASSWORD"
+
+      - name: Check the signature
+        run: |
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          ls -la "$AAB"
+          keytool -printcert -jarfile "$AAB" | grep 'SHA256:' | tr -d ' \t' > "$RUNNER_TEMP/aab-fingerprint"
+          if ! diff "$RUNNER_TEMP/key-fingerprint" "$RUNNER_TEMP/aab-fingerprint"; then
+            echo "::error::The app file is not signed with the upload key."
+            exit 1
+          fi
+          echo "Signed with the upload key: $(cat "$RUNNER_TEMP/aab-fingerprint")"
+
+      - name: Remove the signing key
+        if: always()
+        run: rm -f "$KEY_FILE" "$RUNNER_TEMP/key-password"
+
+      - name: Publish the app file
+        if: env.REAL == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          AAB="BillKul-play-${{ github.run_number }}.aab"
+          cp android/app/build/outputs/bundle/release/app-release.aab "$AAB"
+          gh release create "play-${{ github.run_number }}" "$AAB" \
+            --prerelease \
+            --title "Google Play build ${{ github.run_number }}" \
+            --notes "Signed app file for Google Play (build number ${{ github.run_number }}). Upload this .aab in Play Console. It cannot be installed on a phone directly; use the test builds for that."
