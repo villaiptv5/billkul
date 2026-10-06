@@ -6,7 +6,7 @@ import { useLocale } from './locale';
 export type IconName =
   | 'home' | 'file' | 'users' | 'box' | 'sliders' | 'plus' | 'search' | 'chevron' | 'back' | 'check'
   | 'cloudCheck' | 'cloudUp' | 'cloudOff' | 'chat' | 'printer' | 'image' | 'download' | 'upload' | 'pencil'
-  | 'close' | 'trash' | 'more' | 'user' | 'wallet' | 'moneyIn' | 'moneyOut' | 'alert';
+  | 'close' | 'trash' | 'more' | 'user' | 'wallet' | 'moneyIn' | 'moneyOut' | 'alert' | 'chart';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   home: (<><Path d="M3 11l9-8 9 8" /><Path d="M5 10v10h14V10" /></>),
@@ -35,6 +35,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
   wallet: (<><Path d="M19 8V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-2" /><Path d="M21 10h-5a2 2 0 000 4h5z" /></>),
   moneyIn: <Path d="M17 7L7 17M7 9v8h8" />,
   moneyOut: <Path d="M7 17L17 7M9 7h8v8" />,
+  chart: <Path d="M5 20v-8M12 20V5M19 20v-11M3 20h18" />,
   alert: (<><Path d="M12 4l9 16H3z" /><Path d="M12 10v4.5M12 17.2v.1" /></>),
 };
 

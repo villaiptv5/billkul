@@ -17,18 +17,20 @@ import { DocumentsPage } from './DocumentsPage';
 import { EditorPage } from './EditorPage';
 import { HomePage } from './HomePage';
 import { ItemsPage } from './ItemsPage';
+import { ProfitPage } from './ProfitPage';
 import { DeskContext, fromHash, toHash, type Desk, type Route } from './route';
 import { SettingsPage } from './SettingsPage';
 
 const SIDEBAR_WIDTH = 248;
 const RAIL_WIDTH = 88;
 
-type NavPage = 'home' | 'documents' | 'cash' | 'customers' | 'items' | 'settings';
+type NavPage = 'home' | 'documents' | 'cash' | 'profit' | 'customers' | 'items' | 'settings';
 
 const NAV: { page: NavPage; icon: IconName; label: StringKey }[] = [
   { page: 'home', icon: 'home', label: 'tabHome' },
   { page: 'documents', icon: 'file', label: 'tabDocuments' },
   { page: 'cash', icon: 'wallet', label: 'cashBook' },
+  { page: 'profit', icon: 'chart', label: 'profit' },
   { page: 'customers', icon: 'users', label: 'tabCustomers' },
   { page: 'items', icon: 'box', label: 'tabItems' },
   { page: 'settings', icon: 'sliders', label: 'tabSettings' },
@@ -127,11 +129,12 @@ function Sidebar({ route, go, onNew, rail }: { route: Route; go: (r: Route) => v
         </View>
       )}
 
-      <View style={{ gap: 4, flex: 1 }}>
+      {/* The list scrolls by itself, so every page stays in reach on a short screen. */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 4 }} showsVerticalScrollIndicator={false}>
         {NAV.map((item) => (
           <NavItem key={item.page} icon={item.icon} label={t(rail && item.page === 'cash' ? 'tabCash' : item.label)} active={current === item.page} rail={rail} onPress={() => open(item.page)} testID={`nav-${item.page}`} />
         ))}
-      </View>
+      </ScrollView>
 
       <Pressable
         accessibilityRole="link"
@@ -235,6 +238,9 @@ export function DesktopApp() {
         break;
       case 'cash':
         page = <CashPage />;
+        break;
+      case 'profit':
+        page = <ProfitPage />;
         break;
       case 'customers':
         page = <CustomersPage />;

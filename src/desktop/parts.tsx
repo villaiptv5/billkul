@@ -8,7 +8,7 @@ import { Button } from '../ui/Button';
 import { Field, NumberField } from '../ui/Input';
 import { Chip, Sheet, SheetScroll, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
-import { saveItemForm, StockFields } from '../screens/books';
+import { PriceFields, saveItemForm, StockFields } from '../screens/books';
 import { T } from '../ui/T';
 
 /** Page title with its actions on the far side. */
@@ -152,6 +152,7 @@ export function ItemDialog({ visible, item, onClose }: { visible: boolean; item?
   const [name, setName] = useState('');
   const [unit, setUnit] = useState('');
   const [price, setPrice] = useState(0);
+  const [cost, setCost] = useState(0);
   const [track, setTrack] = useState(false);
   const [opening, setOpening] = useState(0);
   const [lowAt, setLowAt] = useState(0);
@@ -162,6 +163,7 @@ export function ItemDialog({ visible, item, onClose }: { visible: boolean; item?
       setName(item?.name ?? '');
       setUnit(item?.unit ?? '');
       setPrice(item?.price ?? 0);
+      setCost(item?.cost ?? 0);
       setTrack(item?.trackStock ?? false);
       setOpening(0);
       setLowAt(item?.lowStock ?? 0);
@@ -169,8 +171,15 @@ export function ItemDialog({ visible, item, onClose }: { visible: boolean; item?
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, item?.id]);
 
+  // Adding stock from this dialog can set a new purchase price; the box follows it, so Save does not put the old one back.
+  const storedCost = live?.cost;
+  useEffect(() => {
+    if (visible && storedCost !== undefined) setCost(storedCost);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storedCost]);
+
   const save = () => {
-    if (!saveItemForm({ id: item?.id, name, unit, price, track, opening, lowAt })) return notify(t('nameRequired'));
+    if (!saveItemForm({ id: item?.id, name, unit, price, cost, track, opening, lowAt })) return notify(t('nameRequired'));
     onClose();
   };
 
@@ -184,12 +193,7 @@ export function ItemDialog({ visible, item, onClose }: { visible: boolean; item?
     <Sheet visible={visible} onClose={onClose} title={t(item ? 'editItem' : 'newItem')}>
       <SheetScroll>
         <Field label={t('itemName')} value={name} onChangeText={setName} autoFocus testID="item-name" onSubmitEditing={save} />
-        <View style={{ gap: 6 }}>
-          <T size={13} w="semibold" color={C.muted}>
-            {`${t('price')} (${currency.code})`}
-          </T>
-          <NumberField label={t('price')} value={price} onChange={setPrice} width={180} height={52} align="end" blankZero testID="item-price" onSubmit={save} />
-        </View>
+        <PriceFields price={price} setPrice={setPrice} cost={cost} setCost={setCost} onSubmit={save} />
         <Field label={`${t('unit')} (${t('optional')})`} value={unit} onChangeText={setUnit} placeholder={t('unitPh')} autoCapitalize="none" testID="item-unit" onSubmitEditing={save} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {COMMON_UNITS[lang].map((u) => (

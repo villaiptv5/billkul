@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { store, useAppState } from '../data/app';
@@ -10,7 +10,7 @@ import { Field, NumberField } from '../ui/Input';
 import { Chip, Screen, TopBar, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
-import { saveItemForm, StockFields } from './books';
+import { PriceFields, saveItemForm, StockFields } from './books';
 
 export function ItemEditScreen() {
   const nav = useNavigation<RootNav>();
@@ -22,12 +22,19 @@ export function ItemEditScreen() {
   const [name, setName] = useState(existing?.name ?? '');
   const [unit, setUnit] = useState(existing?.unit ?? '');
   const [price, setPrice] = useState(existing?.price ?? 0);
+  const [cost, setCost] = useState(existing?.cost ?? 0);
   const [track, setTrack] = useState(existing?.trackStock ?? false);
   const [opening, setOpening] = useState(0);
   const [lowAt, setLowAt] = useState(existing?.lowStock ?? 0);
 
+  // Adding stock from this screen can set a new purchase price; the box follows it, so Save does not put the old one back.
+  const storedCost = existing?.cost;
+  useEffect(() => {
+    if (storedCost !== undefined) setCost(storedCost);
+  }, [storedCost]);
+
   const save = () => {
-    if (!saveItemForm({ id: existing?.id, name, unit, price, track, opening, lowAt })) return notify(t('nameRequired'));
+    if (!saveItemForm({ id: existing?.id, name, unit, price, cost, track, opening, lowAt })) return notify(t('nameRequired'));
     nav.goBack();
   };
 
@@ -44,12 +51,7 @@ export function ItemEditScreen() {
       <TopBar title={t(existing ? 'editItem' : 'newItem')} onBack={() => nav.goBack()} />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, gap: 16 }}>
         <Field label={t('itemName')} value={name} onChangeText={setName} autoFocus={!existing} testID="item-name" />
-        <View style={{ gap: 6 }}>
-          <T size={13} w="semibold" color={C.muted}>
-            {`${t('price')} (${settings.currency.code})`}
-          </T>
-          <NumberField label={t('price')} value={price} onChange={setPrice} width={180} height={52} align="end" blankZero testID="item-price" />
-        </View>
+        <PriceFields price={price} setPrice={setPrice} cost={cost} setCost={setCost} />
         <View style={{ gap: 8 }}>
           <Field label={`${t('unit')} (${t('optional')})`} value={unit} onChangeText={setUnit} placeholder={t('unitPh')} autoCapitalize="none" testID="item-unit" />
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>

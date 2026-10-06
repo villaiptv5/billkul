@@ -67,7 +67,7 @@ export const BACKUP_VERSION = 2;
 
 /** Items saved before stock existed have no stock fields; this fills them in. */
 function normalItem(item: Item): Item {
-  return { ...item, trackStock: !!item.trackStock, lowStock: Number(item.lowStock) || 0 };
+  return { ...item, cost: Number(item.cost) || 0, trackStock: !!item.trackStock, lowStock: Number(item.lowStock) || 0 };
 }
 
 export interface ItemInput extends Partial<Item> {
@@ -132,6 +132,7 @@ export function createStore(kv: KV) {
         name: s.name,
         unit: s.unit,
         price: 0,
+        cost: 0,
         trackStock: false,
         lowStock: 0,
         createdAt: now,
@@ -195,6 +196,7 @@ export function createStore(kv: KV) {
       name: input.name.trim(),
       unit: (input.unit ?? existing?.unit ?? '').trim(),
       price: input.price ?? existing?.price ?? 0,
+      cost: Math.max(0, input.cost ?? existing?.cost ?? 0),
       trackStock: input.trackStock ?? existing?.trackStock ?? false,
       lowStock: Math.max(0, input.lowStock ?? existing?.lowStock ?? 0),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
@@ -240,12 +242,16 @@ export function createStore(kv: KV) {
     return stockLevels(state.items, state.stockMoves, state.docs).get(itemId) ?? 0;
   }
 
-  /** Stock that arrived. Turns stock counting on for the item if it was off. */
-  function addStock(itemId: string, qty: number, extra: { cost?: number; note?: string; date?: string } = {}): StockMove | undefined {
+  /**
+   * Stock that arrived. Turns stock counting on for the item if it was off.
+   * `unitCost` is what one cost this time; it becomes the item's purchase price.
+   */
+  function addStock(itemId: string, qty: number, extra: { cost?: number; unitCost?: number; note?: string; date?: string } = {}): StockMove | undefined {
     if (!(qty > 0)) return undefined;
     const item = state.items.find((i) => i.id === itemId);
     if (!item) return undefined;
-    if (!item.trackStock) saveItem({ id: item.id, name: item.name, trackStock: true });
+    const newCost = extra.unitCost && extra.unitCost > 0 && extra.unitCost !== item.cost ? extra.unitCost : undefined;
+    if (!item.trackStock || newCost !== undefined) saveItem({ id: item.id, name: item.name, trackStock: true, cost: newCost });
     return putStockMove(itemId, hasMoves(itemId) ? 'add' : 'open', qty, extra);
   }
 
@@ -389,7 +395,8 @@ export function createStore(kv: KV) {
       customerId: quote.customerId,
       customerName: quote.customerName,
       customerPhone: quote.customerPhone,
-      lines: quote.lines.map((l): DocLine => ({ ...l, id: uid() })),
+      // The purchase price is read again, in case it changed since the quote was written.
+      lines: quote.lines.map((l): DocLine => ({ ...l, id: uid(), cost: state.items.find((i) => i.id === l.itemId)?.cost ?? l.cost })),
       discount: quote.discount,
       taxPercent: quote.taxPercent,
       notes: quote.notes,

@@ -194,3 +194,125 @@ describe('backup with the books', () => {
     expect(s.stockMoves).toEqual([]);
   });
 });
+
+import { profitReport, stockValue } from '../src/logic/profit';
+
+describe('profit and loss', () => {
+  const report = (month = '2026-10') => profitReport(store.getState().docs, store.getState().items, rows(), month);
+
+  function sell(lines: { itemId: string; name: string; qty: number; price: number; cost?: number }[], extra: { discount?: number; taxPercent?: number; date?: string } = {}) {
+    const doc = store.createDoc('invoice', extra.date ?? '2026-10-06');
+    const saved = store.saveDoc({ ...doc, discount: extra.discount ?? 0, taxPercent: extra.taxPercent ?? 0, lines: lines.map((l, i) => ({ id: `l${i}`, unit: '', ...l })) });
+    store.markSent(saved.id);
+    return saved;
+  }
+
+  it('is the sale price less the purchase price, for what was sold', () => {
+    const ssd = store.saveItem({ name: 'SSD 256 GB', price: 7800, cost: 6000 });
+    sell([{ itemId: ssd.id, name: ssd.name, qty: 3, price: 7800, cost: 6000 }]);
+    expect(report()).toMatchObject({ sales: 23400, cost: 18000, gross: 5400, expenses: 0, net: 5400 });
+    expect(report().byItem).toEqual([{ key: ssd.id, name: 'SSD 256 GB', qty: 3, sales: 23400, cost: 18000, profit: 5400 }]);
+  });
+
+  it('shows a loss when an item sells below its purchase price', () => {
+    const ram = store.saveItem({ name: 'RAM', price: 6500, cost: 7000 });
+    sell([{ itemId: ram.id, name: 'RAM', qty: 2, price: 6500, cost: 7000 }]);
+    expect(report().gross).toBe(-1000);
+  });
+
+  it('takes the invoice discount off the profit and leaves tax out', () => {
+    const a = store.saveItem({ name: 'A', cost: 600 });
+    const b = store.saveItem({ name: 'B', cost: 100 });
+    sell([{ itemId: a.id, name: 'A', qty: 1, price: 800, cost: 600 }, { itemId: b.id, name: 'B', qty: 1, price: 200, cost: 100 }], { discount: 100, taxPercent: 17 });
+    const r = report();
+    expect(r.sales).toBe(900);
+    expect(r.gross).toBe(200);
+    expect(r.byItem.map((i) => [i.name, i.sales, i.profit])).toEqual([['A', 720, 120], ['B', 180, 80]]);
+  });
+
+  it('counts only issued invoices dated in the month', () => {
+    const item = store.saveItem({ name: 'Mouse', price: 900, cost: 600 });
+    const draft = store.createDoc('invoice', '2026-10-06');
+    store.saveDoc({ ...draft, lines: [{ id: 'l', itemId: item.id, name: 'Mouse', unit: '', qty: 5, price: 900, cost: 600 }] });
+    const quote = store.createDoc('quote', '2026-10-06');
+    store.saveDoc({ ...quote, lines: [{ id: 'l', itemId: item.id, name: 'Mouse', unit: '', qty: 5, price: 900, cost: 600 }] });
+    store.markSent(quote.id);
+    sell([{ itemId: item.id, name: 'Mouse', qty: 1, price: 900, cost: 600 }], { date: '2026-09-30' });
+    expect(report().sales).toBe(0);
+    expect(report('2026-09').gross).toBe(300);
+  });
+
+  it('keeps the purchase price an invoice was sold at when the price changes later', () => {
+    const ssd = store.saveItem({ name: 'SSD', price: 7800, cost: 6000 });
+    sell([{ itemId: ssd.id, name: 'SSD', qty: 1, price: 7800, cost: 6000 }]);
+    store.saveItem({ id: ssd.id, name: 'SSD', cost: 7000 });
+    expect(report().gross).toBe(1800);
+  });
+
+  it('uses the purchase price of today for invoices written before purchase prices existed', () => {
+    const ssd = store.saveItem({ name: 'SSD', price: 7800, cost: 6000 });
+    sell([{ itemId: ssd.id, name: 'SSD', qty: 2, price: 7800 }]);
+    expect(report().cost).toBe(12000);
+  });
+
+  it('treats a service with no purchase price as all profit, and names goods that are missing one', () => {
+    const install = store.saveItem({ name: 'Windows installation', price: 1500 });
+    const cable = store.saveItem({ name: 'Cable', price: 300, trackStock: true });
+    sell([{ itemId: install.id, name: install.name, qty: 1, price: 1500 }, { itemId: cable.id, name: 'Cable', qty: 2, price: 300 }]);
+    const r = report();
+    expect(r.gross).toBe(2100);
+    expect(r.missingCost).toEqual(['Cable']);
+  });
+
+  it('takes shop expenses off for the net profit, but not stock bought or personal spending', () => {
+    const ssd = store.saveItem({ name: 'SSD', price: 7800, cost: 6000 });
+    store.addStock(ssd.id, 10, { cost: 60000, unitCost: 6000, date: '2026-10-01' });
+    sell([{ itemId: ssd.id, name: 'SSD', qty: 5, price: 7800, cost: 6000 }]);
+    store.saveCash({ kind: 'out', amount: 4000, category: 'rent', date: '2026-10-02' });
+    store.saveCash({ kind: 'out', amount: 2500, category: 'personal', date: '2026-10-02' });
+    expect(report()).toMatchObject({ gross: 9000, expenses: 4000, net: 5000 });
+  });
+
+  it('sets the purchase price from the last stock bought, and values the shelf at it', () => {
+    const ssd = store.saveItem({ name: 'SSD', price: 7800 });
+    store.addStock(ssd.id, 10, { unitCost: 6200 });
+    expect(store.getState().items[0].cost).toBe(6200);
+    const s = store.getState();
+    expect(stockValue(s.items, stockLevels(s.items, s.stockMoves, s.docs))).toBe(62000);
+  });
+
+  it('reads the purchase price again when a quote becomes an invoice', () => {
+    const ssd = store.saveItem({ name: 'SSD', price: 7800, cost: 6000 });
+    const quote = store.createDoc('quote', '2026-10-06');
+    store.saveDoc({ ...quote, lines: [{ id: 'l', itemId: ssd.id, name: 'SSD', unit: '', qty: 1, price: 7800, cost: 6000 }] });
+    store.saveItem({ id: ssd.id, name: 'SSD', cost: 6500 });
+    const invoice = store.convertToInvoice(quote.id, '2026-10-06');
+    expect(invoice?.lines[0].cost).toBe(6500);
+    expect(report().gross).toBe(1300);
+  });
+});
+
+describe('profit rounding', () => {
+  it('keeps the total exact when a discount does not divide evenly between lines', () => {
+    const a = store.saveItem({ name: 'A', cost: 6000 });
+    const b = store.saveItem({ name: 'B', cost: 7000 });
+    const c = store.saveItem({ name: 'C', cost: 3400 });
+    const doc = store.createDoc('invoice', '2026-10-06');
+    store.saveDoc({
+      ...doc,
+      discount: 1000,
+      lines: [
+        { id: '1', itemId: a.id, name: 'A', unit: '', qty: 3, price: 7800, cost: 6000 },
+        { id: '2', itemId: b.id, name: 'B', unit: '', qty: 1, price: 6500, cost: 7000 },
+        { id: '3', itemId: c.id, name: 'C', unit: '', qty: 2, price: 4200, cost: 3400 },
+        { id: '4', itemId: '', name: 'Service', unit: '', qty: 1, price: 1500 },
+      ],
+    });
+    store.markSent(doc.id);
+    const r = profitReport(store.getState().docs, store.getState().items, rows(), '2026-10');
+    expect(r.sales).toBe(38800);
+    expect(r.gross).toBe(7000);
+    expect(Math.round(r.byItem.reduce((sum, i) => sum + i.sales, 0) * 100) / 100).toBe(38800);
+    expect(Math.round(r.byItem.reduce((sum, i) => sum + i.profit, 0) * 100) / 100).toBe(7000);
+  });
+});

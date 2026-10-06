@@ -45,7 +45,10 @@ export interface Item {
   id: string;
   name: string;
   unit: string;
+  /** Sale price: what the customer pays for one. */
   price: number;
+  /** Purchase price: what the shop pays for one. 0 when not known, or for a service that costs nothing to supply. */
+  cost: number;
   /** True when BillKul counts how many of this item are in stock. Services are left untracked. */
   trackStock: boolean;
   /** Warn when the stock falls to this number or below. 0 means no warning. */
@@ -92,6 +95,8 @@ export interface DocLine {
   unit: string;
   qty: number;
   price: number;
+  /** Purchase price of one at the time it was put on the document, for the profit report. Never printed. */
+  cost?: number;
 }
 
 export interface Doc {

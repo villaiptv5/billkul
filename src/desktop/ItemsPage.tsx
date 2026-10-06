@@ -7,11 +7,14 @@ import { C } from '../theme';
 import { Button, IconButton } from '../ui/Button';
 import { NumberField, SearchBox } from '../ui/Input';
 import { Chip, Empty } from '../ui/kit';
+import { useDeskSize } from '../ui/layout';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { ItemDialog, PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
 
-const COLS: Col[] = [{ flex: 1 }, { width: 120 }, { width: 190 }, { width: 150, end: true }, { width: 44 }];
+const COLS: Col[] = [{ flex: 1 }, { width: 100 }, { width: 170 }, { width: 124, end: true }, { width: 124, end: true }, { width: 44 }];
+// On a narrower window the unit column is left out.
+const SNUG_COLS = COLS.filter((_, i) => i !== 1);
 
 export function ItemsPage() {
   const { t } = useLocale();
@@ -22,6 +25,9 @@ export function ItemsPage() {
   const [dialog, setDialog] = useState<{ item?: Item } | null>(null);
   const [adding, setAdding] = useState<Item | null>(null);
   const counted = items.some((i) => i.trackStock);
+  const { snug } = useDeskSize();
+  const cols = snug ? SNUG_COLS : COLS;
+  const pick = <V,>(cells: V[]) => (snug ? cells.filter((_, i) => i !== 1) : cells);
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -31,7 +37,7 @@ export function ItemsPage() {
 
   return (
     <View style={{ gap: 20 }}>
-      <PageHeader title={t('tabItems')} subtitle={items.length ? (items.length === 1 ? t('itemCountOne') : t('itemCountMany', { n: items.length })) : undefined}>
+      <PageHeader title={t('tabItems')} subtitle={items.length ? `${items.length === 1 ? t('itemCountOne') : t('itemCountMany', { n: items.length })} · ${t('priceIn', { code: settings.currency.code })}` : undefined}>
         <Button label={t('newItem')} icon="plus" head onPress={() => setDialog({})} testID="add-item" />
       </PageHeader>
 
@@ -50,15 +56,15 @@ export function ItemsPage() {
       <Panel>
         {list.length ? (
           <>
-            <TableHead cols={COLS} labels={[t('itemName'), t('unit'), t('stock'), t('priceIn', { code: settings.currency.code }), '']} />
+            <TableHead cols={cols} labels={pick([t('itemName'), t('unit'), t('stock'), t('purchasePrice'), t('salePrice'), ''])} />
             {list.map((item, i) => {
               const stock = item.trackStock ? stockText(item, levels.get(item.id) ?? 0, t) : null;
               return (
                 <TableRow
                   key={item.id}
-                  cols={COLS}
+                  cols={cols}
                   last={i === list.length - 1}
-                  cells={[
+                  cells={pick([
                     <Pressable accessibilityRole="button" onPress={() => setDialog({ item })} testID={`item-${item.name}`} style={{ alignSelf: 'stretch', minHeight: 40, justifyContent: 'center' }}>
                       <T size={14.5} w="semibold" numberOfLines={1}>{item.name}</T>
                     </Pressable>,
@@ -71,10 +77,11 @@ export function ItemsPage() {
                       </View>
                       <IconButton icon="plus" label={`${t('addStock')}: ${item.name}`} color={C.greenText} size={36} onPress={() => setAdding(item)} testID={`add-stock-${item.name}`} />
                     </View>,
-                    // The price is typed straight into the table and saved as it is typed.
-                    <NumberField label={t('editPriceOf', { name: item.name })} value={item.price} onChange={(price) => store.saveItem({ id: item.id, name: item.name, price })} width={130} height={40} align="end" blankZero testID={`price-${item.name}`} />,
+                    // Both prices are typed straight into the table and saved as they are typed.
+                    <NumberField label={`${t('purchasePrice')}: ${item.name}`} value={item.cost} onChange={(cost) => store.saveItem({ id: item.id, name: item.name, cost })} width={116} height={40} align="end" blankZero testID={`cost-${item.name}`} />,
+                    <NumberField label={t('editPriceOf', { name: item.name })} value={item.price} onChange={(price) => store.saveItem({ id: item.id, name: item.name, price })} width={116} height={40} align="end" blankZero testID={`price-${item.name}`} />,
                     <IconButton icon="pencil" label={`${t('editItem')}: ${item.name}`} color={C.muted} size={40} onPress={() => setDialog({ item })} testID={`edit-item-${item.name}`} />,
-                  ]}
+                  ])}
                 />
               );
             })}

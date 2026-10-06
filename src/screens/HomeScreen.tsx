@@ -17,15 +17,21 @@ import { Card, Empty } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { useCashBook, useStock } from './books';
+import { useMonthProfit } from './profit';
 import { DocRow, openDoc } from './shared';
 
-function Stat({ label, value, symbol, color = C.onInk }: { label: string; value: number; symbol: string; color?: string }) {
+function Stat({ label, value, symbol, color = C.onInk, onPress, testID }: { label: string; value: number; symbol: string; color?: string; onPress?: () => void; testID?: string }) {
   const { rtl } = useLocale();
   return (
-    <View style={{ flexBasis: '47%', flexGrow: 1, backgroundColor: C.inkPanel, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, gap: 4 }}>
-      <T size={13} color={C.onInkMuted}>
-        {label}
-      </T>
+    <Pressable accessibilityRole={onPress ? 'button' : undefined} disabled={!onPress} onPress={onPress} testID={testID} style={({ pressed }) => ({ flexBasis: '47%', flexGrow: 1, backgroundColor: C.inkPanel, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, gap: 4, opacity: pressed ? 0.7 : 1 })}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <View style={{ flex: 1 }}>
+          <T size={13} color={C.onInkMuted} numberOfLines={1}>
+            {label}
+          </T>
+        </View>
+        {onPress ? <Icon name="chevron" size={15} color={C.onInkMuted} stroke={2} /> : null}
+      </View>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, direction: 'ltr', justifyContent: rtl ? 'flex-end' : 'flex-start' }}>
         <T size={12} w="medium" latin color={C.onInkMuted}>
           {symbol}
@@ -34,7 +40,7 @@ function Stat({ label, value, symbol, color = C.onInk }: { label: string; value:
           {formatAmount(value)}
         </T>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -49,6 +55,7 @@ export function HomeScreen() {
   const recent = useMemo(() => sortDocs(docs).slice(0, 4), [docs]);
   const book = useCashBook();
   const { low } = useStock();
+  const profit = useMonthProfit();
 
   const create = (type: DocType) => {
     const doc = store.createDoc(type);
@@ -100,23 +107,10 @@ export function HomeScreen() {
             <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orangeOnInk} />
           </View>
 
-          <Pressable accessibilityRole="button" onPress={() => nav.navigate('Tabs', { screen: 'Cash' })} testID="home-cash" style={({ pressed }) => ({ minHeight: 48, backgroundColor: C.inkPanel, borderRadius: 14, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, opacity: pressed ? 0.7 : 1 })}>
-            <Icon name="wallet" size={20} color={C.mint} />
-            <View style={{ flex: 1 }}>
-              <T size={14} color={C.onInkSoft}>
-                {t('cashInHand')}
-              </T>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, direction: 'ltr' }}>
-              <T size={12} w="medium" latin color={C.onInkMuted}>
-                {settings.currency.symbol}
-              </T>
-              <T size={17} w="semibold" head latin color={book.inHand < 0 ? C.orangeOnInk : C.onInk}>
-                {formatAmount(book.inHand)}
-              </T>
-            </View>
-            <Icon name="chevron" size={18} color={C.onInkMuted} stroke={2} />
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Stat label={t('cashInHand')} value={book.inHand} symbol={settings.currency.symbol} color={book.inHand < 0 ? C.orangeOnInk : C.onInk} onPress={() => nav.navigate('Tabs', { screen: 'Cash' })} testID="home-cash" />
+            <Stat label={t(profit.gross < 0 ? 'lossOnSales' : 'profitOnSales')} value={Math.abs(profit.gross)} symbol={settings.currency.symbol} color={profit.gross < 0 ? C.orangeOnInk : C.green} onPress={() => nav.navigate('Profit')} testID="home-profit" />
+          </View>
         </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 14 }}>

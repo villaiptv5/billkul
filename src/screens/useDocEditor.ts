@@ -43,7 +43,7 @@ export function useDocEditor(docId: string): DocEditor | null {
     const existing = doc.lines.find((l) => l.itemId === item.id);
     const lines = existing
       ? doc.lines.map((l) => (l === existing ? { ...l, qty: l.qty + 1 } : l))
-      : [...doc.lines, { id: uid(), itemId: item.id, name: item.name, unit: item.unit, qty: 1, price: item.price }];
+      : [...doc.lines, { id: uid(), itemId: item.id, name: item.name, unit: item.unit, qty: 1, price: item.price, cost: item.cost }];
     save({ lines });
   };
 

@@ -6,6 +6,7 @@ export type Route =
   | { page: 'home' }
   | { page: 'documents'; type: DocType }
   | { page: 'cash' }
+  | { page: 'profit' }
   | { page: 'customers' }
   | { page: 'items' }
   | { page: 'settings' }
@@ -31,6 +32,8 @@ export function fromHash(hash: string): Route {
       return parts[1] ? { page: 'editor', docId: decodeURIComponent(parts[1]) } : { page: 'documents', type: 'quote' };
     case 'cash':
       return { page: 'cash' };
+    case 'profit':
+      return { page: 'profit' };
     case 'customers':
       return { page: 'customers' };
     case 'items':

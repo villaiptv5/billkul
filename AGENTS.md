@@ -42,6 +42,10 @@ api.expo.dev, set `EXPO_OFFLINE=1` for expo commands.
   worked out on the fly in `src/logic/ledger.ts` and `src/logic/stock.ts`. Nothing is stored twice,
   so editing or deleting an invoice can never leave the cash book or the stock count out of step.
   Only what is typed by hand is stored: cash entries and stock put in or corrected.
+- **Purchase price and profit.** An item has a sale price (`price`) and a purchase price (`cost`).
+  A line copies the purchase price when it is added (`DocLine.cost`), so later price changes do not
+  rewrite past profit. `src/logic/profit.ts` works the report out from issued invoices; the purchase
+  price is never printed or shown to the customer.
 - **Android folders are generated.** Never create or edit `android/` or `ios/` by hand. Configure
   native behaviour in `app.json`.
 

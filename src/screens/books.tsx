@@ -5,7 +5,7 @@ import type { CashEntry, CashKind, Doc, DocLine, Item } from '../data/types';
 import type { StringKey, Vars } from '../i18n';
 import { addDays, formatDay, formatMonth, isoDate, monthKey } from '../logic/dates';
 import { cashInHand, cashRows, EXPENSE_CATEGORIES, expenseSummary, monthCash, shiftMonth, type CashRow, type ExpenseCategory } from '../logic/ledger';
-import { formatAmount, money } from '../logic/money';
+import { formatAmount, money, round2 } from '../logic/money';
 import { lowStockItems, stockHistory, stockLevels, stockState, type StockEvent, type StockState } from '../logic/stock';
 import { C } from '../theme';
 import { Button, IconButton } from '../ui/Button';
@@ -190,12 +190,15 @@ function StockForm({ onClose, item, mode }: { onClose: () => void; item: Item; m
   const { levels } = useStock();
   const now = levels.get(item.id) ?? 0;
   const [qty, setQty] = useState(mode === 'correct' ? now : 0);
-  const [cost, setCost] = useState(0);
+  const [unitCost, setUnitCost] = useState(item.cost);
+  // The amount paid follows quantity x purchase price until it is typed over.
+  const [typedPaid, setTypedPaid] = useState<number | null>(null);
+  const paid = typedPaid ?? round2(qty * unitCost);
 
   const save = () => {
     if (mode === 'add') {
       if (!(qty > 0)) return notify(t('qtyRequired'));
-      store.addStock(item.id, qty, { cost });
+      store.addStock(item.id, qty, { cost: paid, unitCost });
     } else {
       store.setStock(item.id, Math.max(0, qty));
     }
@@ -221,15 +224,23 @@ function StockForm({ onClose, item, mode }: { onClose: () => void; item: Item; m
           <NumberField label={t(mode === 'add' ? 'qtyArrived' : 'countedNow')} value={qty} onChange={setQty} width={160} height={56} blankZero={mode === 'add'} autoFocus onSubmit={save} testID="stock-qty" />
         </View>
         {mode === 'add' ? (
-          <View style={{ gap: 6 }}>
-            <T size={13} w="semibold" color={C.muted}>
-              {`${t('amountPaid')} (${currency.code}, ${t('optional')})`}
-            </T>
-            <NumberField label={t('amountPaid')} value={cost} onChange={setCost} width={200} height={52} align="end" blankZero onSubmit={save} testID="stock-cost" />
-            <T size={12.5} color={C.muted}>
-              {t('amountPaidHint')}
-            </T>
-          </View>
+          <>
+            <View style={{ gap: 6 }}>
+              <T size={13} w="semibold" color={C.muted}>
+                {`${t('purchasePriceEach')} (${currency.code})`}
+              </T>
+              <NumberField label={t('purchasePriceEach')} value={unitCost} onChange={setUnitCost} width={200} height={52} align="end" blankZero onSubmit={save} testID="stock-unit-cost" />
+            </View>
+            <View style={{ gap: 6 }}>
+              <T size={13} w="semibold" color={C.muted}>
+                {`${t('amountPaidNow')} (${currency.code})`}
+              </T>
+              <NumberField label={t('amountPaidNow')} value={paid} onChange={setTypedPaid} width={200} height={52} align="end" blankZero onSubmit={save} testID="stock-cost" />
+              <T size={12.5} color={C.muted}>
+                {t('amountPaidHint')}
+              </T>
+            </View>
+          </>
         ) : null}
         <Button label={t('save')} head onPress={save} testID="stock-save" />
       </SheetScroll>
@@ -405,9 +416,9 @@ export function StockFields({ item, track, setTrack, opening, setOpening, lowAt,
 }
 
 /** Saves the item form, stock settings included. Returns false when the name is missing. */
-export function saveItemForm(input: { id?: string; name: string; unit: string; price: number; track: boolean; opening: number; lowAt: number }): boolean {
+export function saveItemForm(input: { id?: string; name: string; unit: string; price: number; cost: number; track: boolean; opening: number; lowAt: number }): boolean {
   if (!input.name.trim()) return false;
-  const item = store.saveItem({ id: input.id, name: input.name, unit: input.unit, price: input.price, trackStock: input.track, lowStock: input.track ? input.lowAt : 0 });
+  const item = store.saveItem({ id: input.id, name: input.name, unit: input.unit, price: input.price, cost: input.cost, trackStock: input.track, lowStock: input.track ? input.lowAt : 0 });
   const firstCount = input.track && input.opening > 0 && !store.getState().stockMoves.some((m) => m.itemId === item.id);
   if (firstCount) store.addStock(item.id, input.opening);
   return true;
@@ -423,5 +434,44 @@ export function LineStock({ doc, line, levels }: { doc: Doc; line: DocLine; leve
     <T size={12.5} w={note.warn ? 'semibold' : 'regular'} color={note.warn ? C.orange : C.muted} testID={`line-stock-${line.name}`}>
       {note.text}
     </T>
+  );
+}
+
+/** Sale price and purchase price side by side, for the item form. */
+export function PriceFields({ price, setPrice, cost, setCost, onSubmit }: { price: number; setPrice: (n: number) => void; cost: number; setCost: (n: number) => void; onSubmit?: () => void }) {
+  const { t } = useLocale();
+  const currency = useAppState().settings.currency;
+  const margin = price > 0 && cost > 0 ? round2(price - cost) : null;
+  return (
+    <View style={{ gap: 6 }}>
+      <View style={{ flexDirection: 'row', gap: 12 }}>
+        <View style={{ flex: 1, gap: 6 }}>
+          <T size={13} w="semibold" color={C.muted}>
+            {`${t('salePrice')} (${currency.code})`}
+          </T>
+          <NumberField label={t('salePrice')} value={price} onChange={setPrice} width={140} height={52} align="end" blankZero onSubmit={onSubmit} testID="item-price" />
+        </View>
+        <View style={{ flex: 1, gap: 6 }}>
+          <T size={13} w="semibold" color={C.muted}>
+            {`${t('purchasePrice')} (${currency.code})`}
+          </T>
+          <NumberField label={t('purchasePrice')} value={cost} onChange={setCost} width={140} height={52} align="end" blankZero onSubmit={onSubmit} testID="item-cost" />
+        </View>
+      </View>
+      {margin === null ? (
+        <T size={12.5} color={C.muted}>
+          {t('purchasePriceHint')}
+        </T>
+      ) : (
+        <View style={{ flexDirection: 'row', gap: 5 }} testID="item-margin">
+          <T size={13} w="semibold" color={margin < 0 ? C.danger : C.greenText}>
+            {`${t(margin < 0 ? 'loss' : 'profit')}:`}
+          </T>
+          <T size={13} w="semibold" latin color={margin < 0 ? C.danger : C.greenText}>
+            {formatAmount(Math.abs(margin))}
+          </T>
+        </View>
+      )}
+    </View>
   );
 }
