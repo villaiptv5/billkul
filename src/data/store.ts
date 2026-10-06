@@ -2,13 +2,16 @@ import { isoDate } from '../logic/dates';
 import { formatDocNumber, isEmptyDoc } from '../logic/totals';
 import { SAMPLE_ITEMS } from './seed';
 import type { KV } from './storage';
-import type { AppData, BusinessType, Customer, Doc, DocLine, DocType, Item, Lang, Settings } from './types';
+import { stockLevels } from '../logic/stock';
+import type { AppData, BusinessType, CashEntry, CashKind, Customer, Doc, DocLine, DocType, Item, Lang, Settings, StockMove, StockMoveKind } from './types';
 
 const K = {
   settings: 'bk1:settings',
   customers: 'bk1:customers',
   items: 'bk1:items',
   docIndex: 'bk1:docIndex',
+  cash: 'bk1:cash',
+  stock: 'bk1:stock',
   doc: (id: string) => `bk1:doc:${id}`,
 };
 
@@ -60,10 +63,28 @@ export interface SetupInput {
 }
 
 export const BACKUP_APP = 'billkul';
-export const BACKUP_VERSION = 1;
+export const BACKUP_VERSION = 2;
+
+/** Items saved before stock existed have no stock fields; this fills them in. */
+function normalItem(item: Item): Item {
+  return { ...item, trackStock: !!item.trackStock, lowStock: Number(item.lowStock) || 0 };
+}
+
+export interface ItemInput extends Partial<Item> {
+  name: string;
+}
+
+export interface CashInput {
+  id?: string;
+  kind: CashKind;
+  amount: number;
+  date?: string;
+  category?: string;
+  note?: string;
+}
 
 export function createStore(kv: KV) {
-  let state: State = { ready: false, settings: DEFAULT_SETTINGS, customers: [], items: [], docs: [] };
+  let state: State = { ready: false, settings: DEFAULT_SETTINGS, customers: [], items: [], docs: [], cash: [], stockMoves: [] };
   const listeners = new Set<() => void>();
 
   function set(next: Partial<State>) {
@@ -84,14 +105,16 @@ export function createStore(kv: KV) {
   function load() {
     const settings = { ...DEFAULT_SETTINGS, ...readJson<Partial<Settings>>(kv, K.settings, {}) };
     const customers = readJson<Customer[]>(kv, K.customers, []);
-    const items = readJson<Item[]>(kv, K.items, []);
+    const items = readJson<Item[]>(kv, K.items, []).map(normalItem);
+    const cash = readJson<CashEntry[]>(kv, K.cash, []);
+    const stockMoves = readJson<StockMove[]>(kv, K.stock, []);
     const ids = readJson<string[]>(kv, K.docIndex, []);
     const docs: Doc[] = [];
     for (const id of ids) {
       const doc = readJson<Doc | null>(kv, K.doc(id), null);
       if (doc && doc.id) docs.push(doc);
     }
-    set({ ready: true, settings, customers, items, docs });
+    set({ ready: true, settings, customers, items, docs, cash, stockMoves });
   }
 
   function updateSettings(patch: Partial<Settings>) {
@@ -109,6 +132,8 @@ export function createStore(kv: KV) {
         name: s.name,
         unit: s.unit,
         price: 0,
+        trackStock: false,
+        lowStock: 0,
         createdAt: now,
       }));
       if (items.length) {
@@ -163,13 +188,15 @@ export function createStore(kv: KV) {
   }
 
   // ---- items ----
-  function saveItem(input: Partial<Item> & { name: string }): Item {
+  function saveItem(input: ItemInput): Item {
     const existing = input.id ? state.items.find((i) => i.id === input.id) : undefined;
     const item: Item = {
       id: existing?.id ?? uid(),
       name: input.name.trim(),
       unit: (input.unit ?? existing?.unit ?? '').trim(),
       price: input.price ?? existing?.price ?? 0,
+      trackStock: input.trackStock ?? existing?.trackStock ?? false,
+      lowStock: Math.max(0, input.lowStock ?? existing?.lowStock ?? 0),
       createdAt: existing?.createdAt ?? new Date().toISOString(),
     };
     const items = existing ? state.items.map((i) => (i.id === item.id ? item : i)) : [...state.items, item];
@@ -181,7 +208,77 @@ export function createStore(kv: KV) {
   function deleteItem(id: string) {
     const items = state.items.filter((i) => i.id !== id);
     kv.setItem(K.items, JSON.stringify(items));
-    set({ items });
+    const stockMoves = state.stockMoves.filter((m) => m.itemId !== id);
+    if (stockMoves.length !== state.stockMoves.length) kv.setItem(K.stock, JSON.stringify(stockMoves));
+    set({ items, stockMoves });
+  }
+
+  // ---- stock ----
+  function putStockMove(itemId: string, kind: StockMoveKind, qty: number, extra: { cost?: number; note?: string; date?: string } = {}): StockMove | undefined {
+    if (!qty || !state.items.some((i) => i.id === itemId)) return undefined;
+    const move: StockMove = {
+      id: uid(),
+      itemId,
+      kind,
+      date: extra.date ?? isoDate(),
+      qty,
+      cost: Math.max(0, extra.cost ?? 0),
+      note: (extra.note ?? '').trim(),
+      createdAt: new Date().toISOString(),
+    };
+    const stockMoves = [...state.stockMoves, move];
+    kv.setItem(K.stock, JSON.stringify(stockMoves));
+    set({ stockMoves });
+    return move;
+  }
+
+  function hasMoves(itemId: string): boolean {
+    return state.stockMoves.some((m) => m.itemId === itemId);
+  }
+
+  function stockOf(itemId: string): number {
+    return stockLevels(state.items, state.stockMoves, state.docs).get(itemId) ?? 0;
+  }
+
+  /** Stock that arrived. Turns stock counting on for the item if it was off. */
+  function addStock(itemId: string, qty: number, extra: { cost?: number; note?: string; date?: string } = {}): StockMove | undefined {
+    if (!(qty > 0)) return undefined;
+    const item = state.items.find((i) => i.id === itemId);
+    if (!item) return undefined;
+    if (!item.trackStock) saveItem({ id: item.id, name: item.name, trackStock: true });
+    return putStockMove(itemId, hasMoves(itemId) ? 'add' : 'open', qty, extra);
+  }
+
+  /** The shelf was counted and the number is different: stock is set to what was counted. */
+  function setStock(itemId: string, counted: number, date?: string): StockMove | undefined {
+    const item = state.items.find((i) => i.id === itemId);
+    if (!item) return undefined;
+    if (!item.trackStock) saveItem({ id: item.id, name: item.name, trackStock: true });
+    return putStockMove(itemId, hasMoves(itemId) ? 'correct' : 'open', counted - stockOf(itemId), { date });
+  }
+
+  // ---- cash book ----
+  function saveCash(input: CashInput): CashEntry {
+    const existing = input.id ? state.cash.find((e) => e.id === input.id) : undefined;
+    const entry: CashEntry = {
+      id: existing?.id ?? uid(),
+      date: input.date ?? existing?.date ?? isoDate(),
+      kind: input.kind,
+      amount: Math.max(0, input.amount),
+      category: input.kind === 'out' ? (input.category ?? existing?.category ?? 'other') : '',
+      note: (input.note ?? existing?.note ?? '').trim(),
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
+    };
+    const cash = existing ? state.cash.map((e) => (e.id === entry.id ? entry : e)) : [...state.cash, entry];
+    kv.setItem(K.cash, JSON.stringify(cash));
+    set({ cash });
+    return entry;
+  }
+
+  function deleteCash(id: string) {
+    const cash = state.cash.filter((e) => e.id !== id);
+    kv.setItem(K.cash, JSON.stringify(cash));
+    set({ cash });
   }
 
   // ---- documents ----
@@ -310,6 +407,8 @@ export function createStore(kv: KV) {
       customers: state.customers,
       items: state.items,
       docs: state.docs,
+      cash: state.cash,
+      stockMoves: state.stockMoves,
     };
     return JSON.stringify({ app: BACKUP_APP, version: BACKUP_VERSION, exportedAt: new Date().toISOString(), data });
   }
@@ -327,14 +426,19 @@ export function createStore(kv: KV) {
     for (const doc of state.docs) kv.removeItem(K.doc(doc.id));
     const settings: Settings = { ...DEFAULT_SETTINGS, ...data.settings, setupDone: true };
     const customers = Array.isArray(data.customers) ? data.customers : [];
-    const items = Array.isArray(data.items) ? data.items : [];
+    const items = (Array.isArray(data.items) ? data.items : []).map(normalItem);
+    // Backups made before the cash book and stock existed simply have none.
+    const cash = Array.isArray(data.cash) ? data.cash.filter((e) => e && e.id) : [];
+    const stockMoves = Array.isArray(data.stockMoves) ? data.stockMoves.filter((m) => m && m.id) : [];
     const docs = data.docs.filter((d) => d && d.id);
     persistSettings(settings);
     kv.setItem(K.customers, JSON.stringify(customers));
     kv.setItem(K.items, JSON.stringify(items));
+    kv.setItem(K.cash, JSON.stringify(cash));
+    kv.setItem(K.stock, JSON.stringify(stockMoves));
     docs.forEach(persistDoc);
     persistDocIndex(docs);
-    set({ settings, customers, items, docs });
+    set({ settings, customers, items, docs, cash, stockMoves });
     return true;
   }
 
@@ -352,6 +456,10 @@ export function createStore(kv: KV) {
     deleteCustomer,
     saveItem,
     deleteItem,
+    addStock,
+    setStock,
+    saveCash,
+    deleteCash,
     createDoc,
     saveDoc,
     patchDoc,

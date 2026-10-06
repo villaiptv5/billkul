@@ -46,6 +46,42 @@ export interface Item {
   name: string;
   unit: string;
   price: number;
+  /** True when BillKul counts how many of this item are in stock. Services are left untracked. */
+  trackStock: boolean;
+  /** Warn when the stock falls to this number or below. 0 means no warning. */
+  lowStock: number;
+  createdAt: string;
+}
+
+/** Stock put in or corrected by hand. Stock sold is not stored: it is read from the invoices. */
+export type StockMoveKind = 'open' | 'add' | 'correct';
+
+export interface StockMove {
+  id: string;
+  itemId: string;
+  kind: StockMoveKind;
+  /** Local date, yyyy-mm-dd. */
+  date: string;
+  /** Positive adds stock, negative removes it. */
+  qty: number;
+  /** What was paid for this stock, or 0. It shows in the cash book as money out. */
+  cost: number;
+  note: string;
+  createdAt: string;
+}
+
+export type CashKind = 'in' | 'out';
+
+/** Money in or out typed by hand. Paid invoices and stock purchases reach the cash book on their own. */
+export interface CashEntry {
+  id: string;
+  /** Local date, yyyy-mm-dd. */
+  date: string;
+  kind: CashKind;
+  amount: number;
+  /** For money out, one of the expense categories. Empty for money in. */
+  category: string;
+  note: string;
   createdAt: string;
 }
 
@@ -89,4 +125,6 @@ export interface AppData {
   customers: Customer[];
   items: Item[];
   docs: Doc[];
+  cash: CashEntry[];
+  stockMoves: StockMove[];
 }

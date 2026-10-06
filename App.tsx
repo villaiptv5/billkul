@@ -10,6 +10,7 @@ import { useAppState } from './src/data/app';
 import { DesktopApp } from './src/desktop/DesktopApp';
 import type { StringKey } from './src/i18n';
 import type { RootParams, TabParams } from './src/nav';
+import { CashScreen } from './src/screens/CashScreen';
 import { CustomerEditScreen } from './src/screens/CustomerEditScreen';
 import { CustomersScreen } from './src/screens/CustomersScreen';
 import { DocumentsScreen } from './src/screens/DocumentsScreen';
@@ -35,9 +36,9 @@ const Tab = createBottomTabNavigator<TabParams>();
 const TABS: Record<keyof TabParams, { icon: IconName; label: StringKey }> = {
   Home: { icon: 'home', label: 'tabHome' },
   Documents: { icon: 'file', label: 'tabDocuments' },
+  Cash: { icon: 'wallet', label: 'tabCash' },
   Customers: { icon: 'users', label: 'tabCustomers' },
   Items: { icon: 'box', label: 'tabItems' },
-  Settings: { icon: 'sliders', label: 'tabSettings' },
 };
 
 function TabBar({ state, navigation }: BottomTabBarProps) {
@@ -78,9 +79,9 @@ function Tabs() {
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} />}>
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Documents" component={DocumentsScreen} />
+      <Tab.Screen name="Cash" component={CashScreen} />
       <Tab.Screen name="Customers" component={CustomersScreen} />
       <Tab.Screen name="Items" component={ItemsScreen} />
-      <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
 }
@@ -126,6 +127,7 @@ export default function App() {
                 <Stack.Screen name="Preview" component={PreviewScreen} />
                 <Stack.Screen name="CustomerEdit" component={CustomerEditScreen} />
                 <Stack.Screen name="ItemEdit" component={ItemEditScreen} />
+                <Stack.Screen name="Settings" component={SettingsScreen} />
                 <Stack.Screen name="ShopProfile" component={ShopProfileScreen} />
               </>
             ) : (

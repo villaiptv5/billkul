@@ -6,7 +6,7 @@ import { useLocale } from './locale';
 export type IconName =
   | 'home' | 'file' | 'users' | 'box' | 'sliders' | 'plus' | 'search' | 'chevron' | 'back' | 'check'
   | 'cloudCheck' | 'cloudUp' | 'cloudOff' | 'chat' | 'printer' | 'image' | 'download' | 'upload' | 'pencil'
-  | 'close' | 'trash' | 'more' | 'user';
+  | 'close' | 'trash' | 'more' | 'user' | 'wallet' | 'moneyIn' | 'moneyOut' | 'alert';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   home: (<><Path d="M3 11l9-8 9 8" /><Path d="M5 10v10h14V10" /></>),
@@ -32,6 +32,10 @@ const PATHS: Record<IconName, React.ReactNode> = {
   close: <Path d="M6 6l12 12M18 6L6 18" />,
   trash: (<><Path d="M4 7h16M10 7V4h4v3M6 7l1 13h10l1-13" /><Path d="M10 11v5M14 11v5" /></>),
   more: (<><Circle cx="12" cy="5" r="1.2" /><Circle cx="12" cy="12" r="1.2" /><Circle cx="12" cy="19" r="1.2" /></>),
+  wallet: (<><Path d="M19 8V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-2" /><Path d="M21 10h-5a2 2 0 000 4h5z" /></>),
+  moneyIn: <Path d="M17 7L7 17M7 9v8h8" />,
+  moneyOut: <Path d="M7 17L17 7M9 7h8v8" />,
+  alert: (<><Path d="M12 4l9 16H3z" /><Path d="M12 10v4.5M12 17.2v.1" /></>),
 };
 
 const MIRRORED: IconName[] = ['chevron', 'back'];

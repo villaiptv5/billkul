@@ -11,11 +11,12 @@ import { formatAmount } from '../logic/money';
 import { monthStats } from '../logic/stats';
 import type { RootNav } from '../nav';
 import { C } from '../theme';
-import { Button } from '../ui/Button';
+import { Button, IconButton } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { Card, Empty } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
+import { useCashBook, useStock } from './books';
 import { DocRow, openDoc } from './shared';
 
 function Stat({ label, value, symbol, color = C.onInk }: { label: string; value: number; symbol: string; color?: string }) {
@@ -46,6 +47,8 @@ export function HomeScreen() {
   const focused = useIsFocused();
   const stats = useMemo(() => monthStats(docs, today), [docs, today]);
   const recent = useMemo(() => sortDocs(docs).slice(0, 4), [docs]);
+  const book = useCashBook();
+  const { low } = useStock();
 
   const create = (type: DocType) => {
     const doc = store.createDoc(type);
@@ -71,13 +74,14 @@ export function HomeScreen() {
               <T size={18} w="semibold" head color={C.onInk} numberOfLines={1} accessibilityRole="header">
                 {settings.shopName || t('myShop')}
               </T>
-              <Pressable accessibilityRole="button" onPress={() => nav.navigate('Tabs', { screen: 'Settings' })} testID="home-backup" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 24 }}>
+              <Pressable accessibilityRole="button" onPress={() => nav.navigate('Settings')} testID="home-backup" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 24 }}>
                 <Icon name={settings.lastBackupAt ? 'cloudCheck' : 'cloudOff'} size={16} color={settings.lastBackupAt ? C.mint : C.orangeOnInk} stroke={2} />
                 <T size={13} color={settings.lastBackupAt ? C.mint : C.orangeOnInk}>
                   {backupText}
                 </T>
               </Pressable>
             </View>
+            <IconButton icon="sliders" label={t('tabSettings')} color={C.onInk} onPress={() => nav.navigate('Settings')} testID="open-settings" />
           </View>
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -95,6 +99,24 @@ export function HomeScreen() {
             <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.green} />
             <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orangeOnInk} />
           </View>
+
+          <Pressable accessibilityRole="button" onPress={() => nav.navigate('Tabs', { screen: 'Cash' })} testID="home-cash" style={({ pressed }) => ({ minHeight: 48, backgroundColor: C.inkPanel, borderRadius: 14, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, opacity: pressed ? 0.7 : 1 })}>
+            <Icon name="wallet" size={20} color={C.mint} />
+            <View style={{ flex: 1 }}>
+              <T size={14} color={C.onInkSoft}>
+                {t('cashInHand')}
+              </T>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, direction: 'ltr' }}>
+              <T size={12} w="medium" latin color={C.onInkMuted}>
+                {settings.currency.symbol}
+              </T>
+              <T size={17} w="semibold" head latin color={book.inHand < 0 ? C.orangeOnInk : C.onInk}>
+                {formatAmount(book.inHand)}
+              </T>
+            </View>
+            <Icon name="chevron" size={18} color={C.onInkMuted} stroke={2} />
+          </Pressable>
         </View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 14 }}>
@@ -102,6 +124,18 @@ export function HomeScreen() {
             <Button label={t('newQuote')} icon="plus" size="lg" head onPress={() => create('quote')} testID="new-quote" style={{ minHeight: 60, borderRadius: 16 }} />
             <Button label={t('newInvoice')} variant="secondary" onPress={() => create('invoice')} testID="new-invoice" style={{ borderRadius: 14 }} />
           </View>
+
+          {low.length ? (
+            <Pressable accessibilityRole="button" onPress={() => nav.navigate('Tabs', { screen: 'Items' })} testID="home-low-stock" style={({ pressed }) => ({ minHeight: 48, borderRadius: 14, borderWidth: 1, borderColor: '#F3C9A4', backgroundColor: '#FFF4E8', paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, opacity: pressed ? 0.7 : 1 })}>
+              <Icon name="alert" size={20} color={C.orange} />
+              <View style={{ flex: 1 }}>
+                <T size={14.5} w="semibold" color={C.orange}>
+                  {low.length === 1 ? t('lowStockOne') : t('lowStockMany', { n: low.length })}
+                </T>
+              </View>
+              <Icon name="chevron" size={18} color={C.orange} stroke={2} />
+            </Pressable>
+          ) : null}
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <T size={15} w="semibold" head accessibilityRole="header">

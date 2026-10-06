@@ -16,6 +16,7 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { CustomerPicker } from './CustomerPicker';
 import { showDoc } from './shared';
+import { LineStock, useStock } from './books';
 import { matchItems, useDocEditor } from './useDocEditor';
 
 export function EditorScreen() {
@@ -25,6 +26,7 @@ export function EditorScreen() {
   const { notify } = useDialogs();
   const { items, settings } = useAppState();
   const editor = useDocEditor(docId);
+  const { levels } = useStock();
   const doc = editor?.doc;
   const [query, setQuery] = useState('');
   const [pickingCustomer, setPickingCustomer] = useState(false);
@@ -173,10 +175,11 @@ export function EditorScreen() {
                 doc.lines.map((line, i) => (
                   <View key={line.id} style={{ paddingStart: 12, paddingEnd: 4, paddingTop: 12, paddingBottom: 10, gap: 8, borderBottomWidth: i === doc.lines.length - 1 ? 0 : 1, borderBottomColor: C.lineSoft }}>
                     <View style={{ flexDirection: 'row', gap: 10, paddingEnd: 8 }}>
-                      <View style={{ flex: 1 }}>
+                      <View style={{ flex: 1, gap: 1 }}>
                         <T size={15} w="semibold">
                           {line.name}
                         </T>
+                        <LineStock doc={doc} line={line} levels={levels} />
                       </View>
                       <T size={15} w="semibold" latin testID={`line-total-${i}`}>
                         {formatAmount(lineTotal(line))}

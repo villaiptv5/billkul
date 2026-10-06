@@ -5,6 +5,7 @@ import type { DocType } from '../data/types';
 export type Route =
   | { page: 'home' }
   | { page: 'documents'; type: DocType }
+  | { page: 'cash' }
   | { page: 'customers' }
   | { page: 'items' }
   | { page: 'settings' }
@@ -28,6 +29,8 @@ export function fromHash(hash: string): Route {
       return { page: 'documents', type: parts[1] === 'invoice' ? 'invoice' : 'quote' };
     case 'doc':
       return parts[1] ? { page: 'editor', docId: decodeURIComponent(parts[1]) } : { page: 'documents', type: 'quote' };
+    case 'cash':
+      return { page: 'cash' };
     case 'customers':
       return { page: 'customers' };
     case 'items':

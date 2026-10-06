@@ -11,6 +11,7 @@ import { Icon, type IconName } from '../ui/Icon';
 import { useDeskSize } from '../ui/layout';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
+import { CashPage } from './CashPage';
 import { CustomersPage } from './CustomersPage';
 import { DocumentsPage } from './DocumentsPage';
 import { EditorPage } from './EditorPage';
@@ -22,11 +23,12 @@ import { SettingsPage } from './SettingsPage';
 const SIDEBAR_WIDTH = 248;
 const RAIL_WIDTH = 88;
 
-type NavPage = 'home' | 'documents' | 'customers' | 'items' | 'settings';
+type NavPage = 'home' | 'documents' | 'cash' | 'customers' | 'items' | 'settings';
 
 const NAV: { page: NavPage; icon: IconName; label: StringKey }[] = [
   { page: 'home', icon: 'home', label: 'tabHome' },
   { page: 'documents', icon: 'file', label: 'tabDocuments' },
+  { page: 'cash', icon: 'wallet', label: 'cashBook' },
   { page: 'customers', icon: 'users', label: 'tabCustomers' },
   { page: 'items', icon: 'box', label: 'tabItems' },
   { page: 'settings', icon: 'sliders', label: 'tabSettings' },
@@ -127,7 +129,7 @@ function Sidebar({ route, go, onNew, rail }: { route: Route; go: (r: Route) => v
 
       <View style={{ gap: 4, flex: 1 }}>
         {NAV.map((item) => (
-          <NavItem key={item.page} icon={item.icon} label={t(item.label)} active={current === item.page} rail={rail} onPress={() => open(item.page)} testID={`nav-${item.page}`} />
+          <NavItem key={item.page} icon={item.icon} label={t(rail && item.page === 'cash' ? 'tabCash' : item.label)} active={current === item.page} rail={rail} onPress={() => open(item.page)} testID={`nav-${item.page}`} />
         ))}
       </View>
 
@@ -230,6 +232,9 @@ export function DesktopApp() {
         break;
       case 'documents':
         page = <DocumentsPage type={route.type} onNew={onNew} />;
+        break;
+      case 'cash':
+        page = <CashPage />;
         break;
       case 'customers':
         page = <CustomersPage />;

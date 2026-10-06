@@ -5,9 +5,9 @@ import type { DocType } from './data/types';
 export type TabParams = {
   Home: undefined;
   Documents: { type?: DocType } | undefined;
+  Cash: undefined;
   Customers: undefined;
   Items: undefined;
-  Settings: undefined;
 };
 
 export type RootParams = {
@@ -17,6 +17,7 @@ export type RootParams = {
   Preview: { docId: string };
   CustomerEdit: { id?: string } | undefined;
   ItemEdit: { id?: string } | undefined;
+  Settings: undefined;
   ShopProfile: undefined;
 };
 

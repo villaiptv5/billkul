@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useAppState } from '../data/app';
 import { sortDocs } from '../data/store';
 import { formatDay, formatMonth, isoDate } from '../logic/dates';
@@ -8,6 +8,8 @@ import { monthStats } from '../logic/stats';
 import { docTotals } from '../logic/totals';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
+import { useCashBook, useStock } from '../screens/books';
+import { Icon } from '../ui/Icon';
 import { Empty, StatusPill } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
@@ -16,10 +18,11 @@ import { useDesk } from './route';
 
 const COLS: Col[] = [{ width: 110 }, { flex: 1 }, { width: 120 }, { width: 150, end: true }, { width: 120 }];
 
-function Stat({ label, value, symbol, color = C.ink }: { label: string; value: number; symbol: string; color?: string }) {
+function Stat({ label, value, symbol, color = C.ink, onPress, testID }: { label: string; value: number; symbol: string; color?: string; onPress?: () => void; testID?: string }) {
   const { rtl } = useLocale();
   return (
-    <Panel style={{ flexGrow: 1, flexBasis: 200, paddingHorizontal: 20, paddingVertical: 16, gap: 6 }}>
+    <Pressable accessibilityRole={onPress ? 'link' : undefined} disabled={!onPress} onPress={onPress} testID={testID} style={{ flexGrow: 1, flexBasis: 200 }}>
+    <Panel style={{ paddingHorizontal: 20, paddingVertical: 16, gap: 6 }}>
       <T size={13.5} color={C.muted}>
         {label}
       </T>
@@ -32,6 +35,7 @@ function Stat({ label, value, symbol, color = C.ink }: { label: string; value: n
         </T>
       </View>
     </Panel>
+    </Pressable>
   );
 }
 
@@ -42,6 +46,8 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
   const today = isoDate();
   const stats = useMemo(() => monthStats(docs, today), [docs, today]);
   const recent = useMemo(() => sortDocs(docs).slice(0, 8), [docs]);
+  const book = useCashBook();
+  const { low } = useStock();
 
   return (
     <View style={{ gap: 20 }}>
@@ -52,6 +58,28 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
         <Stat label={t('invoiced')} value={stats.invoiced} symbol={settings.currency.symbol} />
         <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.greenText} />
         <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orange} />
+      </View>
+
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+        <Stat label={t('cashInHand')} value={book.inHand} symbol={settings.currency.symbol} color={book.inHand < 0 ? C.orange : C.ink} onPress={() => go({ page: 'cash' })} testID="home-cash" />
+        <Stat label={`${t('expenses')} · ${t('thisMonth')}`} value={book.month.out} symbol={settings.currency.symbol} onPress={() => go({ page: 'cash' })} testID="home-expenses" />
+        {low.length ? (
+          <Pressable accessibilityRole="link" onPress={() => go({ page: 'items' })} testID="home-low-stock" style={{ flexGrow: 2, flexBasis: 416 }}>
+            <View style={{ flex: 1, borderRadius: 16, borderWidth: 1, borderColor: '#F3C9A4', backgroundColor: '#FFF4E8', paddingHorizontal: 20, paddingVertical: 16, gap: 6, justifyContent: 'center' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                <Icon name="alert" size={20} color={C.orange} />
+                <T size={15.5} w="semibold" color={C.orange}>
+                  {low.length === 1 ? t('lowStockOne') : t('lowStockMany', { n: low.length })}
+                </T>
+              </View>
+              <T size={13.5} color={C.orange} numberOfLines={1}>
+                {low.slice(0, 4).map((i) => i.name).join(', ')}
+              </T>
+            </View>
+          </Pressable>
+        ) : (
+          <View style={{ flexGrow: 2, flexBasis: 416 }} />
+        )}
       </View>
 
       <View style={{ gap: 10 }}>

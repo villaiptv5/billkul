@@ -10,6 +10,7 @@ import { Field, NumberField } from '../ui/Input';
 import { Chip, Screen, TopBar, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
+import { saveItemForm, StockFields } from './books';
 
 export function ItemEditScreen() {
   const nav = useNavigation<RootNav>();
@@ -21,10 +22,12 @@ export function ItemEditScreen() {
   const [name, setName] = useState(existing?.name ?? '');
   const [unit, setUnit] = useState(existing?.unit ?? '');
   const [price, setPrice] = useState(existing?.price ?? 0);
+  const [track, setTrack] = useState(existing?.trackStock ?? false);
+  const [opening, setOpening] = useState(0);
+  const [lowAt, setLowAt] = useState(existing?.lowStock ?? 0);
 
   const save = () => {
-    if (!name.trim()) return notify(t('nameRequired'));
-    store.saveItem({ id: existing?.id, name, unit, price });
+    if (!saveItemForm({ id: existing?.id, name, unit, price, track, opening, lowAt })) return notify(t('nameRequired'));
     nav.goBack();
   };
 
@@ -55,6 +58,7 @@ export function ItemEditScreen() {
             ))}
           </View>
         </View>
+        <StockFields item={existing} track={track} setTrack={setTrack} opening={opening} setOpening={setOpening} lowAt={lowAt} setLowAt={setLowAt} />
         <Button label={t('save')} size="lg" head onPress={save} testID="item-save" />
         {existing ? <Button label={t('delete')} icon="trash" variant="danger" onPress={remove} testID="item-delete" /> : null}
       </ScrollView>

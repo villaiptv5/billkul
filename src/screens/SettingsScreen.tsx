@@ -61,8 +61,8 @@ export function SettingsScreen() {
   const taxValue = settings.taxPercent > 0 ? `${settings.taxLabel.trim() || t('tax')} ${formatAmount(settings.taxPercent)}%` : t('taxNotAdded');
 
   return (
-    <Screen bottom={false}>
-      <TopBar title={t('tabSettings')} />
+    <Screen>
+      <TopBar title={t('tabSettings')} onBack={() => nav.goBack()} />
       <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 14, gap: 12 }}>
         <Pressable accessibilityRole="button" onPress={() => nav.navigate('ShopProfile')} testID="open-profile">
           <Card style={{ minHeight: 68, paddingStart: 14, paddingEnd: 8, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 }}>

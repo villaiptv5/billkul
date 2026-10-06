@@ -37,6 +37,11 @@ api.expo.dev, set `EXPO_OFFLINE=1` for expo commands.
   layout has its own small router (`src/desktop/route.ts`) that mirrors the page in the address
   after `#`, so Back, Forward and Reload work without the server knowing any paths. Logic shared by
   both layouts lives in hooks (`useDocEditor`, `useBackupActions`), not in the screens.
+- **The books are read from the documents, not copied from them.** A paid invoice appears in the
+  cash book, an issued invoice takes stock, and stock bought with a cost appears as an expense, all
+  worked out on the fly in `src/logic/ledger.ts` and `src/logic/stock.ts`. Nothing is stored twice,
+  so editing or deleting an invoice can never leave the cash book or the stock count out of step.
+  Only what is typed by hand is stored: cash entries and stock put in or corrected.
 - **Android folders are generated.** Never create or edit `android/` or `ios/` by hand. Configure
   native behaviour in `app.json`.
 

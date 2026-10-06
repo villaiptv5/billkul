@@ -10,6 +10,7 @@ import { openWhatsappText, printDoc } from '../platform/docActions';
 import { DocView } from '../platform/DocView';
 import { CustomerPicker } from '../screens/CustomerPicker';
 import { TaxSheet } from '../screens/EditorScreen';
+import { LineStock, useStock } from '../screens/books';
 import { matchItems, useDocEditor } from '../screens/useDocEditor';
 import { C } from '../theme';
 import { Button, IconButton } from '../ui/Button';
@@ -31,6 +32,7 @@ export function EditorPage({ docId }: { docId: string }) {
   const { confirm, notify } = useDialogs();
   const { items, settings, docs } = useAppState();
   const editor = useDocEditor(docId);
+  const { levels } = useStock();
   const doc = editor?.doc;
   const [query, setQuery] = useState('');
   const [pickingCustomer, setPickingCustomer] = useState(false);
@@ -271,6 +273,7 @@ export function EditorPage({ docId }: { docId: string }) {
                           {t('per', { unit: line.unit })}
                         </T>
                       ) : null}
+                      <LineStock doc={doc} line={line} levels={levels} />
                     </View>
                     <NumberField label={t('qty')} value={line.qty} onChange={(qty) => changeLine(line, { qty })} width={64} testID={`qty-${i}`} />
                     <NumberField label={t('price')} value={line.price} onChange={(price) => changeLine(line, { price })} width={100} blankZero testID={`price-${i}`} />

@@ -8,6 +8,7 @@ import { Button } from '../ui/Button';
 import { Field, NumberField } from '../ui/Input';
 import { Chip, Sheet, SheetScroll, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
+import { saveItemForm, StockFields } from '../screens/books';
 import { T } from '../ui/T';
 
 /** Page title with its actions on the far side. */
@@ -62,33 +63,35 @@ export function TableHead({ cols, labels }: { cols: Col[]; labels: string[] }) {
 
 export function TableRow({ cols, cells, onPress, last, testID }: { cols: Col[]; cells: React.ReactNode[]; onPress?: () => void; last?: boolean; testID?: string }) {
   const [hovered, setHovered] = useState(false);
+  const style: ViewStyle = {
+    flexDirection: 'row',
+    gap: 16,
+    paddingHorizontal: 20,
+    minHeight: 56,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderBottomWidth: last ? 0 : 1,
+    borderBottomColor: C.lineSoft,
+    backgroundColor: hovered && onPress ? '#F4F9F6' : 'transparent',
+    borderBottomLeftRadius: last ? 16 : 0,
+    borderBottomRightRadius: last ? 16 : 0,
+  };
+  const content = cols.map((col, i) => (
+    <View key={i} style={cellStyle(col)}>
+      {cells[i]}
+    </View>
+  ));
+  // A row that does nothing itself is a plain row, so the buttons and boxes inside it stay usable.
+  if (!onPress) {
+    return (
+      <View testID={testID} style={style}>
+        {content}
+      </View>
+    );
+  }
   return (
-    <Pressable
-      accessibilityRole={onPress ? 'button' : undefined}
-      onPress={onPress}
-      disabled={!onPress}
-      testID={testID}
-      onHoverIn={() => setHovered(true)}
-      onHoverOut={() => setHovered(false)}
-      style={{
-        flexDirection: 'row',
-        gap: 16,
-        paddingHorizontal: 20,
-        minHeight: 56,
-        paddingVertical: 8,
-        alignItems: 'center',
-        borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: C.lineSoft,
-        backgroundColor: hovered && onPress ? '#F4F9F6' : 'transparent',
-        borderBottomLeftRadius: last ? 16 : 0,
-        borderBottomRightRadius: last ? 16 : 0,
-      }}
-    >
-      {cols.map((col, i) => (
-        <View key={i} style={cellStyle(col)}>
-          {cells[i]}
-        </View>
-      ))}
+    <Pressable accessibilityRole="button" onPress={onPress} testID={testID} onHoverIn={() => setHovered(true)} onHoverOut={() => setHovered(false)} style={style}>
+      {content}
     </Pressable>
   );
 }
@@ -142,22 +145,32 @@ export function CustomerDialog({ visible, customer, onClose }: { visible: boolea
 export function ItemDialog({ visible, item, onClose }: { visible: boolean; item?: Item; onClose: () => void }) {
   const { t, lang } = useLocale();
   const { confirm, notify } = useDialogs();
-  const currency = useAppState().settings.currency;
+  const { settings, items } = useAppState();
+  const currency = settings.currency;
+  // The item as it is now: adding stock from inside the dialog changes it.
+  const live = item ? items.find((i) => i.id === item.id) ?? item : undefined;
   const [name, setName] = useState('');
   const [unit, setUnit] = useState('');
   const [price, setPrice] = useState(0);
+  const [track, setTrack] = useState(false);
+  const [opening, setOpening] = useState(0);
+  const [lowAt, setLowAt] = useState(0);
 
+  // Filled when the dialog opens, and not again while it is open, so adding stock does not wipe what is typed.
   useEffect(() => {
     if (visible) {
       setName(item?.name ?? '');
       setUnit(item?.unit ?? '');
       setPrice(item?.price ?? 0);
+      setTrack(item?.trackStock ?? false);
+      setOpening(0);
+      setLowAt(item?.lowStock ?? 0);
     }
-  }, [visible, item]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, item?.id]);
 
   const save = () => {
-    if (!name.trim()) return notify(t('nameRequired'));
-    store.saveItem({ id: item?.id, name, unit, price });
+    if (!saveItemForm({ id: item?.id, name, unit, price, track, opening, lowAt })) return notify(t('nameRequired'));
     onClose();
   };
 
@@ -183,6 +196,7 @@ export function ItemDialog({ visible, item, onClose }: { visible: boolean; item?
             <Chip key={u} label={u} selected={unit === u} onPress={() => setUnit(unit === u ? '' : u)} testID={`unit-${u}`} />
           ))}
         </View>
+        <StockFields item={live} track={track} setTrack={setTrack} opening={opening} setOpening={setOpening} lowAt={lowAt} setLowAt={setLowAt} />
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
           {item ? <Button label={t('delete')} icon="trash" variant="danger" onPress={remove} testID="item-delete" /> : null}
           <View style={{ flex: 1 }} />

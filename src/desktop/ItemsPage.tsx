@@ -2,27 +2,32 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { store, useAppState } from '../data/app';
 import type { Item } from '../data/types';
+import { stockText, StockSheet, useStock } from '../screens/books';
 import { C } from '../theme';
 import { Button, IconButton } from '../ui/Button';
 import { NumberField, SearchBox } from '../ui/Input';
-import { Empty } from '../ui/kit';
+import { Chip, Empty } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { ItemDialog, PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
 
-const COLS: Col[] = [{ flex: 1 }, { width: 160 }, { width: 150, end: true }, { width: 44 }];
+const COLS: Col[] = [{ flex: 1 }, { width: 120 }, { width: 190 }, { width: 150, end: true }, { width: 44 }];
 
 export function ItemsPage() {
   const { t } = useLocale();
   const { items, settings } = useAppState();
+  const { levels, low } = useStock();
   const [query, setQuery] = useState('');
+  const [lowOnly, setLowOnly] = useState(false);
   const [dialog, setDialog] = useState<{ item?: Item } | null>(null);
+  const [adding, setAdding] = useState<Item | null>(null);
+  const counted = items.some((i) => i.trackStock);
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const sorted = [...items].sort((a, b) => a.name.localeCompare(b.name));
+    const sorted = lowOnly ? low : [...items].sort((a, b) => a.name.localeCompare(b.name));
     return q ? sorted.filter((i) => i.name.toLowerCase().includes(q)) : sorted;
-  }, [items, query]);
+  }, [items, query, lowOnly, low]);
 
   return (
     <View style={{ gap: 20 }}>
@@ -30,39 +35,61 @@ export function ItemsPage() {
         <Button label={t('newItem')} icon="plus" head onPress={() => setDialog({})} testID="add-item" />
       </PageHeader>
 
-      <View style={{ maxWidth: 420 }}>
-        <SearchBox value={query} onChangeText={setQuery} placeholder={t('searchItems')} testID="items-search" />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+        <View style={{ width: 420, maxWidth: '100%' }}>
+          <SearchBox value={query} onChangeText={setQuery} placeholder={t('searchItems')} testID="items-search" />
+        </View>
+        {counted ? (
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Chip label={t('all')} selected={!lowOnly} onPress={() => setLowOnly(false)} testID="items-all" />
+            <Chip label={low.length ? `${t('lowStock')} (${low.length})` : t('lowStock')} selected={lowOnly} onPress={() => setLowOnly(true)} testID="items-low" />
+          </View>
+        ) : null}
       </View>
 
       <Panel>
         {list.length ? (
           <>
-            <TableHead cols={COLS} labels={[t('itemName'), t('unit'), t('priceIn', { code: settings.currency.code }), '']} />
-            {list.map((item, i) => (
-              <TableRow
-                key={item.id}
-                cols={COLS}
-                last={i === list.length - 1}
-                cells={[
-                  <Pressable accessibilityRole="button" onPress={() => setDialog({ item })} testID={`item-${item.name}`} style={{ alignSelf: 'stretch', minHeight: 40, justifyContent: 'center' }}>
-                    <T size={14.5} w="semibold" numberOfLines={1}>{item.name}</T>
-                  </Pressable>,
-                  <T size={14} color={C.muted}>{item.unit}</T>,
-                  // The price is typed straight into the table and saved as it is typed.
-                  <NumberField label={t('editPriceOf', { name: item.name })} value={item.price} onChange={(price) => store.saveItem({ id: item.id, name: item.name, price })} width={130} height={40} align="end" blankZero testID={`price-${item.name}`} />,
-                  <IconButton icon="pencil" label={`${t('editItem')}: ${item.name}`} color={C.muted} size={40} onPress={() => setDialog({ item })} testID={`edit-item-${item.name}`} />,
-                ]}
-              />
-            ))}
+            <TableHead cols={COLS} labels={[t('itemName'), t('unit'), t('stock'), t('priceIn', { code: settings.currency.code }), '']} />
+            {list.map((item, i) => {
+              const stock = item.trackStock ? stockText(item, levels.get(item.id) ?? 0, t) : null;
+              return (
+                <TableRow
+                  key={item.id}
+                  cols={COLS}
+                  last={i === list.length - 1}
+                  cells={[
+                    <Pressable accessibilityRole="button" onPress={() => setDialog({ item })} testID={`item-${item.name}`} style={{ alignSelf: 'stretch', minHeight: 40, justifyContent: 'center' }}>
+                      <T size={14.5} w="semibold" numberOfLines={1}>{item.name}</T>
+                    </Pressable>,
+                    <T size={14} color={C.muted}>{item.unit}</T>,
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'stretch' }}>
+                      <View style={{ flex: 1 }}>
+                        <T size={14} w={stock && stock.state !== 'ok' ? 'semibold' : 'regular'} color={stock ? stock.color : C.muted} testID={`stock-${item.name}`}>
+                          {stock ? stock.text : t('notCounted')}
+                        </T>
+                      </View>
+                      <IconButton icon="plus" label={`${t('addStock')}: ${item.name}`} color={C.greenText} size={36} onPress={() => setAdding(item)} testID={`add-stock-${item.name}`} />
+                    </View>,
+                    // The price is typed straight into the table and saved as it is typed.
+                    <NumberField label={t('editPriceOf', { name: item.name })} value={item.price} onChange={(price) => store.saveItem({ id: item.id, name: item.name, price })} width={130} height={40} align="end" blankZero testID={`price-${item.name}`} />,
+                    <IconButton icon="pencil" label={`${t('editItem')}: ${item.name}`} color={C.muted} size={40} onPress={() => setDialog({ item })} testID={`edit-item-${item.name}`} />,
+                  ]}
+                />
+              );
+            })}
           </>
         ) : query.trim() ? (
           <Empty title={t('noMatch', { q: query.trim() })} />
+        ) : lowOnly ? (
+          <Empty title={t('noLowStock')} />
         ) : (
           <Empty title={t('noItemsYet')} hint={t('noItemsHint')} />
         )}
       </Panel>
 
       <ItemDialog visible={!!dialog} item={dialog?.item} onClose={() => setDialog(null)} />
+      <StockSheet visible={!!adding} mode="add" item={adding ?? undefined} onClose={() => setAdding(null)} />
     </View>
   );
 }

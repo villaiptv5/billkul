@@ -8,9 +8,10 @@ import type { RootNav } from '../nav';
 import { C } from '../theme';
 import { Button, IconButton } from '../ui/Button';
 import { NumberField, SearchBox } from '../ui/Input';
-import { Empty, Screen, TopBar } from '../ui/kit';
+import { Chip, Empty, Screen, TopBar } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
+import { stockText, useStock } from './books';
 
 export function ItemsScreen() {
   const nav = useNavigation<RootNav>();
@@ -18,12 +19,15 @@ export function ItemsScreen() {
   const { items, settings } = useAppState();
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<{ id: string; price: number } | null>(null);
+  const [lowOnly, setLowOnly] = useState(false);
+  const { levels, low } = useStock();
+  const counted = items.some((i) => i.trackStock);
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const sorted = [...items].sort((a, b) => a.name.localeCompare(b.name));
+    const sorted = (lowOnly ? low : [...items].sort((a, b) => a.name.localeCompare(b.name)));
     return q ? sorted.filter((i) => i.name.toLowerCase().includes(q)) : sorted;
-  }, [items, query]);
+  }, [items, query, lowOnly, low]);
 
   const savePrice = (item: Item) => {
     if (editing) store.saveItem({ id: item.id, name: item.name, price: editing.price });
@@ -40,10 +44,17 @@ export function ItemsScreen() {
         data={list}
         keyExtractor={(i) => i.id}
         keyboardShouldPersistTaps="handled"
-        extraData={editing}
+        extraData={[editing, levels]}
         contentContainerStyle={{ padding: 16, paddingTop: 14 }}
         ListHeaderComponent={
           items.length ? (
+            <>
+            {counted ? (
+              <View style={{ flexDirection: 'row', gap: 8, paddingBottom: 12 }}>
+                <Chip label={t('all')} selected={!lowOnly} onPress={() => setLowOnly(false)} testID="items-all" />
+                <Chip label={low.length ? `${t('lowStock')} (${low.length})` : t('lowStock')} selected={lowOnly} onPress={() => setLowOnly(true)} testID="items-low" />
+              </View>
+            ) : null}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4, paddingBottom: 10 }}>
               <T size={13} color={C.muted}>
                 {items.length === 1 ? t('itemCountOne') : t('itemCountMany', { n: items.length })}
@@ -52,11 +63,13 @@ export function ItemsScreen() {
                 {t('priceIn', { code: settings.currency.code })}
               </T>
             </View>
+            </>
           ) : null
         }
-        ListEmptyComponent={query.trim() ? <Empty title={t('noMatch', { q: query.trim() })} /> : <Empty title={t('noItemsYet')} hint={t('noItemsHint')} />}
+        ListEmptyComponent={query.trim() ? <Empty title={t('noMatch', { q: query.trim() })} /> : lowOnly ? <Empty title={t('noLowStock')} /> : <Empty title={t('noItemsYet')} hint={t('noItemsHint')} />}
         renderItem={({ item, index }) => {
           const isEditing = editing?.id === item.id;
+          const stock = item.trackStock ? stockText(item, levels.get(item.id) ?? 0, t) : null;
           return (
             <View
               style={{
@@ -84,10 +97,19 @@ export function ItemsScreen() {
                 <T size={15} w="semibold">
                   {item.name}
                 </T>
-                {item.unit ? (
-                  <T size={13} color={C.muted}>
-                    {t('per', { unit: item.unit })}
-                  </T>
+                {item.unit || stock ? (
+                  <View style={{ flexDirection: 'row', gap: 5, flexWrap: 'wrap' }}>
+                    {item.unit ? (
+                      <T size={13} color={C.muted}>
+                        {stock ? `${t('per', { unit: item.unit })} ·` : t('per', { unit: item.unit })}
+                      </T>
+                    ) : null}
+                    {stock ? (
+                      <T size={13} w={stock.state === 'ok' ? 'regular' : 'semibold'} color={stock.color} testID={`stock-${item.name}`}>
+                        {stock.text}
+                      </T>
+                    ) : null}
+                  </View>
                 ) : null}
               </Pressable>
               {isEditing ? (
