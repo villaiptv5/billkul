@@ -42,6 +42,8 @@ js = js.replace(/"\/assets\/([^"]+)"/g, (_, assetPath) => {
   return `"a/${path.posix.basename(assetPath)}"`;
 });
 fs.writeFileSync(path.join(out, 'app.js'), js);
+// The page asks for the script by a stamp of its contents, so a browser never keeps an old copy.
+const stamp = require('crypto').createHash('md5').update(js).digest('hex').slice(0, 10);
 
 // 3. A small page that loads the bundle with relative paths.
 fs.copyFileSync(path.join(root, 'assets', 'favicon.png'), path.join(out, 'favicon.png'));
@@ -63,7 +65,7 @@ body { overflow: hidden; }
 <body>
 <noscript>BillKul needs JavaScript to run.</noscript>
 <div id="root"></div>
-<script src="app.js" defer></script>
+<script src="app.js?v=${stamp}" defer></script>
 </body>
 </html>
 `,
