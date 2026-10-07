@@ -34,6 +34,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Build the app for the emulator
         working-directory: android
+        # The test phone cannot reach the real account server, so this build signs in against a stand-in inside the app.
+        env:
+          EXPO_PUBLIC_FAKE_SERVER: '1'
         run: ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon
       - uses: actions/upload-artifact@v4
         with:

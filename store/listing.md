@@ -50,7 +50,10 @@ MADE FOR THE WAY YOU WORK
 • Save a backup file and restore it on a new phone
 
 YOUR DATA STAYS WITH YOU
-BillKul needs no sign-up. Your customers, prices and documents are kept on your own phone.
+You sign in with your mobile number. Your customers, prices and documents are kept on your own phone, not on our server.
+
+FREE AND PRO
+Free: 10 quotations and invoices and 10 cash book entries. Pro: unlimited.
 
 Documents made with BillKul are quotations and bills. They are not tax invoices for sales tax purposes.
 ```
@@ -102,7 +105,10 @@ BillKul دکانداروں، تاجروں، سروس دینے والوں اور 
 • بیک اپ فائل محفوظ کریں اور نئے فون پر بحال کریں
 
 آپ کا ڈیٹا آپ کے پاس
-BillKul کے لیے سائن اپ کی ضرورت نہیں۔ آپ کے گاہک، قیمتیں اور دستاویزات آپ کے اپنے فون میں رہتی ہیں۔
+آپ اپنے موبائل نمبر سے سائن اِن کرتے ہیں۔ آپ کے گاہک، قیمتیں اور دستاویزات آپ کے اپنے فون میں رہتی ہیں، ہمارے سرور پر نہیں۔
+
+فری اور پرو
+فری: 10 کوٹیشن اور انوائس اور 10 کیش بک اندراجات۔ پرو: لامحدود۔
 
 BillKul سے بنی دستاویزات کوٹیشن اور بل ہیں۔ یہ سیلز ٹیکس کے لیے ٹیکس انوائس نہیں ہیں۔
 ```
@@ -118,6 +124,20 @@ BillKul سے بنی دستاویزات کوٹیشن اور بل ہیں۔ یہ س
 | Website | https://billkul.smartcloud247.com |
 | Privacy policy | https://billkul.smartcloud247.com/privacy/ |
 | Contains ads | No |
+
+## What to tell Google about sign-in and data
+
+These go in Play Console under "App content". They changed when sign-in was added on 7 October 2026.
+
+| Box | Value |
+|---|---|
+| App access | "All or some functionality is restricted". Give a test number and its fixed code, added first on the admin page under "Test numbers", so the reviewer can sign in. |
+| Data safety: does the app collect data | Yes |
+| Data collected | Phone number (account management, app functionality). App interactions: counts of documents and cash book entries made (app functionality). |
+| Data shared with others | No |
+| Data encrypted in transit | Yes |
+| Can users ask for data to be deleted | Yes. In the app: Settings, "Delete my account". |
+| Account deletion web link | https://billkul.smartcloud247.com/privacy/#delete-account |
 
 ## Pictures
 

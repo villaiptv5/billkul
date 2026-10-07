@@ -14,6 +14,7 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { CustomerDialog, PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
 import { useDesk } from './route';
+import { useLimits } from '../screens/limits';
 
 const QUOTE_HISTORY: Col[] = [{ width: 100 }, { flex: 1 }, { width: 120, end: true }, { width: 100 }];
 // An invoice's own line says paid or unpaid, so it needs no status column.
@@ -42,6 +43,7 @@ function Stat({ label, value, symbol, color = C.ink, testID }: { label: string; 
 
 /** One customer: what they were quoted and invoiced, what is paid and due, and every document written for them. */
 export function CustomerPage({ id }: { id: string }) {
+  const limits = useLimits();
   const { t, lang } = useLocale();
   const { go } = useDesk();
   const { customers, settings } = useAppState();
@@ -52,7 +54,9 @@ export function CustomerPage({ id }: { id: string }) {
   if (!customer) return null;
 
   const symbol = settings.currency.symbol;
-  const start = (type: DocType) => go({ page: 'editor', docId: newDocFor(type, customer).id });
+  const start = (type: DocType) => {
+    if (limits.allowDoc()) go({ page: 'editor', docId: newDocFor(type, customer).id });
+  };
 
   const table = (title: string, docs: Doc[], testID: string) => {
     const invoices = docs === summary.invoices;

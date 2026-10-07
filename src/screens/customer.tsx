@@ -16,6 +16,7 @@ import { Avatar, Card, Empty, Screen, StatusPill, TopBar } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { openDoc } from './shared';
+import { useLimits } from './limits';
 
 /** Starts a quote or invoice already made out to this customer. */
 export function newDocFor(type: DocType, customer: Customer): Doc {
@@ -104,6 +105,7 @@ export function HistoryRow({ doc, onPress, last }: { doc: Doc; onPress: () => vo
 
 /** A customer's page on the phone: what they owe, their statement, and every quote and invoice written for them. */
 export function CustomerScreen() {
+  const limits = useLimits();
   const nav = useNavigation<RootNav>();
   const { id } = useRoute<RouteProp<RootParams, 'Customer'>>().params;
   const { t } = useLocale();
@@ -115,7 +117,9 @@ export function CustomerScreen() {
   }, [customer, nav]);
   if (!customer) return null;
 
-  const start = (type: DocType) => nav.navigate('Editor', { docId: newDocFor(type, customer).id });
+  const start = (type: DocType) => {
+    if (limits.allowDoc()) nav.navigate('Editor', { docId: newDocFor(type, customer).id });
+  };
   const section = (title: string, docs: Doc[]) =>
     docs.length ? (
       <View style={{ gap: 6 }}>

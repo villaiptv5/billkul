@@ -5,6 +5,8 @@ import type { DocType } from '../data/types';
 import type { StringKey } from '../i18n';
 import { useBackupActions } from '../screens/backupActions';
 import { SetupScreen } from '../screens/SetupScreen';
+import { SignInScreen } from '../screens/SignInScreen';
+import { useLimits } from '../screens/limits';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
 import { Icon, type IconName } from '../ui/Icon';
@@ -167,7 +169,7 @@ function currentRoute(): Route {
 /** The app as it appears on a computer screen: a sidebar, and pages that use the full width. */
 export function DesktopApp() {
   const { rtl } = useLocale();
-  const { settings, docs, customers } = useAppState();
+  const { settings, docs, customers, account } = useAppState();
   const [route, setRoute] = useState<Route>(currentRoute);
   // How many pages deep this visit is, kept in the browser's own history entries so Back never leaves the app by surprise.
   const depth = useRef<number>((typeof window !== 'undefined' && (window.history.state as { bk?: number } | null)?.bk) || 0);
@@ -211,12 +213,14 @@ export function DesktopApp() {
 
   const desk = useMemo<Desk>(() => ({ route, go, back }), [route, go, back]);
 
+  const limits = useLimits();
   const onNew = useCallback(
     (type: DocType) => {
+      if (!limits.allowDoc()) return;
       const doc = store.createDoc(type);
       go({ page: 'editor', docId: doc.id });
     },
-    [go],
+    [go, limits],
   );
 
   // An address that points at a document which no longer exists falls back to the list.
@@ -232,11 +236,11 @@ export function DesktopApp() {
     scroll.current?.scrollTo({ y: 0, animated: false });
   }, [pageKey]);
 
-  if (!settings.setupDone) {
+  if (!account || !settings.setupDone) {
     return (
       <View style={{ flex: 1, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <View style={{ width: '100%', maxWidth: 520, flex: 1, maxHeight: 900, borderRadius: 24, overflow: 'hidden', backgroundColor: C.surface }}>
-          <SetupScreen />
+        <View style={{ width: '100%', maxWidth: 520, flex: 1, maxHeight: account ? 900 : 640, borderRadius: 24, overflow: 'hidden', backgroundColor: C.surface }}>
+          {account ? <SetupScreen /> : <SignInScreen />}
         </View>
       </View>
     );

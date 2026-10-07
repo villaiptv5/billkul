@@ -129,6 +129,26 @@ export interface Doc {
   updatedAt: string;
 }
 
+/** How much of the free allowance has been used. Counts what was ever made, so deleting gives nothing back. */
+export interface Usage {
+  docs: number;
+  cash: number;
+}
+
+/** The signed-in BillKul account, as last heard from the account server. Kept on the device, never in a backup. */
+export interface Account {
+  /** International form, "+923001234567". */
+  phone: string;
+  token: string;
+  plan: 'free' | 'pro';
+  /** Last day of Pro as "2027-10-07", or '' when Pro has no end date. */
+  proUntil: string;
+  /** How many documents and cash book entries a free account may make. */
+  limits: Usage;
+  /** The owner's WhatsApp number for customers who want Pro, or ''. */
+  supportWhatsapp: string;
+}
+
 export interface AppData {
   settings: Settings;
   customers: Customer[];

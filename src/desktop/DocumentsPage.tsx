@@ -16,6 +16,7 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
 import { useDesk } from './route';
+import { useLimits } from '../screens/limits';
 
 const FILTERS: Record<DocType, DocStatus[]> = {
   quote: ['draft', 'sent', 'accepted'],
@@ -49,7 +50,9 @@ export function DocumentsPage({ type, onNew }: { type: DocType; onNew: (type: Do
     go({ page: 'documents', type: next });
   };
 
+  const limits = useLimits();
   const convert = (quote: Doc) => {
+    if (!quote.invoiceId && !limits.allowDoc()) return;
     const invoice = store.convertToInvoice(quote.id);
     if (invoice) go({ page: 'editor', docId: invoice.id });
   };

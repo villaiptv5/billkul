@@ -148,15 +148,35 @@ def swipe_up():
 
 say(adb('install', '-r', APK, timeout=300).stdout.decode().strip())
 say(adb('shell', 'getprop', 'ro.build.version.release').stdout.decode().strip(), adb('shell', 'wm', 'size').stdout.decode().strip())
-# A freshly started emulator sometimes ignores the first launch.
+# A freshly started emulator is still busy for a while: it can ignore the first launch, or be so slow
+# that Android says the app is not responding. Give it time, then try until the app is in front.
+time.sleep(20)
 for attempt in range(4):
     adb('shell', 'am', 'start', '-n', f'{PACKAGE}/.MainActivity')
-    time.sleep(12)
+    time.sleep(15)
+    if frozen():
+        say('the app was too slow to start on this try; starting it again')
+        adb('shell', 'am', 'force-stop', PACKAGE)
+        time.sleep(10)
+        continue
     if PACKAGE in focus():
         break
     say('the app did not come to the front; trying again:', focus())
-shot('setup-en')
+# Sign-in comes first. This build carries its own stand-in server (EXPO_PUBLIC_FAKE_SERVER=1), which
+# accepts the code 123456 for any number.
+shot('signin-en')
 tap('lang-ur', wait=60)
+shot('signin-ur')
+if tap('signin-number'):
+    text('3001234567')
+    back()
+    shot('signin-number')
+    tap('signin-send', pause=4)
+    shot('signin-code')
+    # The code box is ready for typing as the screen opens. Its countdown changes every second, which
+    # keeps the screen reader used by this script from reading the screen, so the code is typed blind.
+    text('123456')
+    time.sleep(4)
 shot('setup-ur')
 if not tap('setup-skip', wait=5):
     swipe_up()

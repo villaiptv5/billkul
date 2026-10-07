@@ -14,6 +14,7 @@ import { Field } from '../ui/Input';
 import { Screen, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
+import { localPhone } from '../logic/phone';
 
 const TYPES: { value: BusinessType; label: StringKey }[] = [
   { value: 'computer', label: 'btComputer' },
@@ -38,10 +39,11 @@ function deviceCurrency() {
 export function SetupScreen() {
   const { t, rtl } = useLocale();
   const { notify } = useDialogs();
-  const settings = useAppState().settings;
+  const { settings, account } = useAppState();
   const [type, setType] = useState<BusinessType>('computer');
   const [shopName, setShopName] = useState(settings.shopName);
-  const [phone, setPhone] = useState(settings.phone);
+  // The number that signed in is offered as the shop's phone; it can be changed before it goes on any document.
+  const [phone, setPhone] = useState(settings.phone || (account ? localPhone(account.phone) : ''));
   const [logo, setLogo] = useState(settings.logo);
 
   const setLanguage = (language: Lang) => store.updateSettings({ language });

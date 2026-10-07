@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform, StyleSheet, Text, type StyleProp, type TextProps, type TextStyle } from 'react-native';
 import { C } from '../theme';
+import { ltr } from '../logic/phone';
 import { pickFont, textOf, type Weight } from './fonts';
 import { NASTALIQ_LEAD, NASTALIQ_TAIL, nastaliqRoom, splitLatin } from './nastaliq';
 import { useLocale } from './locale';
@@ -73,9 +74,12 @@ export function T({ size = 15, w = 'regular', head, latin, color = C.ink, center
   const textAlign = center ? 'center' : end ? (rtl ? 'left' : 'right') : rtl ? 'right' : 'left';
   const base: TextStyle = { fontSize: font.fontSize, color, textAlign, fontFamily: font.fontFamily, lineHeight: font.lineHeight };
   if (!font.urdu) {
+    // In an Urdu screen a number such as "+92 300 1234567" or "Rs 4,500" would otherwise have its
+    // groups laid out right to left ("1234567 300 92+"); an isolate keeps it in reading order.
+    const text = latin && rtl && typeof children === 'string' ? ltr(children) : children;
     return (
       <Text {...rest} style={[base, style]}>
-        {children}
+        {text}
       </Text>
     );
   }

@@ -11,6 +11,7 @@ export type TabParams = {
 };
 
 export type RootParams = {
+  SignIn: undefined;
   Setup: undefined;
   Tabs: NavigatorScreenParams<TabParams> | undefined;
   Editor: { docId: string };

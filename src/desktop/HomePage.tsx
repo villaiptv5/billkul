@@ -16,6 +16,7 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
 import { useDesk } from './route';
+import { PlanNotice } from '../screens/limits';
 
 const COLS: Col[] = [{ width: 110 }, { flex: 1 }, { width: 120 }, { width: 150, end: true }, { width: 120 }];
 
@@ -54,6 +55,8 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
   return (
     <View style={{ gap: 20 }}>
       <PageHeader title={t('tabHome')} subtitle={`${t('thisMonth')} · ${formatMonth(today, lang)}`} back={false} />
+
+      <PlanNotice />
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
         <Stat label={t('quoted')} value={stats.quoted} symbol={settings.currency.symbol} onPress={() => go({ page: 'documents', type: 'quote' })} testID="home-quoted" />
