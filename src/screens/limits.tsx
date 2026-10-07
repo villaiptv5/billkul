@@ -4,7 +4,7 @@ import { api } from '../account/api';
 import { syncAccount } from '../account/sync';
 import { store, useAppState } from '../data/app';
 import { formatDate } from '../logic/dates';
-import { showPhone } from '../logic/phone';
+import { ltr, showPhone } from '../logic/phone';
 import { allowance, type Allowance } from '../logic/plan';
 import { openWhatsappText } from '../platform/docActions';
 import { C } from '../theme';
@@ -45,7 +45,7 @@ function ProSheet({ reason, onClose }: { reason: Reason | null; onClose: () => v
   const [checking, setChecking] = useState(false);
 
   const contact = () => {
-    if (account?.supportWhatsapp) openWhatsappText(account.supportWhatsapp.replace(/\D+/g, ''), t('proMessage', { phone: showPhone(account.phone) }));
+    if (account?.supportWhatsapp) openWhatsappText(account.supportWhatsapp.replace(/\D+/g, ''), t('proMessage', { phone: ltr(showPhone(account.phone)) }));
   };
 
   const check = async () => {

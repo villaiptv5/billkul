@@ -40,3 +40,11 @@ export function localPhone(phone: string): string {
   const pk = /^\+92(\d{3})(\d{7})$/.exec(phone);
   return pk ? `0${pk[1]} ${pk[2]}` : phone;
 }
+
+/**
+ * Keeps a number in its own left-to-right island inside a sentence. Without it an Urdu sentence
+ * shows "+92 300 1234567" as "1234567 300 92+", because each group of digits is placed right to left.
+ */
+export function ltr(text: string): string {
+  return `\u2066${text}\u2069`;
+}

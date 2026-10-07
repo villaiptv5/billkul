@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { memoryKV } from '../src/data/storage';
 import { createStore } from '../src/data/store';
 import type { Account } from '../src/data/types';
-import { joinPhone, localPhone, normalizePhone, showPhone } from '../src/logic/phone';
+import { joinPhone, localPhone, ltr, normalizePhone, showPhone } from '../src/logic/phone';
 import { allowance, isPro } from '../src/logic/plan';
 
 const account: Account = { phone: '+923001234567', token: 'a'.repeat(64), plan: 'free', proUntil: '', limits: { docs: 10, cash: 10 }, supportWhatsapp: '+923318222236' };
@@ -38,6 +38,7 @@ describe('phone numbers', () => {
     expect(showPhone('+923001234567')).toBe('+92 300 1234567');
     expect(localPhone('+923001234567')).toBe('0300 1234567');
     expect(localPhone('+971501234567')).toBe('+971501234567');
+    expect(ltr('+92 300 1234567')).toBe('\u2066+92 300 1234567\u2069');
   });
 });
 

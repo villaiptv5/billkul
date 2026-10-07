@@ -6,7 +6,7 @@ import { PRIVACY_URL } from '../config';
 import { store, useAppState } from '../data/app';
 import type { Lang } from '../data/types';
 import type { StringKey } from '../i18n';
-import { joinPhone, showPhone } from '../logic/phone';
+import { joinPhone, ltr, showPhone } from '../logic/phone';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
 import { Field } from '../ui/Input';
@@ -172,7 +172,7 @@ export function SignInScreen() {
                 {t('codeTitle')}
               </T>
               <T size={15} color={C.muted} testID="signin-sent-to">
-                {t('codeSub', { phone: showPhone(phone) })}
+                {t('codeSub', { phone: ltr(showPhone(phone)) })}
               </T>
             </View>
             <Field label={t('codeLabel')} value={code} onChangeText={typeCode} keyboardType="number-pad" latin autoFocus maxLength={6} inputStyle={{ textAlign: 'center', fontSize: 26, letterSpacing: 8, minHeight: 64 }} onSubmitEditing={() => void verify(code)} testID="signin-code" />
