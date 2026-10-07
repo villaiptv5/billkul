@@ -45,3 +45,6 @@ yarn-error.*
 
 # built copy for testing on a PC; rebuilt by npm run build:web
 pc-preview/site/
+
+# python cache from the tools folder
+__pycache__/
