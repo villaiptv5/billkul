@@ -14,6 +14,7 @@ import { Button } from '../ui/Button';
 import { Screen, TopBar, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
+import { PaidLine } from './customer';
 import { showDoc } from './shared';
 
 const SHADOW = Platform.select({
@@ -119,6 +120,19 @@ export function PreviewScreen() {
             <TemplateOption id="simple" label={t('tplSimple')} selected={settings.template === 'simple'} onPress={() => store.updateSettings({ template: 'simple' })} />
           </View>
         </View>
+
+        {doc.type === 'invoice' && doc.status !== 'draft' ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line }}>
+            <View style={{ flex: 1 }}>
+              <PaidLine doc={doc} size={14} />
+            </View>
+            {doc.status === 'due' ? (
+              <Button label={t('markPaid')} size="sm" onPress={() => store.markPaid(doc.id)} testID="mark-paid" />
+            ) : (
+              <Button label={t('markUnpaid')} variant="ghost" size="sm" onPress={() => store.markUnpaid(doc.id)} testID="mark-unpaid" style={{ paddingHorizontal: 8 }} />
+            )}
+          </View>
+        ) : null}
 
         {IS_PHONE ? (
           <View style={{ gap: 8 }}>

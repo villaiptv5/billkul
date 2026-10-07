@@ -4,23 +4,27 @@ import { store, useAppState } from '../data/app';
 import { COMMON_UNITS } from '../data/seed';
 import type { Customer, Item } from '../data/types';
 import { C } from '../theme';
-import { Button } from '../ui/Button';
+import { Button, IconButton } from '../ui/Button';
 import { Field, NumberField } from '../ui/Input';
 import { Chip, Sheet, SheetScroll, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { PriceFields, saveItemForm, StockFields } from '../screens/books';
 import { T } from '../ui/T';
+import { useDesk } from './route';
 
-/** Page title with its actions on the far side. */
-export function PageHeader({ title, subtitle, children }: { title: string; subtitle?: string; children?: React.ReactNode }) {
+/** Page title with a back arrow before it and its actions on the far side. The Dashboard has no back arrow. */
+export function PageHeader({ title, subtitle, children, back = true, latinSubtitle }: { title: string; subtitle?: string; children?: React.ReactNode; back?: boolean; latinSubtitle?: boolean }) {
+  const { t } = useLocale();
+  const desk = useDesk();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, minHeight: 48 }}>
-      <View style={{ flex: 1 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48, flexWrap: 'wrap' }}>
+      {back ? <IconButton icon="back" label={t('back')} onPress={desk.back} testID="page-back" /> : null}
+      <View style={{ flex: 1, minWidth: 200 }}>
         <T size={26} w="semibold" head accessibilityRole="header">
           {title}
         </T>
         {subtitle ? (
-          <T size={14} color={C.muted}>
+          <T size={14} color={C.muted} latin={latinSubtitle}>
             {subtitle}
           </T>
         ) : null}
@@ -30,8 +34,8 @@ export function PageHeader({ title, subtitle, children }: { title: string; subti
   );
 }
 
-export function Panel({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
-  return <View style={[{ backgroundColor: C.surface, borderRadius: 16, borderWidth: 1, borderColor: C.line }, style]}>{children}</View>;
+export function Panel({ children, style, testID }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; testID?: string }) {
+  return <View testID={testID} style={[{ backgroundColor: C.surface, borderRadius: 16, borderWidth: 1, borderColor: C.line }, style]}>{children}</View>;
 }
 
 /** One column of a table: either a fixed width or a share of the remaining space. */

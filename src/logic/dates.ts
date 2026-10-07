@@ -27,6 +27,13 @@ export function addDays(iso: string, days: number): string {
   return isoDate(new Date(y, m, d + days));
 }
 
+/** Whole days from one date to a later one. */
+export function daysBetween(from: string, to: string): number {
+  const a = parts(from);
+  const b = parts(to);
+  return Math.round((Date.UTC(b.y, b.m, b.d) - Date.UTC(a.y, a.m, a.d)) / 86_400_000);
+}
+
 /** "5 Oct 2026" or "5 اکتوبر 2026". */
 export function formatDate(iso: string, lang: Lang): string {
   if (!iso) return '';

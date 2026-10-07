@@ -12,11 +12,13 @@ import { Avatar, Empty } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { CustomerDialog, PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
+import { useDesk } from './route';
 
 const COLS: Col[] = [{ flex: 1.6 }, { width: 170 }, { width: 140 }, { width: 170, end: true }];
 
 export function CustomersPage() {
   const { t } = useLocale();
+  const { go } = useDesk();
   const { customers, docs, settings } = useAppState();
   const [query, setQuery] = useState('');
   const [dialog, setDialog] = useState<{ customer?: Customer } | null>(null);
@@ -44,7 +46,7 @@ export function CustomersPage() {
                   key={customer.id}
                   cols={COLS}
                   last={i === list.length - 1}
-                  onPress={() => setDialog({ customer })}
+                  onPress={() => go({ page: 'customer', id: customer.id })}
                   testID={`customer-${customer.name}`}
                   cells={[
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, alignSelf: 'stretch' }}>

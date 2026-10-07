@@ -320,3 +320,60 @@ describe('sales report', () => {
     expect(r.byDay[0]).toMatchObject({ sales: 38800, profit: 7000 });
   });
 });
+
+import { customerSummary, dueReport } from '../src/logic/stats';
+import { daysBetween } from '../src/logic/dates';
+
+describe('due and customer history', () => {
+  function doc(type: 'quote' | 'invoice', customer: { id: string; name: string; phone: string }, amount: number, date: string) {
+    const d = store.createDoc(type, date);
+    return store.saveDoc({ ...d, customerId: customer.id, customerName: customer.name, customerPhone: customer.phone, lines: [{ id: 'l', itemId: '', name: 'Thing', unit: '', qty: 1, price: amount }] });
+  }
+
+  it('counts days across a month end', () => {
+    expect(daysBetween('2026-09-28', '2026-10-07')).toBe(9);
+    expect(daysBetween('2026-10-07', '2026-10-07')).toBe(0);
+  });
+
+  it('lists who owes what, the biggest first, with how long each invoice has waited', () => {
+    const bilal = store.saveCustomer({ name: 'Bilal Traders', phone: '0321 7654321' });
+    const usman = store.saveCustomer({ name: 'Usman Electronics', phone: '' });
+    const a = doc('invoice', bilal, 5000, '2026-10-01');
+    const b = doc('invoice', bilal, 7000, '2026-09-20');
+    const c = doc('invoice', usman, 84000, '2026-10-06');
+    const paid = doc('invoice', usman, 1000, '2026-10-02');
+    doc('invoice', usman, 999, '2026-10-03'); // a draft does not count
+    [a, b, c, paid].forEach((d) => store.markSent(d.id));
+    store.markPaid(paid.id, '2026-10-05');
+    const q = doc('quote', bilal, 3000, '2026-10-06');
+    store.markSent(q.id);
+
+    const report = dueReport(store.getState().docs, '2026-10-07');
+    expect(report.total).toBe(96000);
+    expect(report.count).toBe(3);
+    expect(report.groups.map((g) => [g.name, g.total])).toEqual([['Usman Electronics', 84000], ['Bilal Traders', 12000]]);
+    expect(report.groups[1].invoices.map((i) => [i.doc.number, i.days])).toEqual([['INV-0002', 17], ['INV-0001', 6]]);
+    expect(report.openQuotes.map((o) => o.doc.number)).toEqual(['Q-0001']);
+    expect(report.openQuotesTotal).toBe(3000);
+
+    store.markPaid(c.id);
+    expect(dueReport(store.getState().docs, '2026-10-07').total).toBe(12000);
+  });
+
+  it('sums up one customer: quoted, invoiced, paid and still due', () => {
+    const bilal = store.saveCustomer({ name: 'Bilal Traders', phone: '' });
+    const other = store.saveCustomer({ name: 'Someone else', phone: '' });
+    const q = doc('quote', bilal, 9000, '2026-10-01');
+    store.markSent(q.id);
+    const i1 = doc('invoice', bilal, 5000, '2026-10-02');
+    const i2 = doc('invoice', bilal, 2000, '2026-10-03');
+    doc('invoice', bilal, 111, '2026-10-04'); // draft
+    const o = doc('invoice', other, 77777, '2026-10-04');
+    [i1, i2, o].forEach((d) => store.markSent(d.id));
+    store.markPaid(i1.id);
+    const s = customerSummary(store.getState().docs, bilal.id);
+    expect(s).toMatchObject({ quoted: 9000, invoiced: 7000, paid: 5000, due: 2000 });
+    expect(s.invoices.map((d) => d.number)).toEqual(['INV-0003', 'INV-0002', 'INV-0001']);
+    expect(s.quotes.map((d) => d.number)).toEqual(['Q-0001']);
+  });
+});

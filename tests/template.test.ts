@@ -70,3 +70,77 @@ describe('sharing helpers', () => {
     expect(whatsappNumber('')).toBe('');
   });
 });
+
+import type { CashRow } from '../src/logic/ledger';
+import { customerSummary } from '../src/logic/stats';
+import { buildCashReportHtml, buildStatementHtml, cashReportTotals, reportFileName } from '../src/pdf/reports';
+
+describe('printed reports', () => {
+  const row = (kind: 'in' | 'out', amount: number, date: string, extra: Partial<CashRow> = {}): CashRow => ({
+    key: `${kind}${amount}`, date, kind, amount, category: kind === 'out' ? 'rent' : '', source: 'manual', refId: 'x', note: '', label: '', createdAt: date, ...extra,
+  });
+  const rows = [
+    row('in', 30000, '2026-10-06', { source: 'invoice', label: 'INV-0001', note: 'Humza' }),
+    row('out', 25000, '2026-10-01'),
+    row('in', 19000, '2026-10-05', { note: 'Counter sale' }),
+    row('out', 450, '2026-10-03', { category: 'food', note: '<Tea>' }),
+  ];
+
+  it('prints Cash In on its own, oldest first, with its total', () => {
+    const html = buildCashReportHtml({ rows, side: 'in', period: 'October 2026', settings, lang: 'en' });
+    expect(html).toContain('CASH IN');
+    expect(html).toContain('October 2026');
+    expect(html).toContain('Invoice INV-0001');
+    expect(html).toContain('Humza');
+    expect(html).toContain('Total cash in');
+    expect(html).toContain('Rs 49,000');
+    expect(html).not.toContain('25,000');
+    expect(html.indexOf('Counter sale')).toBeLessThan(html.indexOf('Invoice INV-0001'));
+  });
+
+  it('prints Cash Out on its own, with categories, and escapes what was typed', () => {
+    const html = buildCashReportHtml({ rows, side: 'out', period: 'October 2026', settings, lang: 'en' });
+    expect(html).toContain('CASH OUT');
+    expect(html).toContain('Rent');
+    expect(html).toContain('Tea and food');
+    expect(html).toContain('&lt;Tea&gt;');
+    expect(html).toContain('Rs 25,450');
+    expect(html).not.toContain('Counter sale');
+  });
+
+  it('prints both sides with the balance', () => {
+    const html = buildCashReportHtml({ rows, side: 'all', period: '6 Oct 2026', settings, lang: 'en' });
+    expect(html).toContain('CASH BOOK');
+    expect(html).toContain('Rs 23,550');
+    expect(cashReportTotals(rows, 'all')).toEqual({ in: 49000, out: 25450, shown: 23550 });
+  });
+
+  it('says so when the period is empty, and prints in Urdu right to left', () => {
+    const html = buildCashReportHtml({ rows: [], side: 'in', period: 'ستمبر 2026', settings, lang: 'ur' });
+    expect(html).toContain('dir="rtl"');
+    expect(html).toContain('اس مدت میں کوئی اندراج نہیں۔');
+  });
+
+  it('prints a customer statement with paid and unpaid invoices and the balance', () => {
+    const customer = { id: 'c', name: 'Master Tiles', phone: '0300 1112233', address: '', createdAt: '' };
+    const paidDoc: Doc = { ...doc, id: 'p', type: 'invoice', number: 'INV-0002', date: '2026-10-05', status: 'paid', paidOn: '2026-10-06', discount: 0, lines: [{ id: 'a', itemId: '', name: 'Tiles', unit: '', qty: 1, price: 19000 }] };
+    const dueDoc: Doc = { ...paidDoc, id: 'u', number: 'INV-0003', date: '2026-10-06', status: 'due', paidOn: '', lines: [{ id: 'a', itemId: '', name: 'Tiles', unit: '', qty: 1, price: 84000 }] };
+    const draft: Doc = { ...dueDoc, id: 'x', number: 'INV-0009', status: 'draft' };
+    const html = buildStatementHtml({ customer, summary: customerSummary([paidDoc, dueDoc, draft], 'c'), date: '7 Oct 2026', settings, lang: 'en' });
+    expect(html).toContain('STATEMENT');
+    expect(html).toContain('Master Tiles');
+    expect(html).toContain('INV-0002');
+    expect(html).toContain('Paid on 6 Oct 2026');
+    expect(html).toContain('INV-0003');
+    expect(html).toContain('Unpaid');
+    expect(html).not.toContain('INV-0009');
+    expect(html).toContain('103,000');
+    expect(html).toContain('− 19,000');
+    expect(html).toContain('Rs 84,000');
+  });
+
+  it('makes a safe file name', () => {
+    expect(reportFileName('Cash In', 'October 2026')).toBe('Cash In October 2026');
+    expect(reportFileName('Statement', 'A/B: "Traders"')).toBe('Statement A B Traders');
+  });
+});

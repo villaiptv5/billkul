@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, Switch, View } from 'react-native';
 import { store, useAppState } from '../data/app';
 import type { CashEntry, CashKind, Doc, DocLine, Item } from '../data/types';
-import type { StringKey, Vars } from '../i18n';
+import { cashDetail, cashTitle, categoryKey, type Translate } from '../logic/cashLabels';
 import { addDays, formatDay, formatMonth, isoDate, monthKey } from '../logic/dates';
 import { cashInHand, cashRows, EXPENSE_CATEGORIES, expenseSummary, monthCash, shiftMonth, type CashRow, type ExpenseCategory } from '../logic/ledger';
 import { formatAmount, money, round2 } from '../logic/money';
@@ -14,23 +14,7 @@ import { Chip, Segmented, Sheet, SheetScroll, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 
-type Translate = (key: StringKey, vars?: Vars) => string;
-
-const CATEGORY_KEYS: Record<ExpenseCategory, StringKey> = {
-  rent: 'catRent',
-  salaries: 'catSalaries',
-  bills: 'catBills',
-  stock: 'catStock',
-  transport: 'catTransport',
-  food: 'catFood',
-  repairs: 'catRepairs',
-  personal: 'catPersonal',
-  other: 'catOther',
-};
-
-export function categoryKey(category: ExpenseCategory): StringKey {
-  return CATEGORY_KEYS[category];
-}
+export { cashDetail, cashTitle, categoryKey };
 
 /** The cash book as it stands now, with this month's money in and out. */
 export function useCashBook() {
@@ -48,18 +32,6 @@ export function useStock() {
     const levels = stockLevels(items, stockMoves, docs);
     return { levels, low: lowStockItems(items, levels) };
   }, [items, stockMoves, docs]);
-}
-
-/** First line of a cash book row: what it was. */
-export function cashTitle(row: CashRow, t: Translate): string {
-  if (row.source === 'invoice') return t('cashFromInvoice', { number: row.label });
-  if (row.kind === 'out' && row.category) return t(categoryKey(row.category));
-  return row.note || t('moneyIn');
-}
-
-/** Second line of a cash book row: who or what for. Empty when the title already says it. */
-export function cashDetail(row: CashRow): string {
-  return row.source === 'manual' && row.kind === 'in' ? '' : row.note;
 }
 
 /** "12 in stock", "Low stock: 2" or "Out of stock", with its colour. */

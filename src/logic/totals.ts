@@ -25,6 +25,7 @@ export function formatDocNumber(prefix: string, seq: number): string {
   return `${prefix}${String(seq).padStart(4, '0')}`;
 }
 
-export function isEmptyDoc(doc: Pick<Doc, 'lines' | 'customerName' | 'notes' | 'discount'>): boolean {
-  return doc.lines.length === 0 && !doc.customerName.trim() && !doc.notes.trim() && !doc.discount;
+/** Nothing worth keeping yet. A customer alone does not count: a document can be started from a customer's page. */
+export function isEmptyDoc(doc: Pick<Doc, 'lines' | 'notes' | 'discount'>): boolean {
+  return doc.lines.length === 0 && !doc.notes.trim() && !doc.discount;
 }

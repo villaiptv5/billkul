@@ -46,6 +46,11 @@ api.expo.dev, set `EXPO_OFFLINE=1` for expo commands.
   A line copies the purchase price when it is added (`DocLine.cost`), so later price changes do not
   rewrite past profit. `src/logic/sales.ts` works the sales report out from issued invoices, for a
   day or a month; the purchase price is never printed or shown to the customer.
+- **Reports print through the same page shell as documents.** `src/pdf/reports.ts` builds the Cash In,
+  Cash Out and cash book reports and the customer statement with `pageHtml` and `shopHeadHtml` from
+  `src/pdf/template.ts`; `ReportPreview` in `src/screens/reports.tsx` shows, prints and sends them on
+  both layouts. A paid invoice is marked from the invoice itself or from the Due screen, not from the
+  documents list, which shows "Unpaid since" in red instead.
 - **Android folders are generated.** Never create or edit `android/` or `ios/` by hand. Configure
   native behaviour in `app.json`.
 

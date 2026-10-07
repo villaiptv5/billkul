@@ -101,10 +101,10 @@ export function HomeScreen() {
           </View>
 
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-            <Stat label={t('quoted')} value={stats.quoted} symbol={settings.currency.symbol} />
-            <Stat label={t('invoiced')} value={stats.invoiced} symbol={settings.currency.symbol} />
-            <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.green} />
-            <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orangeOnInk} />
+            <Stat label={t('quoted')} value={stats.quoted} symbol={settings.currency.symbol} onPress={() => nav.navigate('Tabs', { screen: 'Documents', params: { type: 'quote' } })} testID="home-quoted" />
+            <Stat label={t('invoiced')} value={stats.invoiced} symbol={settings.currency.symbol} onPress={() => nav.navigate('Tabs', { screen: 'Documents', params: { type: 'invoice' } })} testID="home-invoiced" />
+            <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.green} onPress={() => nav.navigate('Tabs', { screen: 'Cash' })} testID="home-received" />
+            <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orangeOnInk} onPress={() => nav.navigate('Due')} testID="home-due" />
           </View>
 
           <View style={{ flexDirection: 'row', gap: 10 }}>

@@ -53,13 +53,13 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
 
   return (
     <View style={{ gap: 20 }}>
-      <PageHeader title={t('tabHome')} subtitle={`${t('thisMonth')} · ${formatMonth(today, lang)}`} />
+      <PageHeader title={t('tabHome')} subtitle={`${t('thisMonth')} · ${formatMonth(today, lang)}`} back={false} />
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-        <Stat label={t('quoted')} value={stats.quoted} symbol={settings.currency.symbol} />
-        <Stat label={t('invoiced')} value={stats.invoiced} symbol={settings.currency.symbol} />
-        <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.greenText} />
-        <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orange} />
+        <Stat label={t('quoted')} value={stats.quoted} symbol={settings.currency.symbol} onPress={() => go({ page: 'documents', type: 'quote' })} testID="home-quoted" />
+        <Stat label={t('invoiced')} value={stats.invoiced} symbol={settings.currency.symbol} onPress={() => go({ page: 'documents', type: 'invoice' })} testID="home-invoiced" />
+        <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.greenText} onPress={() => go({ page: 'cash' })} testID="home-received" />
+        <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orange} onPress={() => go({ page: 'due' })} testID="home-due" />
       </View>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>

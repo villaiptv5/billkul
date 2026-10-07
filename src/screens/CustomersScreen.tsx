@@ -68,7 +68,7 @@ export function CustomersScreen() {
           return (
             <Pressable
               accessibilityRole="button"
-              onPress={() => nav.navigate('CustomerEdit', { id: item.id })}
+              onPress={() => nav.navigate('Customer', { id: item.id })}
               testID={`customer-${item.name}`}
               style={({ pressed }) => ({
                 minHeight: 66,

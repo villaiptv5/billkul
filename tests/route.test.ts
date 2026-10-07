@@ -11,6 +11,12 @@ describe('desktop addresses', () => {
       { page: 'items' },
       { page: 'settings' },
       { page: 'editor', docId: 'mgabc12x9k' },
+      { page: 'cash' },
+      { page: 'cashReport' },
+      { page: 'sales' },
+      { page: 'due' },
+      { page: 'customer', id: 'mgc77a' },
+      { page: 'statement', id: 'mgc77a' },
     ];
     for (const route of routes) expect(fromHash(toHash(route))).toEqual(route);
   });
@@ -18,5 +24,6 @@ describe('desktop addresses', () => {
     expect(fromHash('')).toEqual({ page: 'home' });
     expect(fromHash('#/nonsense')).toEqual({ page: 'home' });
     expect(fromHash('#/doc')).toEqual({ page: 'documents', type: 'quote' });
+    expect(fromHash('#/customer')).toEqual({ page: 'customers' });
   });
 });

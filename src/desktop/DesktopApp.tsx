@@ -12,7 +12,9 @@ import { useDeskSize } from '../ui/layout';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { CashPage } from './CashPage';
+import { CustomerPage, DuePage } from './CustomerPage';
 import { CustomersPage } from './CustomersPage';
+import { CashReportPage, StatementPage } from './ReportPages';
 import { DocumentsPage } from './DocumentsPage';
 import { EditorPage } from './EditorPage';
 import { HomePage } from './HomePage';
@@ -97,7 +99,9 @@ function Sidebar({ route, go, onNew, rail }: { route: Route; go: (r: Route) => v
   const { t } = useLocale();
   const { settings } = useAppState();
   const backup = useBackupActions();
-  const current: NavPage = route.page === 'editor' ? 'documents' : route.page;
+  // Pages that are not in the sidebar light up the entry they were opened from.
+  const PARENT: Partial<Record<Route['page'], NavPage>> = { editor: 'documents', cashReport: 'cash', due: 'home', customer: 'customers', statement: 'customers' };
+  const current: NavPage = PARENT[route.page] ?? (route.page as NavPage);
 
   const open = (page: NavPage) => go(page === 'documents' ? { page, type: route.page === 'documents' ? route.type : 'quote' } : { page });
   const backupColor = backup.backedUp ? C.mint : C.orangeOnInk;
@@ -163,38 +167,47 @@ function currentRoute(): Route {
 /** The app as it appears on a computer screen: a sidebar, and pages that use the full width. */
 export function DesktopApp() {
   const { rtl } = useLocale();
-  const { settings, docs } = useAppState();
+  const { settings, docs, customers } = useAppState();
   const [route, setRoute] = useState<Route>(currentRoute);
-  const steps = useRef(0);
+  // How many pages deep this visit is, kept in the browser's own history entries so Back never leaves the app by surprise.
+  const depth = useRef<number>((typeof window !== 'undefined' && (window.history.state as { bk?: number } | null)?.bk) || 0);
   const scroll = useRef<ScrollView>(null);
   const { rail, snug } = useDeskSize();
 
   useEffect(() => {
+    // Back and Forward in the browser, and an address typed by hand.
+    const onPop = (e: PopStateEvent) => {
+      depth.current = (e.state as { bk?: number } | null)?.bk ?? 0;
+      setRoute(currentRoute());
+    };
     const onHash = () => setRoute(currentRoute());
+    window.addEventListener('popstate', onPop);
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    return () => {
+      window.removeEventListener('popstate', onPop);
+      window.removeEventListener('hashchange', onHash);
+    };
   }, []);
 
   const go = useCallback((next: Route) => {
     const hash = toHash(next);
     if (window.location.hash !== hash) {
-      steps.current += 1;
-      window.location.hash = hash;
+      depth.current += 1;
+      window.history.pushState({ bk: depth.current }, '', hash);
     }
     setRoute(next);
   }, []);
 
   const replace = useCallback((next: Route) => {
-    window.history.replaceState(null, '', toHash(next));
+    window.history.replaceState({ bk: depth.current }, '', toHash(next));
     setRoute(next);
   }, []);
 
+  /** The back arrow on a page: the page before this one, or the Dashboard when there is none. */
   const back = useCallback(() => {
-    if (steps.current > 0) {
-      steps.current -= 1;
-      window.history.back();
-    } else go({ page: 'documents', type: 'quote' });
-  }, [go]);
+    if (depth.current > 0) window.history.back();
+    else replace({ page: 'home' });
+  }, [replace]);
 
   const desk = useMemo<Desk>(() => ({ route, go, back }), [route, go, back]);
 
@@ -208,11 +221,13 @@ export function DesktopApp() {
 
   // An address that points at a document which no longer exists falls back to the list.
   const missing = route.page === 'editor' && !docs.some((d) => d.id === route.docId);
+  const missingCustomer = (route.page === 'customer' || route.page === 'statement') && !customers.some((c) => c.id === route.id);
   useEffect(() => {
     if (missing) replace({ page: 'documents', type: 'quote' });
-  }, [missing, replace]);
+    else if (missingCustomer) replace({ page: 'customers' });
+  }, [missing, missingCustomer, replace]);
 
-  const pageKey = route.page === 'editor' ? `doc:${route.docId}` : route.page;
+  const pageKey = route.page === 'editor' ? `doc:${route.docId}` : route.page === 'customer' || route.page === 'statement' ? `${route.page}:${route.id}` : route.page;
   useEffect(() => {
     scroll.current?.scrollTo({ y: 0, animated: false });
   }, [pageKey]);
@@ -228,7 +243,7 @@ export function DesktopApp() {
   }
 
   let page: React.ReactNode = null;
-  if (!missing) {
+  if (!missing && !missingCustomer) {
     switch (route.page) {
       case 'home':
         page = <HomePage onNew={onNew} />;
@@ -238,6 +253,18 @@ export function DesktopApp() {
         break;
       case 'cash':
         page = <CashPage />;
+        break;
+      case 'cashReport':
+        page = <CashReportPage />;
+        break;
+      case 'due':
+        page = <DuePage />;
+        break;
+      case 'customer':
+        page = <CustomerPage key={route.id} id={route.id} />;
+        break;
+      case 'statement':
+        page = <StatementPage key={route.id} id={route.id} />;
         break;
       case 'sales':
         page = <SalesPage />;

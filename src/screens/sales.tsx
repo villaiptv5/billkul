@@ -1,9 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppState } from '../data/app';
-import { addDays, formatDate, formatDay, formatMonth, isoDate, monthKey } from '../logic/dates';
-import { shiftMonth } from '../logic/ledger';
+import { formatDay, isoDate, monthKey } from '../logic/dates';
 import { formatAmount } from '../logic/money';
 import { salesReport, type SalesReport, type SalesRow } from '../logic/sales';
 import type { RootNav } from '../nav';
@@ -13,36 +12,18 @@ import { Card, Screen, Segmented, TopBar } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { Stepper } from './books';
-
-export type SalesMode = 'day' | 'month';
+import { usePeriod } from './period';
 
 /** The sales report for a day or a month the reader can step through. */
 export function useSales() {
   const { docs, items } = useAppState();
-  const { t, lang } = useLocale();
-  const today = isoDate();
-  const [mode, setMode] = useState<SalesMode>('month');
-  const [day, setDay] = useState(today);
-  const [month, setMonth] = useState(monthKey(today));
-  const period = mode === 'day' ? day : month;
-  const report = useMemo(() => salesReport(docs, items, period), [docs, items, period]);
-  const monthName = formatMonth(`${month}-01`, lang);
-
+  const { t } = useLocale();
+  const period = usePeriod('month');
+  const report = useMemo(() => salesReport(docs, items, period.prefix), [docs, items, period.prefix]);
   return {
-    mode,
-    setMode,
+    ...period,
     report,
-    /** "Today", "5 Oct" or "October 2026", for the stepper. */
-    label: mode === 'day' ? formatDay(day, lang) : monthName,
-    empty: mode === 'day' ? t('noSalesOn', { day: formatDate(day, lang) }) : t('noSalesIn', { month: monthName }),
-    canNext: mode === 'day' ? day < today : month < monthKey(today),
-    previous: () => (mode === 'day' ? setDay(addDays(day, -1)) : setMonth(shiftMonth(month, -1))),
-    next: () => (mode === 'day' ? setDay(addDays(day, 1)) : setMonth(shiftMonth(month, 1))),
-    /** Opens one day of the month being shown. */
-    openDay: (date: string) => {
-      setDay(date);
-      setMode('day');
-    },
+    empty: period.mode === 'day' ? t('noSalesOn', { day: period.name }) : t('noSalesIn', { month: period.name }),
   };
 }
 

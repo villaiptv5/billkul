@@ -13,6 +13,7 @@ import { SearchBox } from '../ui/Input';
 import { Card, Chip, Empty, Screen, Segmented, Sheet, SheetScroll, TopBar, statusLabelKey, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
+import { PaidLine } from './customer';
 import { DocSummary, openDoc } from './shared';
 
 const FILTERS: Record<DocType, DocStatus[]> = {
@@ -95,7 +96,9 @@ export function DocumentsScreen() {
               <Button label={t('convertToInvoice')} size="sm" onPress={() => convert(doc)} testID={`convert-${doc.number}`} />
             )
           ) : doc.status === 'due' ? (
-            <Button label={t('markPaid')} size="sm" onPress={() => store.markPaid(doc.id)} testID={`paid-${doc.number}`} />
+            <View style={{ minHeight: 24, justifyContent: 'center' }}>
+              <PaidLine doc={doc} />
+            </View>
           ) : (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 24 }}>
               <Icon name="check" size={16} color={C.greenText} stroke={2.2} />
@@ -159,6 +162,9 @@ export function DocumentsScreen() {
             <Button label={t('edit')} icon="pencil" variant="secondary" onPress={() => { const d = menuFor; setMenuFor(null); nav.navigate('Editor', { docId: d.id }); }} testID="menu-edit" />
             {menuFor.type === 'quote' && menuFor.status === 'sent' ? (
               <Button label={t('markAccepted')} variant="secondary" onPress={() => { store.markAccepted(menuFor.id); setMenuFor(null); }} testID="menu-accept" />
+            ) : null}
+            {menuFor.type === 'invoice' && menuFor.status === 'due' ? (
+              <Button label={t('markPaid')} onPress={() => { store.markPaid(menuFor.id); setMenuFor(null); }} testID="menu-paid" />
             ) : null}
             {menuFor.type === 'invoice' && menuFor.status === 'paid' ? (
               <Button label={t('markUnpaid')} variant="secondary" onPress={() => { store.markUnpaid(menuFor.id); setMenuFor(null); }} testID="menu-unpaid" />

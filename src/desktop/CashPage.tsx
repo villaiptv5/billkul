@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useAppState } from '../data/app';
 import type { CashEntry, CashKind } from '../data/types';
 import { formatDay } from '../logic/dates';
 import type { CashRow } from '../logic/ledger';
 import { formatAmount } from '../logic/money';
 import { CashEntrySheet, cashDetail, cashTitle, ExpensesPanel, useCashBook } from '../screens/books';
+import { useDue } from '../screens/customer';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
@@ -44,6 +45,7 @@ export function CashPage() {
   const { settings, cash, items } = useAppState();
   const { snug } = useDeskSize();
   const book = useCashBook();
+  const due = useDue();
   const [sheet, setSheet] = useState<{ kind: CashKind; entry?: CashEntry } | null>(null);
   const [itemId, setItemId] = useState<string | null>(null);
   const [shown, setShown] = useState(PAGE);
@@ -60,6 +62,7 @@ export function CashPage() {
   return (
     <View style={{ gap: 20 }}>
       <PageHeader title={t('cashBook')}>
+        <Button label={t('printReport')} icon="printer" variant="secondary" onPress={() => go({ page: 'cashReport' })} testID="cash-print" />
         <Button label={t('moneyOut')} icon="moneyOut" variant="secondary" onPress={() => setSheet({ kind: 'out' })} testID="money-out" />
         <Button label={t('moneyIn')} icon="moneyIn" head onPress={() => setSheet({ kind: 'in' })} testID="money-in" />
       </PageHeader>
@@ -68,6 +71,9 @@ export function CashPage() {
         <Stat label={t('cashInHand')} value={book.inHand} symbol={symbol} color={book.inHand < 0 ? C.orange : C.ink} testID="cash-in-hand" />
         <Stat label={t('inThisMonth')} value={book.month.in} symbol={symbol} color={C.greenText} testID="cash-month-in" />
         <Stat label={t('outThisMonth')} value={book.month.out} symbol={symbol} color={C.orange} testID="cash-month-out" />
+        <Pressable accessibilityRole="link" onPress={() => go({ page: 'due' })} testID="cash-due" style={{ flexGrow: 1, flexBasis: 200, flexDirection: 'row' }}>
+          <Stat label={t('dueFromCustomers')} value={due.total} symbol={symbol} color={due.total > 0 ? C.danger : C.ink} testID="cash-due-total" />
+        </Pressable>
       </View>
 
       <View style={snug ? { gap: 20 } : { flexDirection: 'row', alignItems: 'flex-start', gap: 24 }}>

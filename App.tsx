@@ -11,6 +11,7 @@ import { DesktopApp } from './src/desktop/DesktopApp';
 import type { StringKey } from './src/i18n';
 import type { RootParams, TabParams } from './src/nav';
 import { CashScreen } from './src/screens/CashScreen';
+import { CustomerScreen, DueScreen } from './src/screens/customer';
 import { CustomerEditScreen } from './src/screens/CustomerEditScreen';
 import { CustomersScreen } from './src/screens/CustomersScreen';
 import { DocumentsScreen } from './src/screens/DocumentsScreen';
@@ -19,6 +20,7 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { ItemEditScreen } from './src/screens/ItemEditScreen';
 import { ItemsScreen } from './src/screens/ItemsScreen';
 import { PreviewScreen } from './src/screens/PreviewScreen';
+import { CashReportScreen, StatementScreen } from './src/screens/reports';
 import { SalesScreen } from './src/screens/sales';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SetupScreen } from './src/screens/SetupScreen';
@@ -130,6 +132,10 @@ export default function App() {
                 <Stack.Screen name="ItemEdit" component={ItemEditScreen} />
                 <Stack.Screen name="Settings" component={SettingsScreen} />
                 <Stack.Screen name="Sales" component={SalesScreen} />
+                <Stack.Screen name="Due" component={DueScreen} />
+                <Stack.Screen name="Customer" component={CustomerScreen} />
+                <Stack.Screen name="Statement" component={StatementScreen} />
+                <Stack.Screen name="CashReport" component={CashReportScreen} />
                 <Stack.Screen name="ShopProfile" component={ShopProfileScreen} />
               </>
             ) : (

@@ -25,7 +25,7 @@ export function Screen({ children, bg = C.bg, topColor, bottom = true }: { child
 }
 
 export function TopBar({ title, subtitle, onBack, right, big, latinSubtitle }: { title: string; subtitle?: string; onBack?: () => void; right?: React.ReactNode; big?: boolean; latinSubtitle?: boolean }) {
-  const { t } = useLocale();
+  const { t, rtl } = useLocale();
   return (
     <View
       style={{
@@ -37,6 +37,9 @@ export function TopBar({ title, subtitle, onBack, right, big, latinSubtitle }: {
         alignItems: 'center',
         paddingStart: onBack ? 4 : 20,
         paddingEnd: 8,
+        // Room above and below, so tall Urdu letters in a two-line title are not cut off.
+        paddingTop: subtitle ? (rtl ? 12 : 6) : 0,
+        paddingBottom: subtitle ? 6 : 0,
         gap: 4,
       }}
     >

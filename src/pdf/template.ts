@@ -91,6 +91,42 @@ const SIMPLE_CSS = `
 thead th { border-bottom: 1.5px solid #0B1F17; color: #0B1F17; }
 `;
 
+/** Wraps a page body in the document shell: fonts, styles and the chosen template's look. */
+export function pageHtml({ lang, title, template, body, css = '' }: { lang: Lang; title: string; template: TemplateId; body: string; css?: string }): string {
+  return `<!doctype html>
+<html lang="${lang}" dir="${lang === 'ur' ? 'rtl' : 'ltr'}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=${PAGE_WIDTH}">
+<title>${escapeHtml(title)}</title>
+${FONT_LINK}
+<style>${BASE_CSS}${template === 'simple' ? SIMPLE_CSS : CLASSIC_CSS}${css}</style>
+</head>
+<body>
+${body}
+</body>
+</html>`;
+}
+
+/** The band at the top of every page: the shop on one side, the kind of document on the other. `sub` is ready-made HTML. */
+export function shopHeadHtml(settings: Settings, lang: Lang, titleWord: string, sub: string): string {
+  const logo = settings.logo.startsWith('data:image/') ? `<img class="logo" src="${escapeHtml(settings.logo)}" alt="">` : '';
+  const shopLine = [settings.address.trim(), settings.phone.trim()].filter(Boolean);
+  return `<div class="head">
+  <div class="shop">
+    ${logo}
+    <div style="min-width:0">
+      <div class="shop-name display" dir="auto">${escapeHtml(settings.shopName.trim() || translate(lang, 'myShop'))}</div>
+      ${shopLine.length ? `<div class="shop-line muted" dir="auto">${shopLine.map(escapeHtml).join(' · ')}</div>` : ''}
+    </div>
+  </div>
+  <div class="title">
+    <div class="title-word display">${escapeHtml(titleWord)}</div>
+    <div class="title-num muted">${sub}</div>
+  </div>
+</div>`;
+}
+
 export interface DocHtmlInput {
   doc: Doc;
   settings: Settings;
@@ -106,8 +142,6 @@ export function buildDocHtml({ doc, settings, lang, template }: DocHtmlInput): s
   const isQuote = doc.type === 'quote';
   const showBreakdown = totals.discount > 0 || totals.tax > 0;
   const taxLabel = `${settings.taxLabel.trim() || t('tax')} ${formatAmount(doc.taxPercent)}%`;
-  const logo = settings.logo.startsWith('data:image/') ? `<img class="logo" src="${escapeHtml(settings.logo)}" alt="">` : '';
-  const shopLine = [settings.address.trim(), settings.phone.trim()].filter(Boolean);
 
   const rows = doc.lines
     .map(
@@ -125,29 +159,11 @@ export function buildDocHtml({ doc, settings, lang, template }: DocHtmlInput): s
       ? `<div><span class="paid display">${escapeHtml(t('paidStamp'))}${doc.paidOn ? `<small>${escapeHtml(formatDate(doc.paidOn, lang))}</small>` : ''}</span></div>`
       : '';
 
-  return `<!doctype html>
-<html lang="${lang}" dir="${lang === 'ur' ? 'rtl' : 'ltr'}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=${PAGE_WIDTH}">
-<title>${escapeHtml(doc.number)}</title>
-${FONT_LINK}
-<style>${BASE_CSS}${tpl === 'simple' ? SIMPLE_CSS : CLASSIC_CSS}</style>
-</head>
-<body>
-<div class="head">
-  <div class="shop">
-    ${logo}
-    <div style="min-width:0">
-      <div class="shop-name display" dir="auto">${escapeHtml(settings.shopName.trim() || t('myShop'))}</div>
-      ${shopLine.length ? `<div class="shop-line muted" dir="auto">${shopLine.map(escapeHtml).join(' · ')}</div>` : ''}
-    </div>
-  </div>
-  <div class="title">
-    <div class="title-word display">${escapeHtml(t(isQuote ? 'docQuotation' : 'docInvoice'))}</div>
-    <div class="title-num muted num">${escapeHtml(doc.number)}</div>
-  </div>
-</div>
+  return pageHtml({
+    lang,
+    title: doc.number,
+    template: tpl,
+    body: `${shopHeadHtml(settings, lang, t(isQuote ? 'docQuotation' : 'docInvoice'), `<span class="num">${escapeHtml(doc.number)}</span>`)}
 
 <div class="meta">
   <div>
@@ -186,9 +202,8 @@ ${doc.notes.trim() ? `<div class="notes" dir="auto">${multiline(doc.notes.trim()
 <div class="foot">
   <div dir="auto">${multiline(settings.footerNote.trim() || t('defaultFooter'))}</div>
   <div class="mark">${escapeHtml(t('madeWith'))}</div>
-</div>
-</body>
-</html>`;
+</div>`,
+  });
 }
 
 /** File name for the shared PDF, safe on every phone: "Quote Q-0012 Bilal Traders". */
