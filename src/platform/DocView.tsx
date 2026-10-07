@@ -5,8 +5,12 @@ import { PAGE_HEIGHT, PAGE_WIDTH } from '../pdf/template';
 
 export interface DocViewProps {
   html: string;
-  /** Width on screen. The document is laid out at A4 width and scaled to fit. */
+  /** Width on screen. The document is laid out at its page width and scaled to fit. */
   width: number;
+  /** Width the page is laid out at: A4 unless given, narrower for a receipt. */
+  pageWidth?: number;
+  /** True for the moment the page is being photographed for "Send as image" (see useCapture). */
+  capturing?: boolean;
 }
 
 // Reports the document's real height, so the preview and the shared picture end where the content ends.
@@ -21,20 +25,25 @@ const MEASURE = `
 true;`;
 
 /** The document as the customer will see it. The outer view is what "Send as image" captures. */
-export const DocView = forwardRef<View, DocViewProps>(function DocView({ html, width }, ref) {
+export const DocView = forwardRef<View, DocViewProps>(function DocView({ html, width, pageWidth = PAGE_WIDTH, capturing = false }, ref) {
   const [contentHeight, setContentHeight] = useState(0);
+  // Android can end the process that draws web pages when memory is short, leaving a blank page.
+  // Counting those lets the page be loaded afresh instead of staying blank.
+  const [reloads, setReloads] = useState(0);
   useEffect(() => setContentHeight(0), [html]);
-  const pageHeight = Math.min(contentHeight || PAGE_HEIGHT * 0.6, PAGE_HEIGHT * 3);
+  const pageHeight = Math.min(contentHeight || (PAGE_HEIGHT * 0.6 * pageWidth) / PAGE_WIDTH, PAGE_HEIGHT * 3);
   return (
-    <View ref={ref} collapsable={false} style={{ width, height: Math.round((width * pageHeight) / PAGE_WIDTH), backgroundColor: '#FFFFFF' }}>
+    <View ref={ref} collapsable={false} style={{ width, height: Math.round((width * pageHeight) / pageWidth), backgroundColor: '#FFFFFF' }}>
       <WebView
+        key={reloads}
+        onRenderProcessGone={() => setReloads((n) => n + 1)}
         originWhitelist={['*']}
         source={{ html }}
         style={{ flex: 1, backgroundColor: '#FFFFFF' }}
         scrollEnabled={false}
         showsVerticalScrollIndicator={false}
         setBuiltInZoomControls={false}
-        androidLayerType="software"
+        androidLayerType={capturing ? 'software' : 'none'}
         injectedJavaScript={MEASURE}
         onMessage={(event) => {
           const h = parseInt(event.nativeEvent.data, 10);

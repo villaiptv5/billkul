@@ -12,11 +12,25 @@ export function usePeriod(initial: PeriodMode = 'month') {
   const [mode, setMode] = useState<PeriodMode>(initial);
   const [day, setDay] = useState(today);
   const [month, setMonth] = useState(monthKey(today));
+  /** Set while a day is open that was picked from the month's list, so the reader can go back to that list. */
+  const [fromList, setFromList] = useState(false);
   const monthName = formatMonth(`${month}-01`, lang);
 
   return {
     mode,
-    setMode,
+    setMode: (next: PeriodMode) => {
+      setFromList(false);
+      setMode(next);
+    },
+    /** True when the open day was picked from the month's day-by-day list. */
+    fromList: fromList && mode === 'day',
+    /** The month that list belongs to, e.g. "October 2026". */
+    listName: monthName,
+    /** Returns from a day to the month's day-by-day list. */
+    backToList: () => {
+      setFromList(false);
+      setMode('month');
+    },
     /** "2026-10-06" or "2026-10": what a date must start with to be in the period. */
     prefix: mode === 'day' ? day : month,
     /** "Today", "5 Oct" or "October 2026", for the stepper. */
@@ -30,6 +44,7 @@ export function usePeriod(initial: PeriodMode = 'month') {
     openDay: (date: string) => {
       setDay(date);
       setMode('day');
+      setFromList(true);
     },
   };
 }

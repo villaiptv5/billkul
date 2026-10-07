@@ -7,16 +7,26 @@ import { captureRef } from 'react-native-view-shot';
 /** True in the phone app, where documents can be sent as files. */
 export const IS_PHONE = true;
 
-// A4 in points.
-const PAGE = { width: 595, height: 842 };
+/** Paper size in millimetres, for pages that are not A4 (a thermal receipt). */
+export interface PageSize {
+  widthMm: number;
+  heightMm: number;
+}
 
-export async function printDoc(html: string): Promise<void> {
-  await Print.printAsync({ html, ...PAGE });
+// A4 in points.
+const A4 = { width: 595, height: 842 };
+
+function points(page?: PageSize): { width: number; height: number } {
+  return page ? { width: Math.round((page.widthMm * 72) / 25.4), height: Math.round((page.heightMm * 72) / 25.4) } : A4;
+}
+
+export async function printDoc(html: string, page?: PageSize): Promise<void> {
+  await Print.printAsync({ html, ...points(page) });
 }
 
 /** Makes the PDF, gives it a readable name, and opens the phone's share menu. */
-export async function sharePdf(html: string, fileName: string): Promise<boolean> {
-  const { uri } = await Print.printToFileAsync({ html, ...PAGE });
+export async function sharePdf(html: string, fileName: string, page?: PageSize): Promise<boolean> {
+  const { uri } = await Print.printToFileAsync({ html, ...points(page) });
   let shareUri = uri;
   try {
     const named = new File(Paths.cache, `${fileName}.pdf`);

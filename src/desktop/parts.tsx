@@ -13,12 +13,12 @@ import { T } from '../ui/T';
 import { useDesk } from './route';
 
 /** Page title with a back arrow before it and its actions on the far side. The Dashboard has no back arrow. */
-export function PageHeader({ title, subtitle, children, back = true, latinSubtitle }: { title: string; subtitle?: string; children?: React.ReactNode; back?: boolean; latinSubtitle?: boolean }) {
+export function PageHeader({ title, subtitle, children, back = true, onBack, latinSubtitle }: { title: string; subtitle?: string; children?: React.ReactNode; back?: boolean; /** Replaces the usual step back to the previous page. */ onBack?: () => void; latinSubtitle?: boolean }) {
   const { t } = useLocale();
   const desk = useDesk();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48, flexWrap: 'wrap' }}>
-      {back ? <IconButton icon="back" label={t('back')} onPress={desk.back} testID="page-back" /> : null}
+      {back ? <IconButton icon="back" label={t('back')} onPress={onBack ?? desk.back} testID="page-back" /> : null}
       <View style={{ flex: 1, minWidth: 200 }}>
         <T size={26} w="semibold" head accessibilityRole="header">
           {title}

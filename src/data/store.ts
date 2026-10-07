@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   nextQuote: 1,
   nextInvoice: 1,
   template: 'classic',
+  receiptPaper: 'r80',
   footerNote: '',
   lastBackupAt: '',
 };

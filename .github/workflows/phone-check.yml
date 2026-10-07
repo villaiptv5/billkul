@@ -1,0 +1,99 @@
+# Runs the app on Android emulators and saves screenshots of the Urdu screens,
+# so lettering can be checked on a real Android text engine before a build goes to a phone.
+# Starts on a push to the phone-check branch, or on demand.
+name: Phone check
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [phone-check]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: phone-check
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm ci
+      - run: npx expo prebuild --platform android --no-install
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build the app for the emulator
+        working-directory: android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=x86_64 --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 3
+
+  screens:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [34, 35, 36]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: apk
+      - name: Allow hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: python3 tools/phone-check.py app-release.apk shots/api-${{ matrix.api }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shots-${{ matrix.api }}
+          path: shots
+          retention-days: 3
+
+  publish:
+    needs: screens
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: shots-*
+          merge-multiple: true
+          path: shots
+      - name: Put the screenshots on the phone-shots branch
+        run: |
+          cd shots
+          sudo apt-get install -y -qq pngquant >/dev/null 2>&1 || true
+          find . -name '*.png' -exec pngquant --force --ext .png --quality 60-90 {} \; || true
+          git init -q -b phone-shots
+          git config user.name "BillKul checks"
+          git config user.email "checks@users.noreply.github.com"
+          echo "Screenshots from run ${{ github.run_number }} of commit ${{ github.sha }}" > README.md
+          git add .
+          git commit -q -m "Screenshots from phone check ${{ github.run_number }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" phone-shots

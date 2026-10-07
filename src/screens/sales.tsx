@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { BackHandler, Pressable, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppState } from '../data/app';
 import { formatDay, isoDate, monthKey } from '../logic/dates';
@@ -25,6 +25,28 @@ export function useSales() {
     report,
     empty: period.mode === 'day' ? t('noSalesOn', { day: period.name }) : t('noSalesIn', { month: period.name }),
   };
+}
+
+export type Sales = ReturnType<typeof useSales>;
+
+/** The way back from one day to the month's day-by-day list it was picked from. */
+export function BackToDays({ sales }: { sales: Sales }) {
+  const { t } = useLocale();
+  if (!sales.fromList) return null;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${t('back')}: ${t('dayByDay')}, ${sales.listName}`}
+      onPress={sales.backToList}
+      testID="sales-back"
+      style={({ pressed }) => ({ alignSelf: 'flex-start', minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, paddingStart: 8, paddingEnd: 14, borderRadius: 12, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.surface, opacity: pressed ? 0.6 : 1 })}
+    >
+      <Icon name="back" size={18} color={C.greenText} stroke={2.2} />
+      <T size={14.5} w="semibold" color={C.greenText}>
+        {`${t('dayByDay')} · ${sales.listName}`}
+      </T>
+    </Pressable>
+  );
 }
 
 /** This month's sales, for the Home screen. */
@@ -121,13 +143,15 @@ function Rows({ title, rows, name, onPress, testPrefix }: { title: string; rows:
 }
 
 /** The sales report for the phone: day or month, the three totals, then the breakdowns. */
-export function SalesPanel({ onOpenInvoice }: { onOpenInvoice: (docId: string) => void }) {
+export function SalesPanel({ sales: given, onOpenInvoice }: { sales?: Sales; onOpenInvoice: (docId: string) => void }) {
   const { t, lang } = useLocale();
-  const sales = useSales();
+  const own = useSales();
+  const sales = given ?? own;
   const { report, mode } = sales;
 
   return (
     <View style={{ gap: 14 }}>
+      <BackToDays sales={sales} />
       <Segmented
         value={mode}
         onChange={sales.setMode}
@@ -166,11 +190,24 @@ export function SalesPanel({ onOpenInvoice }: { onOpenInvoice: (docId: string) =
 export function SalesScreen() {
   const nav = useNavigation<RootNav>();
   const { t } = useLocale();
+  const sales = useSales();
+  const { fromList, backToList } = sales;
+
+  // The phone's own back button also returns to the day-by-day list first.
+  useEffect(() => {
+    if (!fromList) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      backToList();
+      return true;
+    });
+    return () => sub.remove();
+  }, [fromList, backToList]);
+
   return (
     <Screen>
-      <TopBar title={t('salesReport')} onBack={() => nav.goBack()} />
+      <TopBar title={t('salesReport')} onBack={fromList ? backToList : () => nav.goBack()} />
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <SalesPanel onOpenInvoice={(docId) => nav.navigate('Preview', { docId })} />
+        <SalesPanel sales={sales} onOpenInvoice={(docId) => nav.navigate('Preview', { docId })} />
       </ScrollView>
     </Screen>
   );

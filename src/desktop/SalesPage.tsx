@@ -5,7 +5,7 @@ import { formatDay } from '../logic/dates';
 import { formatAmount } from '../logic/money';
 import type { SalesRow } from '../logic/sales';
 import { Stepper } from '../screens/books';
-import { MissingCostNote, profitColor, profitText, useSales, wholeAmount } from '../screens/sales';
+import { BackToDays, MissingCostNote, profitColor, profitText, useSales, wholeAmount } from '../screens/sales';
 import { C } from '../theme';
 import { Empty, Segmented } from '../ui/kit';
 import { useDeskSize } from '../ui/layout';
@@ -58,7 +58,7 @@ export function SalesPage() {
 
   return (
     <View style={{ gap: 20 }}>
-      <PageHeader title={t('salesReport')}>
+      <PageHeader title={t('salesReport')} onBack={sales.fromList ? sales.backToList : undefined}>
         <View style={{ width: 190 }}>
           <Segmented
             value={mode}
@@ -73,6 +73,8 @@ export function SalesPage() {
           <Stepper label={sales.label} onPrev={sales.previous} onNext={sales.next} canNext={sales.canNext} prevLabel={t(mode === 'day' ? 'previousDay' : 'previousMonth')} nextLabel={t(mode === 'day' ? 'nextDay' : 'nextMonth')} testID="sales-period" />
         </View>
       </PageHeader>
+
+      <BackToDays sales={sales} />
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
         <Stat label={t('invoices')} value={formatAmount(report.invoices)} testID="sales-invoices" />

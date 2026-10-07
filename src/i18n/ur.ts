@@ -333,4 +333,12 @@ export const ur: Strings = {
   reportPdfHint: 'کمپیوٹر پر رپورٹ فائل کی شکل میں رکھنے یا بھیجنے کے لیے پرنٹ ونڈو میں "Save as PDF" چنیں۔',
   english: 'English',
   urdu: 'اردو',
+  receipt: 'رسید',
+  thermalReceipt: 'تھرمل رسید',
+  receiptPaper: 'کاغذ کے رول کی چوڑائی',
+  paper80: '80 mm',
+  paper58: '58 mm',
+  printReceipt: 'رسید پرنٹ کریں',
+  sendReceiptImage: 'رسید تصویر کے طور پر بھیجیں',
+  receiptHint: 'تھرمل (POS) رسید پرنٹر کے لیے۔ پرنٹ کی ونڈو میں اپنا رسید پرنٹر اور یہی کاغذ کی چوڑائی منتخب کریں۔',
 };

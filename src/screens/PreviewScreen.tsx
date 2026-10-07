@@ -8,12 +8,14 @@ import { docTotals } from '../logic/totals';
 import type { RootNav, RootParams } from '../nav';
 import { buildDocHtml, docFileName, whatsappNumber } from '../pdf/template';
 import { IS_PHONE, openWhatsappText, printDoc, shareImage, sharePdf } from '../platform/docActions';
+import { useCapture } from '../platform/capture';
 import { DocView } from '../platform/DocView';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
 import { Screen, TopBar, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
+import { ReceiptSheet } from './receipt';
 import { PaidLine } from './customer';
 import { showDoc } from './shared';
 
@@ -61,7 +63,9 @@ export function PreviewScreen() {
   const doc = docs.find((d) => d.id === docId);
   const [width, setWidth] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [receipt, setReceipt] = useState(false);
   const pageRef = useRef<View>(null);
+  const capture = useCapture();
 
   useEffect(() => {
     if (!doc) nav.goBack();
@@ -108,7 +112,7 @@ export function PreviewScreen() {
       />
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 14, gap: 14 }}>
         <View onLayout={onLayout} style={[{ borderRadius: 6, backgroundColor: C.surface, overflow: 'hidden' }, SHADOW]} testID="doc-preview">
-          {width > 0 ? <DocView ref={pageRef} html={html} width={width} /> : <View style={{ height: 420 }} />}
+          {width > 0 ? <DocView ref={pageRef} html={html} width={width} capturing={capture.capturing} /> : <View style={{ height: 420 }} />}
         </View>
 
         <View style={{ gap: 8 }}>
@@ -138,14 +142,16 @@ export function PreviewScreen() {
           <View style={{ gap: 8 }}>
             <Button label={t('sendPdf')} icon="chat" size="lg" head disabled={busy} onPress={() => run(() => sharePdf(html, fileName))} testID="send-pdf" />
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Button label={t('sendImage')} icon="image" variant="secondary" disabled={busy} onPress={() => run(() => shareImage(pageRef.current, fileName))} style={{ flex: 1 }} testID="send-image" />
+              <Button label={t('sendImage')} icon="image" variant="secondary" disabled={busy} onPress={() => run(() => capture.shoot(() => shareImage(pageRef.current, fileName)))} style={{ flex: 1 }} testID="send-image" />
               <Button label={t('print')} icon="printer" variant="secondary" disabled={busy} onPress={() => run(() => printDoc(html))} style={{ flex: 1 }} testID="print" />
             </View>
+            <Button label={t('thermalReceipt')} icon="printer" variant="secondary" onPress={() => setReceipt(true)} testID="open-receipt" />
           </View>
         ) : (
           <View style={{ gap: 8 }}>
             <Button label={`${t('print')} / ${t('savePdf')}`} icon="printer" size="lg" head disabled={busy} onPress={() => run(() => printDoc(html))} testID="print" />
             <View style={{ flexDirection: 'row', gap: 8 }}>
+              <Button label={t('thermalReceipt')} icon="printer" variant="secondary" onPress={() => setReceipt(true)} style={{ flex: 1 }} testID="open-receipt" />
               <Button label={t('sendWhatsappText')} icon="chat" variant="secondary" onPress={whatsappText} style={{ flex: 1 }} testID="send-whatsapp-text" />
             </View>
             <T size={13} color={C.muted}>
@@ -154,6 +160,7 @@ export function PreviewScreen() {
           </View>
         )}
       </ScrollView>
+      <ReceiptSheet doc={doc} visible={receipt} onClose={() => setReceipt(false)} />
     </Screen>
   );
 }

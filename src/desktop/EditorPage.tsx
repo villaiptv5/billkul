@@ -8,6 +8,7 @@ import { lineTotal } from '../logic/totals';
 import { buildDocHtml, whatsappNumber } from '../pdf/template';
 import { openWhatsappText, printDoc } from '../platform/docActions';
 import { DocView } from '../platform/DocView';
+import { ReceiptSheet } from '../screens/receipt';
 import { CustomerPicker } from '../screens/CustomerPicker';
 import { TaxSheet } from '../screens/EditorScreen';
 import { LineStock, useStock } from '../screens/books';
@@ -38,6 +39,7 @@ export function EditorPage({ docId }: { docId: string }) {
   const [pickingCustomer, setPickingCustomer] = useState(false);
   const [editingTax, setEditingTax] = useState(false);
   const [previewWidth, setPreviewWidth] = useState(0);
+  const [receipt, setReceipt] = useState(false);
   const pageRef = useRef<View>(null);
   const { snug } = useDeskSize();
 
@@ -324,6 +326,7 @@ export function EditorPage({ docId }: { docId: string }) {
             <Button label={`${t('print')} / ${t('savePdf')}`} icon="printer" head onPress={print} style={{ flex: 1.3 }} testID="print" />
             <Button label={t('sendWhatsappText')} icon="chat" variant="secondary" onPress={whatsapp} style={{ flex: 1 }} testID="send-whatsapp-text" />
           </View>
+          <Button label={t('thermalReceipt')} icon="printer" variant="secondary" onPress={() => (doc.lines.length ? setReceipt(true) : notify(t('needLine')))} testID="open-receipt" />
           <View
             onLayout={(e: LayoutChangeEvent) => setPreviewWidth(Math.floor(e.nativeEvent.layout.width))}
             style={{ borderRadius: 6, backgroundColor: C.surface, overflow: 'hidden', boxShadow: '0 6px 24px rgba(11,31,23,0.14)' } as ViewStyle}
@@ -339,6 +342,7 @@ export function EditorPage({ docId }: { docId: string }) {
       </View>
 
       <CustomerPicker visible={pickingCustomer} onClose={() => setPickingCustomer(false)} onPick={pickCustomer} />
+      <ReceiptSheet doc={doc} visible={receipt} onClose={() => setReceipt(false)} />
       <TaxSheet visible={editingTax} onClose={() => setEditingTax(false)} percent={doc.taxPercent} onSave={(taxPercent) => save({ taxPercent })} />
     </View>
   );

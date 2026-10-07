@@ -78,7 +78,7 @@ export function HomeScreen() {
               style={{ width: 40, height: 40, borderRadius: 10, borderWidth: 1, borderColor: C.inkLine, backgroundColor: C.inkPanel }}
             />
             <View style={{ flex: 1, gap: 2 }}>
-              <T size={18} w="semibold" head color={C.onInk} numberOfLines={1} accessibilityRole="header">
+              <T size={18} w="semibold" head color={C.onInk} numberOfLines={2} accessibilityRole="header" testID="home-shop">
                 {settings.shopName || t('myShop')}
               </T>
               <Pressable accessibilityRole="button" onPress={() => nav.navigate('Settings')} testID="home-backup" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 24 }}>
@@ -91,11 +91,11 @@ export function HomeScreen() {
             <IconButton icon="sliders" label={t('tabSettings')} color={C.onInk} onPress={() => nav.navigate('Settings')} testID="open-settings" />
           </View>
 
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <T size={14} w="semibold" color={C.onInkSoft}>
               {t('thisMonth')}
             </T>
-            <T size={13} color="#A9BDB3">
+            <T size={14} w="medium" color={C.onInkSoft} testID="home-month">
               {formatMonth(today, lang)}
             </T>
           </View>

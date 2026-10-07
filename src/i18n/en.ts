@@ -348,6 +348,14 @@ export const en = {
   reportPdfHint: 'On a computer, choose "Save as PDF" in the print window to keep or send the report as a file.',
   english: 'English',
   urdu: 'اردو',
+  receipt: 'Receipt',
+  thermalReceipt: 'Thermal receipt',
+  receiptPaper: 'Paper roll width',
+  paper80: '80 mm',
+  paper58: '58 mm',
+  printReceipt: 'Print receipt',
+  sendReceiptImage: 'Send receipt as image',
+  receiptHint: 'For thermal (POS) receipt printers. In the print window, choose your receipt printer and the same paper width.',
 };
 
 export type Strings = typeof en;

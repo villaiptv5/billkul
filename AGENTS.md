@@ -51,14 +51,31 @@ api.expo.dev, set `EXPO_OFFLINE=1` for expo commands.
   `src/pdf/template.ts`; `ReportPreview` in `src/screens/reports.tsx` shows, prints and sends them on
   both layouts. A paid invoice is marked from the invoice itself or from the Due screen, not from the
   documents list, which shows "Unpaid since" in red instead.
+- **Thermal receipts.** `src/pdf/receipt.ts` builds a quote or invoice as a narrow receipt for an
+  80 mm or 58 mm thermal (POS) roll: black only, fluid width, the page length worked out from the
+  content. `ReceiptSheet` in `src/screens/receipt.tsx` previews and prints it on both layouts. The
+  full-page document stays the thing that is sent on WhatsApp.
+- **Urdu (Nastaliq) text needs room.** Its strokes reach well outside the line: "کیش" rises 2.1 em
+  above the baseline, the first stroke of "ک" starts 0.45 em before the word. Android and browsers
+  cut what falls outside the text box, which once turned "کیش" into "لیش". Always put Urdu on screen
+  through `T` (`src/ui/T.tsx`); it applies the rules in `src/ui/nastaliq.ts` (padding with an equal
+  negative margin, no-break spaces at both ends on the phone, Latin runs in the Latin face). Do not
+  give Urdu text a `lineHeight`, and do not wrap it in a raw `Text`.
+- **Android lays text out by letter widths.** `plugins/withAdvanceTextWidths.js` turns off Android 15's
+  "bounds for width" for the app's text views, because React Native measures by widths and the two
+  disagreeing wrapped Urdu words onto a hidden second line.
+- **Check Urdu on Android before sending a build.** Push to the `phone-check` branch: the "Phone check"
+  workflow builds the app, walks the Urdu screens on Android 14 and 16 emulators
+  (`tools/phone-check.py`) and puts the screenshots on the `phone-shots` branch.
 - **Android folders are generated.** Never create or edit `android/` or `ios/` by hand. Configure
-  native behaviour in `app.json`.
+  native behaviour in `app.json` or a config plugin in `plugins/`.
 
 ## Layout of the code
 
 - `src/logic` — money, totals, dates, monthly figures. No React. Fully tested.
 - `src/data` — types, the store (documents, customers, items, settings, backup), sample items.
 - `src/pdf/template.ts` — the quote/invoice page as HTML. Preview, print, PDF and image all use it.
+  `src/pdf/receipt.ts` — the same document as a thermal receipt. `src/pdf/reports.ts` — printed reports.
 - `src/i18n` — English and Urdu text. Every string on screen comes from here.
 - `src/ui` — shared components. `T` picks the typeface from the words (Latin or Urdu script).
 - `src/screens` — the phone layout, one file per screen. `src/desktop` — the desktop layout, one

@@ -7,6 +7,7 @@ import { NotoNastaliqUrdu_700Bold } from '@expo-google-fonts/noto-nastaliq-urdu/
 import { Sora_600SemiBold } from '@expo-google-fonts/sora/600SemiBold';
 import { Sora_700Bold } from '@expo-google-fonts/sora/700Bold';
 import { Platform } from 'react-native';
+import { hasUrduScript, urduSize } from './nastaliq';
 
 export const FONT_ASSETS = {
   DMSans_400Regular,
@@ -42,16 +43,10 @@ const URDU: Record<Weight, string> = {
 
 export interface FontChoice {
   fontFamily: string;
-  /** Nastaliq needs about twice the line height of Latin text or its strokes are cut off. */
+  fontSize: number;
   lineHeight: number;
-  /** Side room for Nastaliq, whose strokes reach past the width the phone measures for them. */
-  paddingHorizontal?: number;
-}
-
-const URDU_SCRIPT = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/;
-
-export function hasUrduScript(text: string): boolean {
-  return URDU_SCRIPT.test(text);
+  /** Set when the text is drawn in Nastaliq, with the face its Latin letters and digits use. */
+  urdu?: { latinFamily: string };
 }
 
 /**
@@ -60,10 +55,11 @@ export function hasUrduScript(text: string): boolean {
  */
 export function pickFont(text: string, size: number, weight: Weight, opts: { head?: boolean; latin?: boolean } = {}): FontChoice {
   const latinFamily = (opts.head ? HEAD : BODY)[weight];
-  if (opts.latin || !hasUrduScript(text)) return { fontFamily: latinFamily, lineHeight: Math.round(size * 1.35) };
-  // A browser can mix faces within one line; the phone uses Nastaliq for the whole line.
+  if (opts.latin || !hasUrduScript(text)) return { fontFamily: latinFamily, fontSize: size, lineHeight: Math.round(size * 1.35) };
+  // A browser can mix faces within one line; on the phone the Latin runs are set apart by splitLatin.
   const fontFamily = Platform.OS === 'web' ? `${latinFamily}, ${URDU[weight]}` : URDU[weight];
-  return { fontFamily, lineHeight: Math.round(size * 2), paddingHorizontal: Math.max(4, Math.round(size * 0.3)) };
+  // The line stays twice the Latin size, so rows keep their height; nastaliqRoom gives the strokes their space.
+  return { fontFamily, fontSize: urduSize(size), lineHeight: Math.round(size * 2), urdu: { latinFamily } };
 }
 
 /** Plain text inside a React node, for choosing a face. */

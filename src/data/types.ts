@@ -3,6 +3,8 @@ export type DocType = 'quote' | 'invoice';
 // Quotes move draft -> sent -> accepted. Invoices move draft -> due -> paid.
 export type DocStatus = 'draft' | 'sent' | 'accepted' | 'due' | 'paid';
 export type TemplateId = 'classic' | 'simple';
+/** Roll width of a thermal (POS) receipt printer: 80 mm or 58 mm. */
+export type ReceiptPaper = 'r80' | 'r58';
 export type BusinessType = 'computer' | 'general' | 'services' | 'freelancer' | 'wholesale' | 'other';
 
 export interface Currency {
@@ -28,6 +30,8 @@ export interface Settings {
   nextQuote: number;
   nextInvoice: number;
   template: TemplateId;
+  /** The roll width last used for a thermal receipt. */
+  receiptPaper: ReceiptPaper;
   footerNote: string;
   /** ISO timestamp of the last successful backup, or '' if never. */
   lastBackupAt: string;
