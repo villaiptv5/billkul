@@ -18,6 +18,7 @@ import { useDeskSize } from '../ui/layout';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { PageHeader, Panel } from './parts';
+import { AccountCard } from '../screens/limits';
 
 function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   return (
@@ -55,6 +56,10 @@ export function SettingsPage() {
   return (
     <View style={{ gap: 20 }}>
       <PageHeader title={t('tabSettings')} />
+
+      <View style={{ maxWidth: 520 }}>
+        <AccountCard />
+      </View>
 
       <View style={snug ? { gap: 20 } : { flexDirection: 'row', alignItems: 'flex-start', gap: 24 }}>
         {/* Shop profile: saved as it is typed, like the rest of the app. */}

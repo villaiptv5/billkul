@@ -19,6 +19,7 @@ import { T } from '../ui/T';
 import { useCashBook, useStock } from './books';
 import { useMonthSales } from './sales';
 import { DocRow, openDoc } from './shared';
+import { PlanNotice, useLimits } from './limits';
 
 function Stat({ label, value, symbol, color = C.onInk, onPress, testID }: { label: string; value: number; symbol: string; color?: string; onPress?: () => void; testID?: string }) {
   const { rtl } = useLocale();
@@ -57,7 +58,9 @@ export function HomeScreen() {
   const { low } = useStock();
   const sales = useMonthSales();
 
+  const limits = useLimits();
   const create = (type: DocType) => {
+    if (!limits.allowDoc()) return;
     const doc = store.createDoc(type);
     nav.navigate('Editor', { docId: doc.id });
   };
@@ -118,6 +121,8 @@ export function HomeScreen() {
             <Button label={t('newQuote')} icon="plus" size="lg" head onPress={() => create('quote')} testID="new-quote" style={{ minHeight: 60, borderRadius: 16 }} />
             <Button label={t('newInvoice')} variant="secondary" onPress={() => create('invoice')} testID="new-invoice" style={{ borderRadius: 14 }} />
           </View>
+
+          <PlanNotice />
 
           {low.length ? (
             <Pressable accessibilityRole="button" onPress={() => nav.navigate('Tabs', { screen: 'Items' })} testID="home-low-stock" style={({ pressed }) => ({ minHeight: 48, borderRadius: 14, borderWidth: 1, borderColor: '#F3C9A4', backgroundColor: '#FFF4E8', paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, opacity: pressed ? 0.7 : 1 })}>

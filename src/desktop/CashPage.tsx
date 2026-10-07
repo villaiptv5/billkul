@@ -16,6 +16,7 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { ItemDialog, PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
 import { useDesk } from './route';
+import { useLimits } from '../screens/limits';
 
 const COLS: Col[] = [{ width: 100 }, { flex: 1 }, { width: 120, end: true }, { width: 120, end: true }];
 const PAGE = 100;
@@ -40,6 +41,7 @@ function Stat({ label, value, symbol, color = C.ink, testID }: { label: string; 
 }
 
 export function CashPage() {
+  const limits = useLimits();
   const { t, lang } = useLocale();
   const { go } = useDesk();
   const { settings, cash, items } = useAppState();
@@ -63,8 +65,8 @@ export function CashPage() {
     <View style={{ gap: 20 }}>
       <PageHeader title={t('cashBook')}>
         <Button label={t('printReport')} icon="printer" variant="secondary" onPress={() => go({ page: 'cashReport' })} testID="cash-print" />
-        <Button label={t('moneyOut')} icon="moneyOut" variant="secondary" onPress={() => setSheet({ kind: 'out' })} testID="money-out" />
-        <Button label={t('moneyIn')} icon="moneyIn" head onPress={() => setSheet({ kind: 'in' })} testID="money-in" />
+        <Button label={t('moneyOut')} icon="moneyOut" variant="secondary" onPress={() => limits.allowCash() && setSheet({ kind: 'out' })} testID="money-out" />
+        <Button label={t('moneyIn')} icon="moneyIn" head onPress={() => limits.allowCash() && setSheet({ kind: 'in' })} testID="money-in" />
       </PageHeader>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>

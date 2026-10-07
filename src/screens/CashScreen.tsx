@@ -16,6 +16,7 @@ import { T } from '../ui/T';
 import { CashEntrySheet, cashDetail, cashTitle, ExpensesPanel, useCashBook } from './books';
 import { useDue } from './customer';
 import { SalesPanel } from './sales';
+import { useLimits } from './limits';
 
 const PAGE = 60;
 
@@ -63,6 +64,7 @@ export function byDay(rows: CashRow[]): { date: string; rows: CashRow[] }[] {
 }
 
 export function CashScreen() {
+  const limits = useLimits();
   const nav = useNavigation<RootNav>();
   const { t, lang, rtl } = useLocale();
   const { settings, cash } = useAppState();
@@ -130,8 +132,8 @@ export function CashScreen() {
         </View>
 
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Button label={t('moneyIn')} icon="moneyIn" head onPress={() => setSheet({ kind: 'in' })} testID="money-in" style={{ flex: 1, minHeight: 54, borderRadius: 14 }} />
-          <Button label={t('moneyOut')} icon="moneyOut" variant="secondary" head onPress={() => setSheet({ kind: 'out' })} testID="money-out" style={{ flex: 1, minHeight: 54, borderRadius: 14 }} />
+          <Button label={t('moneyIn')} icon="moneyIn" head onPress={() => limits.allowCash() && setSheet({ kind: 'in' })} testID="money-in" style={{ flex: 1, minHeight: 54, borderRadius: 14 }} />
+          <Button label={t('moneyOut')} icon="moneyOut" variant="secondary" head onPress={() => limits.allowCash() && setSheet({ kind: 'out' })} testID="money-out" style={{ flex: 1, minHeight: 54, borderRadius: 14 }} />
         </View>
 
         <Segmented

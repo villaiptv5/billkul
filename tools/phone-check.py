@@ -155,8 +155,20 @@ for attempt in range(4):
     if PACKAGE in focus():
         break
     say('the app did not come to the front; trying again:', focus())
-shot('setup-en')
+# Sign-in comes first. This build carries its own stand-in server (EXPO_PUBLIC_FAKE_SERVER=1), which
+# accepts the code 123456 for any number.
+shot('signin-en')
 tap('lang-ur', wait=60)
+shot('signin-ur')
+if tap('signin-number'):
+    text('3001234567')
+    back()
+    shot('signin-number')
+    tap('signin-send', pause=3)
+    shot('signin-code')
+    if tap('signin-code', wait=8):
+        text('123456')
+        time.sleep(3)
 shot('setup-ur')
 if not tap('setup-skip', wait=5):
     swipe_up()

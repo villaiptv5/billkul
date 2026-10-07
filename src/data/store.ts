@@ -3,7 +3,7 @@ import { formatDocNumber, isEmptyDoc } from '../logic/totals';
 import { SAMPLE_ITEMS } from './seed';
 import type { KV } from './storage';
 import { stockLevels } from '../logic/stock';
-import type { AppData, BusinessType, CashEntry, CashKind, Customer, Doc, DocLine, DocType, Item, Lang, Settings, StockMove, StockMoveKind } from './types';
+import type { Account, AppData, BusinessType, CashEntry, CashKind, Customer, Doc, DocLine, DocType, Item, Lang, Settings, StockMove, StockMoveKind, Usage } from './types';
 
 const K = {
   settings: 'bk1:settings',
@@ -12,6 +12,8 @@ const K = {
   docIndex: 'bk1:docIndex',
   cash: 'bk1:cash',
   stock: 'bk1:stock',
+  usage: 'bk1:usage',
+  account: 'bk1:account',
   doc: (id: string) => `bk1:doc:${id}`,
 };
 
@@ -38,6 +40,8 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export interface State extends AppData {
   ready: boolean;
+  usage: Usage;
+  account: Account | null;
 }
 
 let counter = 0;
@@ -85,7 +89,7 @@ export interface CashInput {
 }
 
 export function createStore(kv: KV) {
-  let state: State = { ready: false, settings: DEFAULT_SETTINGS, customers: [], items: [], docs: [], cash: [], stockMoves: [] };
+  let state: State = { ready: false, settings: DEFAULT_SETTINGS, customers: [], items: [], docs: [], cash: [], stockMoves: [], usage: { docs: 0, cash: 0 }, account: null };
   const listeners = new Set<() => void>();
 
   function set(next: Partial<State>) {
@@ -115,7 +119,38 @@ export function createStore(kv: KV) {
       const doc = readJson<Doc | null>(kv, K.doc(id), null);
       if (doc && doc.id) docs.push(doc);
     }
-    set({ ready: true, settings, customers, items, docs, cash, stockMoves });
+    // Before usage was counted, what is on the device is the best record of it.
+    const saved = readJson<Partial<Usage>>(kv, K.usage, {});
+    const usage = { docs: Math.max(Number(saved.docs) || 0, docs.length), cash: Math.max(Number(saved.cash) || 0, cash.length) };
+    const account = readJson<Account | null>(kv, K.account, null);
+    set({ ready: true, settings, customers, items, docs, cash, stockMoves, usage, account: account && account.token ? account : null });
+  }
+
+  // ---- account and free allowance ----
+  function setUsage(usage: Usage) {
+    kv.setItem(K.usage, JSON.stringify(usage));
+    set({ usage });
+  }
+
+  /** Counts never go down: the larger of what this device and the account server have seen wins. */
+  function raiseUsage(seen: Partial<Usage>) {
+    const usage = { docs: Math.max(state.usage.docs, Math.floor(Number(seen.docs) || 0)), cash: Math.max(state.usage.cash, Math.floor(Number(seen.cash) || 0)) };
+    if (usage.docs !== state.usage.docs || usage.cash !== state.usage.cash) setUsage(usage);
+  }
+
+  function signIn(account: Account) {
+    kv.setItem(K.account, JSON.stringify(account));
+    set({ account });
+  }
+
+  function updateAccount(patch: Partial<Account>) {
+    if (state.account) signIn({ ...state.account, ...patch });
+  }
+
+  /** Signs out on this device. The shop's data stays where it is. */
+  function signOut() {
+    kv.removeItem(K.account);
+    set({ account: null });
   }
 
   function updateSettings(patch: Partial<Settings>) {
@@ -279,6 +314,7 @@ export function createStore(kv: KV) {
     const cash = existing ? state.cash.map((e) => (e.id === entry.id ? entry : e)) : [...state.cash, entry];
     kv.setItem(K.cash, JSON.stringify(cash));
     set({ cash });
+    if (!existing) setUsage({ ...state.usage, cash: state.usage.cash + 1 });
     return entry;
   }
 
@@ -322,6 +358,7 @@ export function createStore(kv: KV) {
     };
     updateSettings(type === 'quote' ? { nextQuote: seq + 1 } : { nextInvoice: seq + 1 });
     putDoc(doc, true);
+    setUsage({ ...state.usage, docs: state.usage.docs + 1 });
     return doc;
   }
 
@@ -357,6 +394,8 @@ export function createStore(kv: KV) {
     const doc = state.docs.find((d) => d.id === id);
     if (!doc || doc.status !== 'draft' || !isEmptyDoc(doc)) return false;
     removeDocRecord(id);
+    // A document left empty was never made, so it does not use up the free allowance.
+    setUsage({ ...state.usage, docs: Math.max(0, state.usage.docs - 1) });
     const s = state.settings;
     if (doc.type === 'quote' && s.nextQuote === doc.seq + 1) updateSettings({ nextQuote: doc.seq });
     if (doc.type === 'invoice' && s.nextInvoice === doc.seq + 1) updateSettings({ nextInvoice: doc.seq });
@@ -447,6 +486,8 @@ export function createStore(kv: KV) {
     docs.forEach(persistDoc);
     persistDocIndex(docs);
     set({ settings, customers, items, docs, cash, stockMoves });
+    // A restored shop has used at least what it holds.
+    raiseUsage({ docs: docs.length, cash: cash.length });
     return true;
   }
 
@@ -480,6 +521,10 @@ export function createStore(kv: KV) {
     convertToInvoice,
     exportBackup,
     importBackup,
+    raiseUsage,
+    signIn,
+    updateAccount,
+    signOut,
   };
 }
 

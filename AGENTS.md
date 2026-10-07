@@ -67,6 +67,18 @@ api.expo.dev, set `EXPO_OFFLINE=1` for expo commands.
 - **Check Urdu on Android before sending a build.** Push to the `phone-check` branch: the "Phone check"
   workflow builds the app, walks the Urdu screens on Android 14 and 16 emulators
   (`tools/phone-check.py`) and puts the screenshots on the `phone-shots` branch.
+- **Accounts, the free allowance and Pro.** The app opens on sign-in by mobile number
+  (`src/screens/SignInScreen.tsx`); the code is checked by the account server in `server/` (PHP and
+  SQLite on the owner's own hosting, see `server/README.md`). The account and the usage counts live in
+  the store (`account`, `usage`) and are never part of a backup. `src/logic/plan.ts` works out what a
+  free account may still make: 10 quotations and invoices together and 10 cash book entries, counting
+  everything ever made. Every place that makes a new document or cash entry asks `useLimits()` first
+  (`src/screens/limits.tsx`); opening, editing, printing and sending what exists is never limited.
+  Phone-number rules are written twice and must stay alike: `src/logic/phone.ts` and `normalize_phone`
+  in `server/api/lib.php`.
+- **No secrets in the app or the repository.** The server makes its own secret key and stores the admin
+  password as a hash, both in `api/data/` on the hosting. `EXPO_PUBLIC_FAKE_SERVER=1` swaps in a
+  stand-in server for the automated phone check only; never set it for a build that goes to people.
 - **Android folders are generated.** Never create or edit `android/` or `ios/` by hand. Configure
   native behaviour in `app.json` or a config plugin in `plugins/`.
 

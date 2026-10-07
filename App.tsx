@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAccountSync } from './src/account/sync';
 import { useAppState } from './src/data/app';
 import { DesktopApp } from './src/desktop/DesktopApp';
 import type { StringKey } from './src/i18n';
@@ -24,6 +25,8 @@ import { CashReportScreen, StatementScreen } from './src/screens/reports';
 import { SalesScreen } from './src/screens/sales';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SetupScreen } from './src/screens/SetupScreen';
+import { SignInScreen } from './src/screens/SignInScreen';
+import { LimitsProvider } from './src/screens/limits';
 import { ShopProfileScreen } from './src/screens/ShopProfileScreen';
 import { C } from './src/theme';
 import { FONT_ASSETS } from './src/ui/fonts';
@@ -96,7 +99,8 @@ const NAV_THEME = { ...DefaultTheme, colors: { ...DefaultTheme.colors, backgroun
 
 export default function App() {
   const [fontsReady] = useFonts(FONT_ASSETS);
-  const { ready, settings } = useAppState();
+  const { ready, settings, account } = useAppState();
+  useAccountSync();
 
   // In a browser the app has two layouts: the desktop one on a wide window, and the phone one,
   // kept at a phone's width and centred, on a narrow window.
@@ -110,7 +114,9 @@ export default function App() {
     return (
       <SafeAreaProvider>
         <DialogHost>
-          <DesktopApp />
+          <LimitsProvider>
+            <DesktopApp />
+          </LimitsProvider>
         </DialogHost>
       </SafeAreaProvider>
     );
@@ -121,9 +127,12 @@ export default function App() {
     <View style={framed ? { flex: 1, width: PHONE_WIDTH, overflow: 'hidden' } : { flex: 1 }}>
     <SafeAreaProvider>
       <DialogHost>
+        <LimitsProvider>
         <NavigationContainer theme={NAV_THEME}>
           <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg } }}>
-            {settings.setupDone ? (
+            {!account ? (
+              <Stack.Screen name="SignIn" component={SignInScreen} />
+            ) : settings.setupDone ? (
               <>
                 <Stack.Screen name="Tabs" component={Tabs} />
                 <Stack.Screen name="Editor" component={EditorScreen} />
@@ -143,6 +152,7 @@ export default function App() {
             )}
           </Stack.Navigator>
         </NavigationContainer>
+        </LimitsProvider>
         <StatusBar style="dark" />
       </DialogHost>
     </SafeAreaProvider>

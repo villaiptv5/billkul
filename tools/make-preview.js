@@ -93,4 +93,16 @@ function fillPage(html) {
 fs.mkdirSync(path.join(out, 'privacy'), { recursive: true });
 fs.writeFileSync(path.join(out, 'privacy', 'index.html'), fillPage(fs.readFileSync(path.join(root, 'web', 'privacy.html'), 'utf8')));
 
+// The account server travels with the site, so one upload carries both. Its data folder is made on
+// the hosting the first time it runs and is never part of this copy, so an upload cannot overwrite it.
+const api = path.join(root, 'server', 'api');
+let apiFiles = 0;
+for (const file of walk(api)) {
+  const rel = path.relative(api, file);
+  if (rel.split(path.sep)[0] === 'data') continue;
+  fs.mkdirSync(path.dirname(path.join(out, 'api', rel)), { recursive: true });
+  fs.copyFileSync(file, path.join(out, 'api', rel));
+  apiFiles += 1;
+}
+
 console.log(`pc-preview/site is ready: ${assets.length} assets, ${rewritten} paths rewritten, script ${(js.length / 1024).toFixed(0)} KB.`);

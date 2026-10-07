@@ -15,6 +15,7 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { PaidLine } from './customer';
 import { DocSummary, openDoc } from './shared';
+import { useLimits } from './limits';
 
 const FILTERS: Record<DocType, DocStatus[]> = {
   quote: ['draft', 'sent', 'accepted'],
@@ -55,7 +56,9 @@ export function DocumentsScreen() {
     setStatus('all');
   };
 
+  const limits = useLimits();
   const convert = (quote: Doc) => {
+    if (!quote.invoiceId && !limits.allowDoc()) return;
     const invoice = store.convertToInvoice(quote.id);
     if (invoice) {
       changeType('invoice');

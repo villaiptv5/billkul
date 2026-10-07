@@ -23,6 +23,7 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { Panel } from './parts';
 import { useDesk } from './route';
+import { useLimits } from '../screens/limits';
 
 // Keeps the preview in view while the form beside it scrolls.
 const STICKY = { position: 'sticky', top: 0 } as unknown as ViewStyle;
@@ -93,7 +94,9 @@ export function EditorPage({ docId }: { docId: string }) {
     store.markSent(doc.id);
   };
 
+  const limits = useLimits();
   const convert = () => {
+    if (!doc.invoiceId && !limits.allowDoc()) return;
     const made = store.convertToInvoice(doc.id);
     if (made) go({ page: 'editor', docId: made.id });
   };

@@ -16,6 +16,7 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { useBackupActions } from './backupActions';
 import { TaxSheet } from './EditorScreen';
+import { AccountCard } from './limits';
 
 export const APP_VERSION: string = require('../../app.json').expo.version;
 
@@ -64,6 +65,7 @@ export function SettingsScreen() {
     <Screen>
       <TopBar title={t('tabSettings')} onBack={() => nav.goBack()} />
       <ScrollView contentContainerStyle={{ padding: 16, paddingTop: 14, gap: 12 }}>
+        <AccountCard />
         <Pressable accessibilityRole="button" onPress={() => nav.navigate('ShopProfile')} testID="open-profile">
           <Card style={{ minHeight: 68, paddingStart: 14, paddingEnd: 8, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Image source={settings.logo ? { uri: settings.logo } : require('../../assets/icon.png')} style={{ width: 44, height: 44, borderRadius: 11, backgroundColor: C.bg }} />
