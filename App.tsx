@@ -26,7 +26,7 @@ import { CashReportScreen, StatementScreen } from './src/screens/reports';
 import { SalesScreen } from './src/screens/sales';
 import { SettingsScreen } from './src/screens/SettingsScreen';
 import { SetupScreen } from './src/screens/SetupScreen';
-import { SignInScreen } from './src/screens/SignInScreen';
+import { SetPasswordScreen, SignInScreen } from './src/screens/SignInScreen';
 import { LimitsProvider } from './src/screens/limits';
 import { ShopProfileScreen } from './src/screens/ShopProfileScreen';
 import { C } from './src/theme';
@@ -134,6 +134,8 @@ export default function App() {
           <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg } }}>
             {!account ? (
               <Stack.Screen name="SignIn" component={SignInScreen} />
+            ) : account.hasPassword === false || account.resetPassword ? (
+              <Stack.Screen name="SetPassword" component={SetPasswordScreen} />
             ) : settings.setupDone ? (
               <>
                 <Stack.Screen name="Tabs" component={Tabs} />

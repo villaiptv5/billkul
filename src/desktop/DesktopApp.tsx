@@ -5,7 +5,7 @@ import type { DocType } from '../data/types';
 import type { StringKey } from '../i18n';
 import { useBackupActions } from '../screens/backupActions';
 import { SetupScreen } from '../screens/SetupScreen';
-import { SignInScreen } from '../screens/SignInScreen';
+import { SetPasswordScreen, SignInScreen } from '../screens/SignInScreen';
 import { useLimits } from '../screens/limits';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
@@ -236,11 +236,12 @@ export function DesktopApp() {
     scroll.current?.scrollTo({ y: 0, animated: false });
   }, [pageKey]);
 
-  if (!account || !settings.setupDone) {
+  const askPassword = !!account && (account.hasPassword === false || !!account.resetPassword);
+  if (!account || askPassword || !settings.setupDone) {
     return (
       <View style={{ flex: 1, backgroundColor: C.ink, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <View style={{ width: '100%', maxWidth: 520, flex: 1, maxHeight: account ? 900 : 640, borderRadius: 24, overflow: 'hidden', backgroundColor: C.surface }}>
-          {account ? <SetupScreen /> : <SignInScreen />}
+        <View style={{ width: '100%', maxWidth: 520, flex: 1, maxHeight: account && !askPassword ? 900 : 640, borderRadius: 24, overflow: 'hidden', backgroundColor: C.surface }}>
+          {!account ? <SignInScreen /> : askPassword ? <SetPasswordScreen /> : <SetupScreen />}
         </View>
       </View>
     );

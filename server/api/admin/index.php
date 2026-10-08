@@ -317,7 +317,7 @@ if ($tab === 'accounts') {
         $buttons .= ' <form class="inline" method="post">' . $hidden . '<input type="hidden" name="action" value="sign_out_everywhere"><button title="Signs this number out of the app on every device">Sign out of app</button></form>';
         $body .= '<tr><td><a href="https://wa.me/' . h(ltrim($row['phone'], '+')) . '" target="_blank" rel="noopener noreferrer">' . h($row['phone']) . '</a>'
             . ($row['platform'] !== '' ? '<br><span class="muted">' . h($row['platform'] . ' ' . $row['app_version']) . '</span>' : '') . '</td>'
-            . '<td>' . $plan . '</td><td>' . (int) $row['docs_used'] . ' documents<br>' . (int) $row['cash_used'] . ' cash entries</td>'
+            . '<td>' . $plan . '<br><span class="muted">' . ((string) ($row['password_hash'] ?? '') !== '' ? 'password set' : 'no password') . '</span></td><td>' . (int) $row['docs_used'] . ' documents<br>' . (int) $row['cash_used'] . ' cash entries</td>'
             . '<td>' . h(gmdate('j M Y', (int) $row['created_at'])) . '</td><td>' . ((int) $row['seen_at'] ? h(ago((int) $row['seen_at'])) : '<span class="muted">not yet</span>') . '</td>'
             . '<td><div class="row">' . $buttons . '</div></td></tr>';
     }

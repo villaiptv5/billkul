@@ -3,10 +3,13 @@
  * BillKul account server: what the app talks to.
  *
  *   index.php?r=ping            is the server there
+ *   index.php?r=auth/start      {phone}                 does this number sign in with a password
+ *   index.php?r=auth/password   {phone, password, device}  sign in with the password
  *   index.php?r=auth/request    {phone}                 ask for a sign-in code
  *   index.php?r=auth/verify     {phone, code, device}   exchange the code for a sign-in
  *   index.php?r=account/sync    {token, docsUsed, cashUsed, appVersion, platform}
  *   index.php?r=auth/logout     {token}
+ *   index.php?r=account/password {token, password, current}  set or change the password
  *   index.php?r=account/delete  {token}                 delete the account for good
  *
  * Every answer is JSON: {"ok":true,...} or {"ok":false,"error":"<word>"}.
@@ -72,6 +75,69 @@ try {
 
     $pdo = db();
     $now = time();
+
+    if ($route === 'auth/start') {
+        $phone = normalize_phone($text('phone', 40));
+        if ($phone === null) {
+            fail('bad_phone');
+        }
+        if (!allow('start-ip:' . client_ip(), REQUESTS_PER_HOUR, 3600)) {
+            fail('too_many', 429);
+        }
+        $account = find_account($phone);
+        reply(['ok' => true, 'hasPassword' => $account !== null && (string) ($account['password_hash'] ?? '') !== '']);
+    }
+
+    if ($route === 'auth/password') {
+        $phone = normalize_phone($text('phone', 40));
+        $password = (string) ($in['password'] ?? '');
+        if ($phone === null) {
+            fail('bad_phone');
+        }
+        if (!allow('pw-ip:' . client_ip(), VERIFIES_PER_HOUR, 3600)) {
+            fail('too_many', 429);
+        }
+        if (recent('pw-fail:' . $phone, 3600) >= PASSWORD_FAILS) {
+            fail('too_many', 429);
+        }
+        $account = find_account($phone);
+        if (!$account || (string) ($account['password_hash'] ?? '') === '') {
+            fail('no_password');
+        }
+        if (strlen($password) > 200 || !password_verify($password, (string) $account['password_hash'])) {
+            remember('pw-fail:' . $phone);
+            fail('bad_password', 400, ['triesLeft' => max(0, PASSWORD_FAILS - recent('pw-fail:' . $phone, 3600))]);
+        }
+        $token = issue_token($account, $text('device', 60), 'password');
+        reply(['ok' => true, 'token' => $token, 'account' => account_view($account)]);
+    }
+
+    if ($route === 'account/password') {
+        $account = account_by_token($text('token', 64));
+        if (!$account) {
+            fail('signed_out', 401);
+        }
+        $password = (string) ($in['password'] ?? '');
+        if (strlen($password) < PASSWORD_MIN || strlen($password) > 72) {
+            fail('weak_password');
+        }
+        $has = (string) ($account['password_hash'] ?? '') !== '';
+        // Right after proving the number with a code (a new account, or a forgotten password),
+        // the old password is not needed. Otherwise it is.
+        $fresh = $account['token_via'] === 'code' && (int) $account['token_at'] > $now - FRESH_CODE_SIGN_IN;
+        if ($has && !$fresh) {
+            if (!allow('pwc-acc:' . $account['id'], PASSWORD_FAILS, 3600)) {
+                fail('too_many', 429);
+            }
+            if (!password_verify((string) ($in['current'] ?? ''), (string) $account['password_hash'])) {
+                fail('bad_password');
+            }
+        }
+        $pdo->prepare('UPDATE accounts SET password_hash = ? WHERE id = ?')->execute([password_hash($password, PASSWORD_DEFAULT), $account['id']]);
+        // A new password signs out every other device, in case the old one was known to someone else.
+        $pdo->prepare('DELETE FROM tokens WHERE account_id = ? AND hash <> ?')->execute([$account['id'], $account['token_hash']]);
+        reply(['ok' => true, 'account' => account_view(find_account($account['phone']))]);
+    }
 
     if ($route === 'auth/request') {
         $phone = normalize_phone($text('phone', 40));
@@ -153,10 +219,7 @@ try {
                 ->execute([$phone, (int) $before['docs_used'], (int) $before['cash_used'], $now, $now]);
             $account = find_account($phone);
         }
-        $token = bin2hex(random_bytes(32));
-        $pdo->prepare('INSERT INTO tokens (hash, account_id, created_at, seen_at, device) VALUES (?, ?, ?, ?, ?)')
-            ->execute([hash('sha256', $token), $account['id'], $now, $now, $text('device', 60)]);
-        $pdo->prepare('UPDATE accounts SET seen_at = ? WHERE id = ?')->execute([$now, $account['id']]);
+        $token = issue_token($account, $text('device', 60), 'code');
         reply(['ok' => true, 'token' => $token, 'account' => account_view($account)]);
     }
 
