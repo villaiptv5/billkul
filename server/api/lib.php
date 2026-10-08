@@ -20,6 +20,9 @@ const CODES_PER_HOUR = 5;       // per phone number
 const REQUESTS_PER_HOUR = 120;  // code requests per internet address
 const VERIFIES_PER_HOUR = 300;  // code checks per internet address
 const DEFAULT_LIMIT = 10;       // free documents, and free cash book entries
+const PASSWORD_MIN = 6;         // shortest password an account may have
+const PASSWORD_FAILS = 10;      // wrong passwords per number per hour before it is locked for the hour
+const FRESH_CODE_SIGN_IN = 1800; // after signing in with a code, a new password may be set without the old one for 30 minutes
 
 function data_dir(): string
 {
@@ -127,6 +130,12 @@ function migrate(PDO $pdo): void
         // allowance it had used, so deleting an account and signing up again does not start a new allowance.
         $pdo->exec('CREATE TABLE IF NOT EXISTS used_allowance (phone_hash TEXT PRIMARY KEY, docs_used INTEGER NOT NULL, cash_used INTEGER NOT NULL, deleted_at INTEGER NOT NULL)');
         $pdo->exec('PRAGMA user_version = 2');
+    }
+    if ($version < 3) {
+        // Passwords: a number can sign in with its password, or with a code on WhatsApp when it has none or forgot it.
+        $pdo->exec('ALTER TABLE accounts ADD COLUMN password_hash TEXT');
+        $pdo->exec("ALTER TABLE tokens ADD COLUMN via TEXT NOT NULL DEFAULT 'code'");
+        $pdo->exec('PRAGMA user_version = 3');
     }
 }
 
@@ -236,6 +245,7 @@ function account_view(array $account): array
         'limits' => free_limits(),
         'supportWhatsapp' => setting('support_whatsapp'),
         'googleClientId' => setting('google_client_id'),
+        'hasPassword' => (string) ($account['password_hash'] ?? '') !== '',
     ];
 }
 
@@ -247,13 +257,37 @@ function find_account(string $phone): ?array
     return $row ?: null;
 }
 
+/** Starts a sign-in on a device. `via` is how it was proved: 'code' or 'password'. */
+function issue_token(array $account, string $device, string $via): string
+{
+    $token = bin2hex(random_bytes(32));
+    $now = time();
+    db()->prepare('INSERT INTO tokens (hash, account_id, created_at, seen_at, device, via) VALUES (?, ?, ?, ?, ?, ?)')
+        ->execute([hash('sha256', $token), $account['id'], $now, $now, $device, $via]);
+    db()->prepare('UPDATE accounts SET seen_at = ? WHERE id = ?')->execute([$now, $account['id']]);
+    return $token;
+}
+
+/** How often something happened recently, without counting this time. */
+function recent(string $name, int $window): int
+{
+    $q = db()->prepare('SELECT COUNT(*) FROM throttle WHERE name = ? AND at > ?');
+    $q->execute([$name, time() - $window]);
+    return (int) $q->fetchColumn();
+}
+
+function remember(string $name): void
+{
+    db()->prepare('INSERT INTO throttle (name, at) VALUES (?, ?)')->execute([$name, time()]);
+}
+
 function account_by_token(string $token): ?array
 {
     if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
         return null;
     }
     $hash = hash('sha256', $token);
-    $q = db()->prepare('SELECT a.* FROM tokens t JOIN accounts a ON a.id = t.account_id WHERE t.hash = ?');
+    $q = db()->prepare('SELECT a.*, t.via AS token_via, t.created_at AS token_at, t.hash AS token_hash FROM tokens t JOIN accounts a ON a.id = t.account_id WHERE t.hash = ?');
     $q->execute([$hash]);
     $row = $q->fetch();
     if (!$row) {

@@ -21,6 +21,9 @@ const ERRORS: Record<ApiError, StringKey> = {
   bad_code: 'errBadCode',
   expired: 'errExpired',
   signed_out: 'errOffline',
+  no_password: 'errNoPassword',
+  bad_password: 'errBadPassword',
+  weak_password: 'errWeakPassword',
   setup: 'errOffline',
   server: 'errOffline',
   offline: 'errOffline',
@@ -68,7 +71,8 @@ function LanguagePicker() {
  */
 export function SignInScreen() {
   const { t } = useLocale();
-  const [step, setStep] = useState<'phone' | 'code'>('phone');
+  const [step, setStep] = useState<'phone' | 'password' | 'code'>('phone');
+  const [password, setPassword] = useState('');
   const [country, setCountry] = useState('+92');
   const [number, setNumber] = useState('');
   const [phone, setPhone] = useState('');
@@ -76,6 +80,7 @@ export function SignInScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [resendAt, setResendAt] = useState(0);
+  const [forgot, setForgot] = useState(false);
   const wait = useCountdown(resendAt);
 
   const fail = (word: ApiError, seconds?: number) => setError(t(ERRORS[word], { n: seconds ?? 60 }));
@@ -101,6 +106,43 @@ export function SignInScreen() {
     }
   };
 
+  /** After the number: its password when it has one, otherwise a code on WhatsApp. */
+  const begin = async () => {
+    const target = joinPhone(country, number);
+    if (busy) return;
+    if (!target) return fail('bad_phone');
+    setBusy(true);
+    setError('');
+    setForgot(false);
+    const result = await api.start(target);
+    setBusy(false);
+    if (!result.ok) return fail(result.error, result.wait);
+    if (result.hasPassword) {
+      setPhone(target);
+      setPassword('');
+      setStep('password');
+    } else {
+      void send(target);
+    }
+  };
+
+  const passwordSignIn = async () => {
+    if (busy || !password) return;
+    setBusy(true);
+    setError('');
+    const result = await api.passwordSignIn(phone, password);
+    setBusy(false);
+    if (result.ok) {
+      store.raiseUsage({ docs: result.account.docsUsed, cash: result.account.cashUsed });
+      store.signIn(toAccount(result.account, result.token));
+    } else if (result.error === 'no_password') {
+      void send(phone);
+    } else {
+      setPassword('');
+      fail(result.error);
+    }
+  };
+
   const verify = async (typed: string) => {
     if (busy || typed.length < 6) return;
     setBusy(true);
@@ -109,7 +151,7 @@ export function SignInScreen() {
     setBusy(false);
     if (result.ok) {
       store.raiseUsage({ docs: result.account.docsUsed, cash: result.account.cashUsed });
-      store.signIn(toAccount(result.account, result.token));
+      store.signIn({ ...toAccount(result.account, result.token), resetPassword: forgot });
     } else {
       setCode('');
       fail(result.error);
@@ -151,19 +193,58 @@ export function SignInScreen() {
             {/* A phone number reads left to right in every language. */}
             <View style={{ flexDirection: 'row', gap: 10, direction: 'ltr' }}>
               <Field label={t('countryCode')} value={country} onChangeText={(text) => setCountry(`+${text.replace(/\D+/g, '').slice(0, 4)}`)} keyboardType="phone-pad" latin maxLength={5} style={{ width: 92 }} inputStyle={{ textAlign: 'center' }} testID="signin-country" />
-              <Field label={t('mobileNumber')} value={number} onChangeText={setNumber} placeholder="300 1234567" keyboardType="phone-pad" latin autoFocus maxLength={16} style={{ flex: 1 }} inputStyle={{ textAlign: 'left' }} onSubmitEditing={() => void send(joinPhone(country, number))} testID="signin-number" />
+              <Field label={t('mobileNumber')} value={number} onChangeText={setNumber} placeholder="300 1234567" keyboardType="phone-pad" latin autoFocus maxLength={16} style={{ flex: 1 }} inputStyle={{ textAlign: 'left' }} onSubmitEditing={() => void begin()} testID="signin-number" />
             </View>
             {error ? (
               <T size={14} w="medium" color={C.danger} testID="signin-error">
                 {error}
               </T>
             ) : null}
-            <Button label={t('sendCode')} icon="chat" size="lg" head disabled={busy} onPress={() => void send(joinPhone(country, number))} testID="signin-send" />
+            <Button label={t('continue')} size="lg" head disabled={busy} onPress={() => void begin()} testID="signin-send" />
             <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(PRIVACY_URL)} testID="signin-privacy" style={{ minHeight: 44, justifyContent: 'center' }}>
               <T size={13} color={C.muted}>
                 {t('signInPrivacy')}
               </T>
             </Pressable>
+          </>
+        ) : step === 'password' ? (
+          <>
+            <View style={{ gap: 6 }}>
+              <T size={26} w="semibold" head accessibilityRole="header">
+                {t('passwordTitle')}
+              </T>
+              <T size={15} color={C.muted} testID="signin-password-for">
+                {t('passwordSub', { phone: ltr(showPhone(phone)) })}
+              </T>
+            </View>
+            <Field label={t('password')} value={password} onChangeText={setPassword} secure latin autoFocus maxLength={72} onSubmitEditing={() => void passwordSignIn()} testID="signin-password" />
+            {error ? (
+              <T size={14} w="medium" color={C.danger} testID="signin-error">
+                {error}
+              </T>
+            ) : null}
+            <Button label={t('signIn')} size="lg" head disabled={busy || !password} onPress={() => void passwordSignIn()} testID="signin-password-go" />
+            <Button
+              label={t('forgotPassword')}
+              variant="ghost"
+              size="sm"
+              disabled={busy}
+              onPress={() => {
+                setForgot(true);
+                void send(phone);
+              }}
+              testID="signin-forgot"
+            />
+            <Button
+              label={t('changeNumber')}
+              variant="ghost"
+              size="sm"
+              onPress={() => {
+                setStep('phone');
+                setError('');
+              }}
+              testID="signin-change"
+            />
           </>
         ) : (
           <>
@@ -188,6 +269,59 @@ export function SignInScreen() {
             </View>
           </>
         )}
+      </ScrollView>
+    </Screen>
+  );
+}
+
+/** Asked right after signing in with a code, when the number has no password yet (or it was forgotten). */
+export function SetPasswordScreen() {
+  const { t } = useLocale();
+  const { account } = useAppState();
+  const [one, setOne] = useState('');
+  const [two, setTwo] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const save = async () => {
+    if (busy || !account) return;
+    if (one.length < 6) return setError(t('errWeakPassword'));
+    if (one !== two) return setError(t('errPasswordsDiffer'));
+    setBusy(true);
+    setError('');
+    const result = await api.setPassword(account.token, one);
+    setBusy(false);
+    if (result.ok) store.updateAccount({ ...toAccount(result.account, account.token), resetPassword: false });
+    // Signed out elsewhere, or the code was too long ago to replace a forgotten password: start again.
+    else if (result.error === 'signed_out' || result.error === 'bad_password') store.signOut();
+    else setError(t(ERRORS[result.error]));
+  };
+
+  return (
+    <Screen bg={C.surface}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1, padding: 24, paddingTop: 28, gap: 18 }}>
+        <View style={{ gap: 6 }}>
+          <T size={26} w="semibold" head accessibilityRole="header">
+            {t('setPasswordTitle')}
+          </T>
+          <T size={15} color={C.muted}>
+            {t('setPasswordSub')}
+          </T>
+          {account ? (
+            <T size={15} w="semibold" latin testID="setpw-phone">
+              {showPhone(account.phone)}
+            </T>
+          ) : null}
+        </View>
+        <Field label={t('newPassword')} value={one} onChangeText={setOne} secure latin autoFocus maxLength={72} testID="setpw-new" />
+        <Field label={t('repeatPassword')} value={two} onChangeText={setTwo} secure latin maxLength={72} onSubmitEditing={() => void save()} testID="setpw-again" />
+        {error ? (
+          <T size={14} w="medium" color={C.danger} testID="setpw-error">
+            {error}
+          </T>
+        ) : null}
+        <Button label={t('savePassword')} size="lg" head disabled={busy} onPress={() => void save()} testID="setpw-save" />
+        <Button label={t('signOut')} variant="ghost" size="sm" disabled={busy} onPress={() => store.signOut()} testID="setpw-sign-out" />
       </ScrollView>
     </Screen>
   );

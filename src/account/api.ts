@@ -12,18 +12,19 @@ export interface AccountView {
   limits: Usage;
   supportWhatsapp: string;
   googleClientId?: string;
+  hasPassword?: boolean;
 }
 
 /**
  * Why a request did not succeed. The words come from the server, except:
  * offline = the server could not be reached; server = it answered with something unexpected.
  */
-export type ApiError = 'bad_phone' | 'wait' | 'too_many' | 'bad_code' | 'expired' | 'signed_out' | 'setup' | 'server' | 'offline';
+export type ApiError = 'bad_phone' | 'wait' | 'too_many' | 'bad_code' | 'expired' | 'signed_out' | 'no_password' | 'bad_password' | 'weak_password' | 'setup' | 'server' | 'offline';
 
 export type ApiResult<T> = ({ ok: true } & T) | { ok: false; error: ApiError; wait?: number; triesLeft?: number };
 
 const APP_VERSION: string = require('../../app.json').expo.version;
-const KNOWN: ApiError[] = ['bad_phone', 'wait', 'too_many', 'bad_code', 'expired', 'signed_out', 'setup'];
+const KNOWN: ApiError[] = ['bad_phone', 'wait', 'too_many', 'bad_code', 'expired', 'signed_out', 'no_password', 'bad_password', 'weak_password', 'setup'];
 
 async function call<T>(route: string, body: Record<string, unknown>): Promise<ApiResult<T>> {
   const abort = new AbortController();
@@ -42,6 +43,9 @@ async function call<T>(route: string, body: Record<string, unknown>): Promise<Ap
 }
 
 export interface AccountApi {
+  start(phone: string): Promise<ApiResult<{ hasPassword: boolean }>>;
+  passwordSignIn(phone: string, password: string): Promise<ApiResult<{ token: string; account: AccountView }>>;
+  setPassword(token: string, password: string, current?: string): Promise<ApiResult<{ account: AccountView }>>;
   requestCode(phone: string): Promise<ApiResult<{ wait: number; delivery: string }>>;
   verifyCode(phone: string, code: string): Promise<ApiResult<{ token: string; account: AccountView }>>;
   sync(token: string, usage: Usage): Promise<ApiResult<{ account: AccountView }>>;
@@ -50,6 +54,9 @@ export interface AccountApi {
 }
 
 const live: AccountApi = {
+  start: (phone) => call('auth/start', { phone }),
+  passwordSignIn: (phone, password) => call('auth/password', { phone, password, device: Platform.OS }),
+  setPassword: (token, password, current) => call('account/password', { token, password, current: current ?? '' }),
   requestCode: (phone) => call('auth/request', { phone }),
   verifyCode: (phone, code) => call('auth/verify', { phone, code, device: Platform.OS }),
   sync: (token, usage) => call('account/sync', { token, docsUsed: usage.docs, cashUsed: usage.cash, appVersion: APP_VERSION, platform: Platform.OS }),
@@ -65,9 +72,16 @@ const live: AccountApi = {
  */
 function fake(): AccountApi {
   let seen: Usage = { docs: 0, cash: 0 };
-  const view = (phone: string): AccountView => ({ phone, plan: 'free', proUntil: '', docsUsed: seen.docs, cashUsed: seen.cash, limits: { docs: 10, cash: 10 }, supportWhatsapp: '+923001234567', googleClientId: '000000000000-phonecheck.apps.googleusercontent.com' });
+  let hasPassword = false;
+  const view = (phone: string): AccountView => ({ phone, plan: 'free', proUntil: '', docsUsed: seen.docs, cashUsed: seen.cash, limits: { docs: 10, cash: 10 }, supportWhatsapp: '+923001234567', googleClientId: '000000000000-phonecheck.apps.googleusercontent.com', hasPassword });
   let phoneNow = '';
   return {
+    start: async () => ({ ok: true, hasPassword }),
+    passwordSignIn: async (phone, password) => (password === 'phonecheck1' ? { ok: true, token: 'f'.repeat(64), account: view(phone) } : { ok: false, error: 'bad_password' }),
+    setPassword: async () => {
+      hasPassword = true;
+      return { ok: true, account: view(phoneNow) };
+    },
     requestCode: async (phone) => {
       phoneNow = phone;
       return { ok: true, wait: 60, delivery: 'test' };

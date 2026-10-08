@@ -25,9 +25,11 @@ export interface FieldProps {
   testID?: string;
   onSubmitEditing?: () => void;
   autoCapitalize?: 'none' | 'sentences' | 'words';
+  /** Hides what is typed, for passwords. */
+  secure?: boolean;
 }
 
-export function Field({ label, value, onChangeText, placeholder, keyboardType, latin, multiline, autoFocus, maxLength, style, inputStyle, testID, onSubmitEditing, autoCapitalize }: FieldProps) {
+export function Field({ label, value, onChangeText, placeholder, keyboardType, latin, multiline, autoFocus, maxLength, style, inputStyle, testID, onSubmitEditing, autoCapitalize, secure }: FieldProps) {
   const { rtl } = useLocale();
   const [focused, setFocused] = useState(false);
   const font = pickFont(value || placeholder || '', 16, 'regular', { latin });
@@ -50,7 +52,9 @@ export function Field({ label, value, onChangeText, placeholder, keyboardType, l
         maxLength={maxLength}
         testID={testID}
         onSubmitEditing={onSubmitEditing}
-        autoCapitalize={autoCapitalize}
+        autoCapitalize={secure ? 'none' : autoCapitalize}
+        secureTextEntry={secure}
+        autoCorrect={secure ? false : undefined}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         style={[

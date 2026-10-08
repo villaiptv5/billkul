@@ -155,6 +155,10 @@ export interface Account {
   supportWhatsapp: string;
   /** The Google sign-in client for the Drive backup, set on the admin page; '' until Google is set up. */
   googleClientId?: string;
+  /** False until a password is set; then the number signs in with it instead of a code. */
+  hasPassword?: boolean;
+  /** Signed in with a code after \"Forgot password\": a new password is asked before anything else. */
+  resetPassword?: boolean;
 }
 
 export interface AppData {

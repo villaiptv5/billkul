@@ -195,6 +195,40 @@ check($r['account']['docsUsed'] === 7, 'signing in again brings the old counts b
 api('auth/logout', ['token' => $token]);
 check(api('account/sync', ['token' => $token])['error'] === 'signed_out', 'signing out in the app ends that sign-in');
 
+// ---- passwords ----
+db()->exec("DELETE FROM codes; DELETE FROM throttle");
+check(api('auth/start', ['phone' => '0300 1234567'])['hasPassword'] === false, 'a number without a password is told to use a code');
+check(api('auth/start', ['phone' => '0399 0000000'])['hasPassword'] === false, 'so is a number that has never signed up');
+check(api('auth/password', ['phone' => '+923001234567', 'password' => 'whatever'])['error'] === 'no_password', 'signing in with a password before setting one is refused');
+api('auth/request', ['phone' => '+923001234567']);
+$fresh = api('auth/verify', ['phone' => '+923001234567', 'code' => code_for('+923001234567')]);
+check($fresh['account']['hasPassword'] === false, 'after a code the app learns that no password is set yet');
+check(api('account/password', ['token' => $fresh['token'], 'password' => '12345'])['error'] === 'weak_password', 'a password shorter than 6 is refused');
+$set = api('account/password', ['token' => $fresh['token'], 'password' => 'shop2026']);
+check($set['ok'] === true && $set['account']['hasPassword'] === true, 'right after a code, a password can be set');
+check((string) db()->query("SELECT password_hash FROM accounts WHERE phone = '+923001234567'")->fetchColumn() !== 'shop2026', 'the password is not stored as it is');
+check(api('auth/start', ['phone' => '03001234567'])['hasPassword'] === true, 'the number now signs in with its password');
+$r = api('auth/password', ['phone' => '0300 1234567', 'password' => 'wrong one']);
+check($r['error'] === 'bad_password' && $r['triesLeft'] === 9, 'a wrong password is refused and counted');
+$r = api('auth/password', ['phone' => '0300 1234567', 'password' => 'shop2026', 'device' => 'android']);
+check($r['ok'] === true && strlen($r['token']) === 64 && $r['account']['docsUsed'] === 7, 'the right password signs in without a code');
+$byPassword = $r['token'];
+check(api('account/password', ['token' => $byPassword, 'password' => 'newpass99'])['error'] === 'bad_password', 'changing it later needs the current password');
+check(api('account/password', ['token' => $byPassword, 'password' => 'newpass99', 'current' => 'shop2026'])['ok'] === true, 'with the current password it changes');
+check(api('account/sync', ['token' => $fresh['token']])['error'] === 'signed_out', 'a new password signs out the other devices');
+check(api('account/sync', ['token' => $byPassword])['ok'] === true, 'but not the device that changed it');
+db()->exec("DELETE FROM throttle");
+for ($i = 0; $i < 10; $i++) {
+    api('auth/password', ['phone' => '+923001234567', 'password' => 'guess' . $i]);
+}
+check(api('auth/password', ['phone' => '+923001234567', 'password' => 'newpass99'])['error'] === 'too_many', 'after 10 wrong passwords the number is locked for an hour');
+api('auth/request', ['phone' => '+923001234567']);
+$forgot = api('auth/verify', ['phone' => '+923001234567', 'code' => code_for('+923001234567')]);
+check(api('account/password', ['token' => $forgot['token'], 'password' => 'remembered1'])['ok'] === true, 'a forgotten password is replaced after signing in with a code');
+db()->exec("DELETE FROM throttle");
+check(api('auth/password', ['phone' => '+923001234567', 'password' => 'remembered1'])['ok'] === true, 'and the new one works');
+$token = $forgot['token'];
+
 // ---- deleting an account ----
 db()->exec("DELETE FROM codes; DELETE FROM throttle");
 api('auth/request', ['phone' => '+923001234567']);

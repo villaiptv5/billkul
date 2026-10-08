@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { api } from '../account/api';
-import { syncAccount } from '../account/sync';
+import { syncAccount, toAccount } from '../account/sync';
 import { store, useAppState } from '../data/app';
 import { formatDate } from '../logic/dates';
 import { ltr, showPhone } from '../logic/phone';
@@ -9,6 +9,7 @@ import { allowance, type Allowance } from '../logic/plan';
 import { openWhatsappText } from '../platform/docActions';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
+import { Field } from '../ui/Input';
 import { Card, Sheet, SheetScroll, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
@@ -124,6 +125,7 @@ export function AccountCard() {
   const { account } = useAppState();
   const plan = useAllowance();
   const limits = useLimits();
+  const [changing, setChanging] = useState(false);
   if (!account) return null;
 
   const signOut = async () => {
@@ -171,6 +173,8 @@ export function AccountCard() {
         {plan.pro ? null : <Button label={t('getPro')} onPress={limits.showPro} testID="account-get-pro" style={{ flexGrow: 1 }} />}
         <Button label={t('signOut')} variant="secondary" onPress={() => void signOut()} testID="account-sign-out" style={{ flexGrow: 1 }} />
       </View>
+      <Button label={t('changePassword')} variant="secondary" onPress={() => setChanging(true)} testID="account-change-password" />
+      <ChangePasswordSheet visible={changing} onClose={() => setChanging(false)} />
       <Pressable accessibilityRole="button" onPress={() => void remove()} testID="account-delete" style={{ alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' }}>
         <T size={13.5} w="medium" color={C.muted}>
           {t('deleteAccount')}
@@ -201,5 +205,62 @@ export function PlanNotice() {
         {t('getPro')}
       </T>
     </Pressable>
+  );
+}
+
+/** Changes the password from Settings. The current one is asked, so a borrowed, unlocked phone cannot take the account. */
+function ChangePasswordSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { t } = useLocale();
+  const { notify } = useDialogs();
+  const { account } = useAppState();
+  const [current, setCurrent] = useState('');
+  const [one, setOne] = useState('');
+  const [two, setTwo] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const close = () => {
+    setCurrent('');
+    setOne('');
+    setTwo('');
+    setError('');
+    onClose();
+  };
+
+  const save = async () => {
+    if (busy || !account) return;
+    if (!current) return setError(t('errBadPassword'));
+    if (one.length < 6) return setError(t('errWeakPassword'));
+    if (one !== two) return setError(t('errPasswordsDiffer'));
+    setBusy(true);
+    setError('');
+    const result = await api.setPassword(account.token, one, current);
+    setBusy(false);
+    if (result.ok) {
+      store.updateAccount(toAccount(result.account, account.token));
+      close();
+      notify(t('passwordChanged'));
+    } else if (result.error === 'signed_out') {
+      close();
+      store.signOut();
+    } else {
+      setError(t(result.error === 'bad_password' ? 'errBadPassword' : result.error === 'weak_password' ? 'errWeakPassword' : result.error === 'too_many' ? 'errTooMany' : 'errOffline'));
+    }
+  };
+
+  return (
+    <Sheet visible={visible} onClose={close} title={t('changePassword')}>
+      <SheetScroll>
+        <Field label={t('currentPassword')} value={current} onChangeText={setCurrent} secure latin maxLength={72} testID="chpw-current" />
+        <Field label={t('newPassword')} value={one} onChangeText={setOne} secure latin maxLength={72} testID="chpw-new" />
+        <Field label={t('repeatPassword')} value={two} onChangeText={setTwo} secure latin maxLength={72} onSubmitEditing={() => void save()} testID="chpw-again" />
+        {error ? (
+          <T size={14} w="medium" color={C.danger} testID="chpw-error">
+            {error}
+          </T>
+        ) : null}
+        <Button label={t('savePassword')} size="lg" head disabled={busy} onPress={() => void save()} testID="chpw-save" />
+      </SheetScroll>
+    </Sheet>
   );
 }

@@ -177,6 +177,14 @@ if tap('signin-number'):
     # keeps the screen reader used by this script from reading the screen, so the code is typed blind.
     text('123456')
     time.sleep(4)
+# A number with no password yet is asked to set one after the code.
+shot('set-password')
+if tap('setpw-new', wait=20):
+    text('phonecheck1')
+    tap('setpw-again')
+    text('phonecheck1')
+    back()
+    tap('setpw-save', pause=4)
 shot('setup-ur')
 if not tap('setup-skip', wait=5):
     swipe_up()
