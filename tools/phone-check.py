@@ -312,6 +312,15 @@ if tap('home-profit'):
         back()
         time.sleep(1)
         say('PHONE BACK BUTTON returns to day by day:', find('sales-on-*') is not None)
+    # The date opens a calendar; a day picked there opens that day.
+    if tap('sales-period-pick', wait=5):
+        shot('sales-calendar')
+        if tap('cal-prev'):
+            shot('sales-calendar-prev')
+        tap('cal-title')
+        shot('sales-calendar-months')
+        back()
+        time.sleep(1)
 to_tabs()
 if tap('open-settings'):
     shot('settings')
@@ -322,5 +331,9 @@ if tap('open-settings'):
     tap('open-settings')
     swipe_up()
     shot('settings-lower')
+    if tap('account-change-number', wait=5):
+        shot('change-number')
+        back()
+        time.sleep(1)
 to_tabs()
 say('done')

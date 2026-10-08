@@ -242,6 +242,56 @@ $r = api('auth/verify', ['phone' => '+923001234567', 'code' => code_for('+923001
 $token = $r['token'];
 check($r['account']['docsUsed'] === 7 && $r['account']['plan'] === 'free', 'signing up again after deleting does not give a new free allowance');
 
+// ---- the same phone with another number ----
+db()->exec('DELETE FROM throttle');
+function sign_up(string $phone, string $deviceId): array
+{
+    api('auth/request', ['phone' => $phone]);
+    return api('auth/verify', ['phone' => $phone, 'code' => code_for(normalize($phone)), 'device' => 'android', 'deviceId' => $deviceId]);
+}
+function normalize(string $phone): string
+{
+    return '+92' . substr(preg_replace('/\D+/', '', $phone), -10);
+}
+$phoneA = 'phone-aaaaaaaaaaaaaaaa';
+$a = sign_up('0311 1111111', $phoneA);
+check($a['ok'] === true && $a['account']['docsUsed'] === 0, 'a first number on a phone starts at 0');
+$r = api('account/sync', ['token' => $a['token'], 'docsUsed' => 5, 'cashUsed' => 3, 'deviceId' => $phoneA]);
+check($r['account']['docsUsed'] === 5, 'the phone uses up 5 documents');
+check((int) db()->query('SELECT COUNT(*) FROM device_usage')->fetchColumn() >= 1 && (int) db()->query("SELECT COUNT(*) FROM device_usage WHERE device_hash LIKE '%aaaa%'")->fetchColumn() === 0, 'the phone is kept only as a fingerprint');
+$b = sign_up('0322 2222222', $phoneA);
+check($b['account']['docsUsed'] === 5 && $b['account']['cashUsed'] === 3, 'a second number on the same phone starts where the phone was (5 and 3)');
+$c = sign_up('0333 3333333', 'phone-bbbbbbbbbbbbbbbb');
+check($c['account']['docsUsed'] === 0, 'a number on another phone starts at 0');
+api('account/password', ['token' => $c['token'], 'password' => 'other123']);
+$r = api('auth/password', ['phone' => '0333 3333333', 'password' => 'other123', 'device' => 'android', 'deviceId' => $phoneA]);
+check($r['account']['docsUsed'] === 5, 'signing in with a password on a used phone also carries the count');
+$r = api('account/sync', ['token' => $a['token'], 'docsUsed' => 0, 'deviceId' => 'bad id!']);
+check($r['ok'] === true && $r['account']['docsUsed'] === 5, 'a strange phone ID is ignored, not an error');
+
+// ---- moving an account to a new number ----
+db()->exec('DELETE FROM throttle');
+check(api('auth/start', ['phone' => '0322 2222222'])['exists'] === true && api('auth/start', ['phone' => '0344 4444444'])['exists'] === false, 'the app can see whether a number already has an account');
+check(api('account/phone', ['token' => $a['token'], 'phone' => '0311 1111111', 'code' => '123456'])['error'] === 'same_phone', 'the same number is refused');
+check(api('account/phone', ['token' => $a['token'], 'phone' => '0322 2222222', 'code' => '123456'])['error'] === 'number_taken', 'a number that has its own account is refused');
+api('auth/request', ['phone' => '0344 4444444']);
+$newCode = code_for('+923444444444');
+check(api('account/phone', ['token' => $a['token'], 'phone' => '0344 4444444', 'code' => $newCode === '111111' ? '222222' : '111111'])['error'] === 'bad_code', 'a wrong code for the new number is refused');
+$r = api('account/phone', ['token' => $a['token'], 'phone' => '0344 4444444', 'code' => $newCode, 'deviceId' => $phoneA]);
+check($r['ok'] === true && $r['account']['phone'] === '+923444444444' && $r['account']['docsUsed'] === 5, 'the account moves to the new number with its count');
+check(api('account/sync', ['token' => $a['token']])['account']['phone'] === '+923444444444', 'the device stays signed in after the move');
+check(api('auth/start', ['phone' => '0311 1111111'])['exists'] === false, 'the old number no longer has an account');
+$old = sign_up('0311 1111111', 'phone-cccccccccccccccc');
+check($old['account']['docsUsed'] === 5, 'the old number, signed up again on another phone, starts at what it had used');
+
+// ---- the owner moves a number for a customer who lost the SIM ----
+$html = admin('', ['action' => 'move_number', 'phone' => '0344 4444444', 'new_phone' => '0322 2222222']);
+check(strpos($html, 'already has its own account') !== false, 'admin: a number with its own account cannot be taken');
+$html = admin('', ['action' => 'move_number', 'phone' => '0344 4444444', 'new_phone' => '0355 5555555']);
+check(strpos($html, 'now belongs to +923555555555') !== false, 'admin: the account moves to the new number');
+check(api('account/sync', ['token' => $a['token']])['error'] === 'signed_out', 'admin: after the move the old sign-ins end');
+check(api('auth/start', ['phone' => '0355 5555555'])['exists'] === true, 'admin: the new number now has the account');
+
 // ---- the admin page is closed without the password ----
 admin('', ['action' => 'logout']);
 check(strpos(admin('?tab=accounts'), 'Admin password') !== false && strpos(admin('?tab=accounts'), '+923001234567') === false, 'signed out, the admin page shows nothing but the sign-in form');

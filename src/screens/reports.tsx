@@ -15,8 +15,9 @@ import { Button } from '../ui/Button';
 import { Empty, Screen, Segmented, TopBar, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
-import { Stepper, useCashBook } from './books';
+import { useCashBook } from './books';
 import { usePeriod } from './period';
+import { PeriodStepper } from './PeriodStepper';
 
 const SHADOW = Platform.select({
   web: { boxShadow: '0 6px 20px rgba(11,31,23,0.14)' },
@@ -122,7 +123,8 @@ export function CashReport({ wide, initialSide = 'in' }: { wide?: boolean; initi
       ]}
     />
   );
-  const stepper = <Stepper label={period.label} onPrev={period.previous} onNext={period.next} canNext={period.canNext} prevLabel={t(period.mode === 'day' ? 'previousDay' : 'previousMonth')} nextLabel={t(period.mode === 'day' ? 'nextDay' : 'nextMonth')} testID="report-period" />;
+  const cashDays = useMemo(() => new Set(book.rows.map((r) => r.date)), [book.rows]);
+  const stepper = <PeriodStepper period={period} marked={cashDays} testID="report-period" />;
 
   return (
     <View style={{ gap: wide ? 20 : 14 }}>

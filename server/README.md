@@ -39,6 +39,8 @@ The official WhatsApp sending service is not connected yet. Until it is:
 
 - A code is 6 digits, works for 10 minutes and for 5 guesses. A number can ask once a minute, 5 times an hour.
 - Counts of documents and cash book entries only go up, and survive reinstalling and deleting the account.
+- The counts are also kept per phone (a one-way fingerprint of the app's Android ID). Another number signed in on the same phone starts from the phone's count, not from 0.
+- A signed-in customer can move the account to a new number (Settings, Change my number), proved with a code sent to the new number. For a customer who lost the old SIM, the admin page has "Move an account to a new number" under Accounts.
 - After the first code the app asks for a password (6 characters or more); from then on the number signs in with it, no code. 10 wrong passwords in an hour stop that number for the hour. "Forgot password" sends a code and the app asks for a new password. A new password signs out every other device.
 - Sign-in tokens and codes are stored as fingerprints, not as they are. Passwords and the admin password are hashed.
 - The app's limits are checked in the app; the server is the record of the plan and of what was used.

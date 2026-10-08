@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { API_URL } from '../config';
 import type { Usage } from '../data/types';
+import { deviceId } from '../platform/deviceId';
 
 /** What the account server says about an account (account_view in server/api/lib.php). */
 export interface AccountView {
@@ -19,18 +20,20 @@ export interface AccountView {
  * Why a request did not succeed. The words come from the server, except:
  * offline = the server could not be reached; server = it answered with something unexpected.
  */
-export type ApiError = 'bad_phone' | 'wait' | 'too_many' | 'bad_code' | 'expired' | 'signed_out' | 'no_password' | 'bad_password' | 'weak_password' | 'setup' | 'server' | 'offline';
+export type ApiError = 'bad_phone' | 'same_phone' | 'number_taken' | 'wait' | 'too_many' | 'bad_code' | 'expired' | 'signed_out' | 'no_password' | 'bad_password' | 'weak_password' | 'setup' | 'server' | 'offline';
 
 export type ApiResult<T> = ({ ok: true } & T) | { ok: false; error: ApiError; wait?: number; triesLeft?: number };
 
 const APP_VERSION: string = require('../../app.json').expo.version;
-const KNOWN: ApiError[] = ['bad_phone', 'wait', 'too_many', 'bad_code', 'expired', 'signed_out', 'no_password', 'bad_password', 'weak_password', 'setup'];
+const KNOWN: ApiError[] = ['bad_phone', 'same_phone', 'number_taken', 'wait', 'too_many', 'bad_code', 'expired', 'signed_out', 'no_password', 'bad_password', 'weak_password', 'setup'];
 
 async function call<T>(route: string, body: Record<string, unknown>): Promise<ApiResult<T>> {
   const abort = new AbortController();
   const timer = setTimeout(() => abort.abort(), 15000);
   try {
-    const response = await fetch(`${API_URL}?r=${route}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: abort.signal });
+    // Every request says which phone it comes from, so the free allowance follows the phone too.
+    const sent = { ...body, deviceId: await deviceId() };
+    const response = await fetch(`${API_URL}?r=${route}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sent), signal: abort.signal });
     const json = (await response.json()) as { ok?: boolean; error?: string; wait?: number; triesLeft?: number };
     if (json && json.ok === true) return json as ApiResult<T>;
     const error = KNOWN.includes(json?.error as ApiError) ? (json.error as ApiError) : 'server';
@@ -43,7 +46,7 @@ async function call<T>(route: string, body: Record<string, unknown>): Promise<Ap
 }
 
 export interface AccountApi {
-  start(phone: string): Promise<ApiResult<{ hasPassword: boolean }>>;
+  start(phone: string): Promise<ApiResult<{ hasPassword: boolean; exists?: boolean }>>;
   passwordSignIn(phone: string, password: string): Promise<ApiResult<{ token: string; account: AccountView }>>;
   setPassword(token: string, password: string, current?: string): Promise<ApiResult<{ account: AccountView }>>;
   requestCode(phone: string): Promise<ApiResult<{ wait: number; delivery: string }>>;
@@ -51,6 +54,8 @@ export interface AccountApi {
   sync(token: string, usage: Usage): Promise<ApiResult<{ account: AccountView }>>;
   logout(token: string): Promise<ApiResult<object>>;
   deleteAccount(token: string): Promise<ApiResult<object>>;
+  /** Moves the signed-in account to a new number, proved with a code sent to it by requestCode. */
+  changePhone(token: string, phone: string, code: string): Promise<ApiResult<{ account: AccountView }>>;
 }
 
 const live: AccountApi = {
@@ -62,6 +67,7 @@ const live: AccountApi = {
   sync: (token, usage) => call('account/sync', { token, docsUsed: usage.docs, cashUsed: usage.cash, appVersion: APP_VERSION, platform: Platform.OS }),
   logout: (token) => call('auth/logout', { token }),
   deleteAccount: (token) => call('account/delete', { token }),
+  changePhone: (token, phone, code) => call('account/phone', { token, phone, code }),
 };
 
 /**
@@ -76,7 +82,7 @@ function fake(): AccountApi {
   const view = (phone: string): AccountView => ({ phone, plan: 'free', proUntil: '', docsUsed: seen.docs, cashUsed: seen.cash, limits: { docs: 10, cash: 10 }, supportWhatsapp: '+923001234567', googleClientId: '000000000000-phonecheck.apps.googleusercontent.com', hasPassword });
   let phoneNow = '';
   return {
-    start: async () => ({ ok: true, hasPassword }),
+    start: async (phone) => ({ ok: true, hasPassword, exists: phone === phoneNow }),
     passwordSignIn: async (phone, password) => (password === 'phonecheck1' ? { ok: true, token: 'f'.repeat(64), account: view(phone) } : { ok: false, error: 'bad_password' }),
     setPassword: async () => {
       hasPassword = true;
@@ -93,6 +99,11 @@ function fake(): AccountApi {
     },
     logout: async () => ({ ok: true }),
     deleteAccount: async () => ({ ok: true }),
+    changePhone: async (_token, phone, code) => {
+      if (code !== '123456') return { ok: false, error: 'bad_code', triesLeft: 4 };
+      phoneNow = phone;
+      return { ok: true, account: view(phone) };
+    },
   };
 }
 
