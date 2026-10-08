@@ -72,3 +72,25 @@ export function formatTime(isoTimestamp: string, lang: Lang): string {
   const clock = `${h}:${pad(d.getMinutes())}`;
   return lang === 'ur' ? `${suffix} ${clock}` : `${clock} ${suffix}`;
 }
+
+/** A month's name for a month picker: "Oct" or "اکتوبر". `index` is 0 for January. */
+export function shortMonthName(index: number, lang: Lang): string {
+  return (lang === 'ur' ? MONTHS_UR : MONTHS_EN)[index] ?? '';
+}
+
+/**
+ * The days of a month laid out in weeks from Monday, for a calendar: each week has 7 places,
+ * '' where the place belongs to the month before or after. `month` is "2026-10".
+ */
+export function monthGrid(month: string): string[][] {
+  const { y, m } = parts(`${month}-01`);
+  const first = new Date(y, m, 1);
+  const days = new Date(y, m + 1, 0).getDate();
+  const lead = (first.getDay() + 6) % 7; // Monday first
+  const cells: string[] = [...Array<string>(lead).fill('')];
+  for (let d = 1; d <= days; d++) cells.push(`${month}-${pad(d)}`);
+  while (cells.length % 7) cells.push('');
+  const weeks: string[][] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return weeks;
+}

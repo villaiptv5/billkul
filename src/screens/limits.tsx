@@ -4,7 +4,7 @@ import { api } from '../account/api';
 import { syncAccount, toAccount } from '../account/sync';
 import { store, useAppState } from '../data/app';
 import { formatDate } from '../logic/dates';
-import { ltr, showPhone } from '../logic/phone';
+import { joinPhone, localPhone, ltr, normalizePhone, showPhone } from '../logic/phone';
 import { allowance, type Allowance } from '../logic/plan';
 import { openWhatsappText } from '../platform/docActions';
 import { C } from '../theme';
@@ -13,6 +13,7 @@ import { Field } from '../ui/Input';
 import { Card, Sheet, SheetScroll, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
+import { ERRORS } from './SignInScreen';
 
 type Reason = 'docs' | 'cash' | 'plan';
 
@@ -126,6 +127,7 @@ export function AccountCard() {
   const plan = useAllowance();
   const limits = useLimits();
   const [changing, setChanging] = useState(false);
+  const [moving, setMoving] = useState(false);
   if (!account) return null;
 
   const signOut = async () => {
@@ -175,6 +177,8 @@ export function AccountCard() {
       </View>
       <Button label={t('changePassword')} variant="secondary" onPress={() => setChanging(true)} testID="account-change-password" />
       <ChangePasswordSheet visible={changing} onClose={() => setChanging(false)} />
+      <Button label={t('changeMyNumber')} variant="secondary" onPress={() => setMoving(true)} testID="account-change-number" />
+      <ChangeNumberSheet visible={moving} onClose={() => setMoving(false)} />
       <Pressable accessibilityRole="button" onPress={() => void remove()} testID="account-delete" style={{ alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' }}>
         <T size={13.5} w="medium" color={C.muted}>
           {t('deleteAccount')}
@@ -260,6 +264,116 @@ function ChangePasswordSheet({ visible, onClose }: { visible: boolean; onClose: 
           </T>
         ) : null}
         <Button label={t('savePassword')} size="lg" head disabled={busy} onPress={() => void save()} testID="chpw-save" />
+      </SheetScroll>
+    </Sheet>
+  );
+}
+
+/** Moves the account to a new number, after a code sent to that number's WhatsApp proves it is the owner's. */
+function ChangeNumberSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { t } = useLocale();
+  const { notify } = useDialogs();
+  const { account, settings } = useAppState();
+  const [step, setStep] = useState<'phone' | 'code'>('phone');
+  const [country, setCountry] = useState('+92');
+  const [number, setNumber] = useState('');
+  const [phone, setPhone] = useState('');
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const close = () => {
+    setStep('phone');
+    setNumber('');
+    setCode('');
+    setError('');
+    onClose();
+  };
+
+  const send = async () => {
+    if (busy || !account) return;
+    const target = joinPhone(country, number);
+    if (!target) return setError(t('errBadPhone'));
+    if (target === account.phone) return setError(t('errSamePhone'));
+    setBusy(true);
+    setError('');
+    const known = await api.start(target);
+    if (known.ok && known.exists) {
+      setBusy(false);
+      return setError(t('errNumberTaken'));
+    }
+    const sent = await api.requestCode(target);
+    setBusy(false);
+    if (sent.ok || (sent.error === 'wait' && target === phone)) {
+      setPhone(target);
+      setCode('');
+      setStep('code');
+    } else {
+      setError(t(ERRORS[sent.error], { n: sent.wait ?? 60 }));
+    }
+  };
+
+  const verify = async (typed: string) => {
+    if (busy || !account || typed.length < 6) return;
+    setBusy(true);
+    setError('');
+    const result = await api.changePhone(account.token, phone, typed);
+    setBusy(false);
+    if (result.ok) {
+      // The shop's phone on documents follows when it was the old number.
+      if (settings.phone && normalizePhone(settings.phone) === account.phone) store.updateSettings({ phone: localPhone(result.account.phone) });
+      store.updateAccount(toAccount(result.account, account.token));
+      close();
+      notify(t('numberChanged', { phone: ltr(showPhone(result.account.phone)) }));
+    } else if (result.error === 'signed_out') {
+      close();
+      store.signOut();
+    } else {
+      setCode('');
+      setError(t(ERRORS[result.error], { n: result.wait ?? 60 }));
+    }
+  };
+
+  const typeCode = (text: string) => {
+    const digits = text.replace(/\D+/g, '').slice(0, 6);
+    setCode(digits);
+    if (digits.length === 6) void verify(digits);
+  };
+
+  return (
+    <Sheet visible={visible} onClose={close} title={t('changeMyNumber')}>
+      <SheetScroll>
+        {step === 'phone' ? (
+          <>
+            <T size={14.5} color={C.muted}>
+              {t('changeNumberSub')}
+            </T>
+            <View style={{ flexDirection: 'row', gap: 10, direction: 'ltr' }}>
+              <Field label={t('countryCode')} value={country} onChangeText={(text) => setCountry(`+${text.replace(/\D+/g, '').slice(0, 4)}`)} keyboardType="phone-pad" latin maxLength={5} style={{ width: 92 }} inputStyle={{ textAlign: 'center' }} testID="chnum-country" />
+              <Field label={t('newNumber')} value={number} onChangeText={setNumber} placeholder="300 1234567" keyboardType="phone-pad" latin maxLength={16} style={{ flex: 1 }} inputStyle={{ textAlign: 'left' }} onSubmitEditing={() => void send()} testID="chnum-number" />
+            </View>
+          </>
+        ) : (
+          <>
+            <T size={14.5} color={C.muted} testID="chnum-sent-to">
+              {t('codeSub', { phone: ltr(showPhone(phone)) })}
+            </T>
+            <Field label={t('codeLabel')} value={code} onChangeText={typeCode} keyboardType="number-pad" latin maxLength={6} inputStyle={{ textAlign: 'center', fontSize: 24, letterSpacing: 8, minHeight: 60 }} onSubmitEditing={() => void verify(code)} testID="chnum-code" />
+          </>
+        )}
+        {error ? (
+          <T size={14} w="medium" color={C.danger} testID="chnum-error">
+            {error}
+          </T>
+        ) : null}
+        {step === 'phone' ? (
+          <Button label={t('sendCode')} icon="chat" size="lg" head disabled={busy} onPress={() => void send()} testID="chnum-send" />
+        ) : (
+          <>
+            <Button label={t('verifyCode')} size="lg" head disabled={busy || code.length < 6} onPress={() => void verify(code)} testID="chnum-verify" />
+            <Button label={t('changeNumber')} variant="ghost" size="sm" onPress={() => { setStep('phone'); setError(''); }} testID="chnum-back" />
+          </>
+        )}
       </SheetScroll>
     </Sheet>
   );

@@ -40,6 +40,21 @@ export function usePeriod(initial: PeriodMode = 'month') {
     canNext: mode === 'day' ? day < today : month < monthKey(today),
     previous: () => (mode === 'day' ? setDay(addDays(day, -1)) : setMonth(shiftMonth(month, -1))),
     next: () => (mode === 'day' ? setDay(addDays(day, 1)) : setMonth(shiftMonth(month, 1))),
+    /** The day or month now shown, for the calendar: "2026-10-05" or "2026-10". */
+    value: mode === 'day' ? day : month,
+    /** A day picked on the calendar. */
+    pickDay: (date: string) => {
+      setDay(date);
+      setMonth(monthKey(date));
+      setFromList(false);
+      setMode('day');
+    },
+    /** A whole month picked on the calendar. */
+    pickMonth: (key: string) => {
+      setMonth(key);
+      setFromList(false);
+      setMode('month');
+    },
     /** Opens one day. */
     openDay: (date: string) => {
       setDay(date);

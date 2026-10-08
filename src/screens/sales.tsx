@@ -11,8 +11,8 @@ import { Icon } from '../ui/Icon';
 import { Card, Screen, Segmented, TopBar } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
-import { Stepper } from './books';
 import { usePeriod } from './period';
+import { PeriodStepper } from './PeriodStepper';
 
 /** The sales report for a day or a month the reader can step through. */
 export function useSales() {
@@ -20,9 +20,12 @@ export function useSales() {
   const { t } = useLocale();
   const period = usePeriod('month');
   const report = useMemo(() => salesReport(docs, items, period.prefix), [docs, items, period.prefix]);
+  // Days with an invoice get a dot on the calendar.
+  const saleDays = useMemo(() => new Set(docs.filter((d) => d.type === 'invoice' && d.status !== 'draft').map((d) => d.date)), [docs]);
   return {
     ...period,
     report,
+    saleDays,
     empty: period.mode === 'day' ? t('noSalesOn', { day: period.name }) : t('noSalesIn', { month: period.name }),
   };
 }
@@ -161,7 +164,7 @@ export function SalesPanel({ sales: given, onOpenInvoice }: { sales?: Sales; onO
         ]}
       />
       <Card style={{ padding: 12, gap: 10 }}>
-        <Stepper label={sales.label} onPrev={sales.previous} onNext={sales.next} canNext={sales.canNext} prevLabel={t(mode === 'day' ? 'previousDay' : 'previousMonth')} nextLabel={t(mode === 'day' ? 'nextDay' : 'nextMonth')} testID="sales-period" />
+        <PeriodStepper period={sales} marked={sales.saleDays} testID="sales-period" />
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <Tile label={t('itemsSold')} value={formatAmount(report.qty)} testID="sales-qty" />
           <Tile label={t('sales')} value={wholeAmount(report.sales)} testID="sales-total" />

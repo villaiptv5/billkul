@@ -194,6 +194,26 @@ if ($action === 'sign_out_everywhere' && $phoneIn) {
     $pdo->prepare('DELETE FROM tokens WHERE account_id = (SELECT id FROM accounts WHERE phone = ?)')->execute([$phoneIn]);
     back('accounts', "$phoneIn was signed out on every device.");
 }
+if ($action === 'move_number' && $phoneIn) {
+    // For a customer who lost the old SIM and cannot sign in to change the number in the app.
+    $newPhone = normalize_phone((string) ($_POST['new_phone'] ?? ''));
+    $old = find_account($phoneIn);
+    if (!$old) {
+        back('accounts', "$phoneIn has no account.");
+    }
+    if ($newPhone === null || $newPhone === $phoneIn) {
+        back('accounts', 'Enter a different, valid new number.');
+    }
+    if (find_account($newPhone)) {
+        back('accounts', "$newPhone already has its own account, so it cannot be used.");
+    }
+    $pdo->prepare('INSERT OR REPLACE INTO used_allowance (phone_hash, docs_used, cash_used, deleted_at) VALUES (?, ?, ?, ?)')
+        ->execute([phone_hash($phoneIn), (int) $old['docs_used'], (int) $old['cash_used'], time()]);
+    $pdo->prepare('UPDATE accounts SET phone = ? WHERE id = ?')->execute([$newPhone, $old['id']]);
+    $pdo->prepare('DELETE FROM tokens WHERE account_id = ?')->execute([$old['id']]);
+    $pdo->prepare('DELETE FROM codes WHERE phone = ?')->execute([$phoneIn]);
+    back('accounts', "The account of $phoneIn now belongs to $newPhone, with its plan and counts. It was signed out everywhere: the customer signs in with $newPhone and the same password.");
+}
 if ($action === 'drop_code' && $phoneIn) {
     $pdo->prepare('DELETE FROM codes WHERE phone = ?')->execute([$phoneIn]);
     back('codes');
@@ -302,6 +322,11 @@ if ($tab === 'accounts') {
         . '<input name="phone" placeholder="+923001234567" inputmode="tel" required>'
         . '<select name="months"><option value="1">1 month</option><option value="3">3 months</option><option value="6">6 months</option><option value="12" selected>12 months</option><option value="0">No end date</option></select>'
         . '<button class="go">Make Pro</button></form></div>';
+
+    $body .= '<div class="card"><h2>Move an account to a new number</h2><p class="muted">For a customer who changed their SIM and cannot sign in. In the app, a signed-in customer can do this themselves under Settings, Change my number.</p><form method="post" class="row">' . field() . '<input type="hidden" name="action" value="move_number">'
+        . '<input name="phone" placeholder="Old number" inputmode="tel" required>'
+        . '<input name="new_phone" placeholder="New number" inputmode="tel" required>'
+        . '<button>Move</button></form></div>';
 
     $body .= '<div class="card"><div class="wrap"><table><tr><th>Number</th><th>Plan</th><th>Used</th><th>Joined</th><th>Last seen</th><th></th></tr>';
     if (!$rows) {

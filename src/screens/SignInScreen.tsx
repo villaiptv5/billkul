@@ -14,8 +14,10 @@ import { Screen } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 
-const ERRORS: Record<ApiError, StringKey> = {
+export const ERRORS: Record<ApiError, StringKey> = {
   bad_phone: 'errBadPhone',
+  same_phone: 'errSamePhone',
+  number_taken: 'errNumberTaken',
   wait: 'errWait',
   too_many: 'errTooMany',
   bad_code: 'errBadCode',

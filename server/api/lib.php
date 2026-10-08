@@ -137,6 +137,12 @@ function migrate(PDO $pdo): void
         $pdo->exec("ALTER TABLE tokens ADD COLUMN via TEXT NOT NULL DEFAULT 'code'");
         $pdo->exec('PRAGMA user_version = 3');
     }
+    if ($version < 4) {
+        // The free allowance a phone has used, under any number: signing in with another number on the
+        // same phone carries on from it. Only a one-way fingerprint of the phone's app ID is kept.
+        $pdo->exec('CREATE TABLE IF NOT EXISTS device_usage (device_hash TEXT PRIMARY KEY, docs_used INTEGER NOT NULL, cash_used INTEGER NOT NULL, seen_at INTEGER NOT NULL)');
+        $pdo->exec('PRAGMA user_version = 4');
+    }
 }
 
 function setting(string $name, string $default = ''): string
@@ -225,6 +231,41 @@ function phone_hash(string $phone): string
 {
     $config = config();
     return hash_hmac('sha256', 'allowance:' . $phone, (string) $config['secret']);
+}
+
+/** A one-way fingerprint of the ID the app sends for its phone, or null when it sent none. */
+function device_hash(string $device): ?string
+{
+    if (!preg_match('/^[A-Za-z0-9_-]{8,128}$/', $device)) {
+        return null;
+    }
+    $config = config();
+    return hash_hmac('sha256', 'device:' . $device, (string) $config['secret']);
+}
+
+/**
+ * Brings an account and the phone it is used on to the same counts, the larger of the two, and
+ * returns the account as it now is. A new number on a phone that used up its allowance starts full.
+ */
+function share_device_usage(array $account, ?string $device): array
+{
+    if ($device === null) {
+        return $account;
+    }
+    $pdo = db();
+    $q = $pdo->prepare('SELECT docs_used, cash_used FROM device_usage WHERE device_hash = ?');
+    $q->execute([$device]);
+    $row = $q->fetch() ?: ['docs_used' => 0, 'cash_used' => 0];
+    $docs = max((int) $account['docs_used'], (int) $row['docs_used']);
+    $cash = max((int) $account['cash_used'], (int) $row['cash_used']);
+    $pdo->prepare('INSERT OR REPLACE INTO device_usage (device_hash, docs_used, cash_used, seen_at) VALUES (?, ?, ?, ?)')
+        ->execute([$device, $docs, $cash, time()]);
+    if ($docs !== (int) $account['docs_used'] || $cash !== (int) $account['cash_used']) {
+        $pdo->prepare('UPDATE accounts SET docs_used = ?, cash_used = ? WHERE id = ?')->execute([$docs, $cash, $account['id']]);
+        $account['docs_used'] = $docs;
+        $account['cash_used'] = $cash;
+    }
+    return $account;
 }
 
 function is_pro(array $account): bool

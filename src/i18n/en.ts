@@ -250,6 +250,10 @@ export const en = {
   noExpenses: 'No expenses in {month}.',
   totalExpenses: 'Total expenses',
   showMore: 'Show more',
+  pickDate: 'Choose a date',
+  wholeMonth: 'Show all of {month}',
+  previousYear: 'Previous year',
+  nextYear: 'Next year',
   previousMonth: 'Previous month',
   nextMonth: 'Next month',
   previousDay: 'Previous day',
@@ -437,6 +441,12 @@ export const en = {
   changePassword: 'Change password',
   currentPassword: 'Current password',
   passwordChanged: 'Password changed. Other phones and computers signed in to this number are signed out.',
+  changeMyNumber: 'Change my number',
+  changeNumberSub: 'Your account, plan and data move to the new number. We send a code to its WhatsApp to check it is yours. Your password stays the same.',
+  newNumber: 'New mobile number',
+  numberChanged: 'Done. Your account is now on {phone}.',
+  errSamePhone: 'That is already your number.',
+  errNumberTaken: 'That number already has its own BillKul account.',
 };
 
 export type Strings = typeof en;

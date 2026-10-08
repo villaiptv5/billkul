@@ -10,6 +10,7 @@
  *   index.php?r=account/sync    {token, docsUsed, cashUsed, appVersion, platform}
  *   index.php?r=auth/logout     {token}
  *   index.php?r=account/password {token, password, current}  set or change the password
+ *   index.php?r=account/phone   {token, phone, code}    move the account to a new number (code from auth/request)
  *   index.php?r=account/delete  {token}                 delete the account for good
  *
  * Every answer is JSON: {"ok":true,...} or {"ok":false,"error":"<word>"}.
@@ -75,6 +76,32 @@ try {
 
     $pdo = db();
     $now = time();
+    $device = device_hash($text('deviceId', 128));
+
+    /** Checks a code sent to a number; stops with an error when it is wrong or too old. */
+    $checkCode = static function (string $phone, string $code) use ($pdo, $now): void {
+        if (strlen($code) < 4 || strlen($code) > 8) {
+            fail('bad_code');
+        }
+        if (!allow('ver-ip:' . client_ip(), VERIFIES_PER_HOUR, 3600)) {
+            fail('too_many', 429);
+        }
+        $q = $pdo->prepare('SELECT * FROM codes WHERE phone = ?');
+        $q->execute([$phone]);
+        $row = $q->fetch();
+        if (!$row || (int) $row['expires_at'] < $now) {
+            fail('expired');
+        }
+        if ((int) $row['attempts'] >= CODE_TRIES) {
+            $pdo->prepare('DELETE FROM codes WHERE phone = ?')->execute([$phone]);
+            fail('expired');
+        }
+        $pdo->prepare('UPDATE codes SET attempts = attempts + 1 WHERE phone = ?')->execute([$phone]);
+        if (!hash_equals((string) $row['code_hash'], code_hash($phone, $code))) {
+            fail('bad_code', 400, ['triesLeft' => max(0, CODE_TRIES - (int) $row['attempts'] - 1)]);
+        }
+        $pdo->prepare('DELETE FROM codes WHERE phone = ?')->execute([$phone]);
+    };
 
     if ($route === 'auth/start') {
         $phone = normalize_phone($text('phone', 40));
@@ -85,7 +112,7 @@ try {
             fail('too_many', 429);
         }
         $account = find_account($phone);
-        reply(['ok' => true, 'hasPassword' => $account !== null && (string) ($account['password_hash'] ?? '') !== '']);
+        reply(['ok' => true, 'exists' => $account !== null, 'hasPassword' => $account !== null && (string) ($account['password_hash'] ?? '') !== '']);
     }
 
     if ($route === 'auth/password') {
@@ -108,6 +135,7 @@ try {
             remember('pw-fail:' . $phone);
             fail('bad_password', 400, ['triesLeft' => max(0, PASSWORD_FAILS - recent('pw-fail:' . $phone, 3600))]);
         }
+        $account = share_device_usage($account, $device);
         $token = issue_token($account, $text('device', 60), 'password');
         reply(['ok' => true, 'token' => $token, 'account' => account_view($account)]);
     }
@@ -187,27 +215,7 @@ try {
         if ($phone === null) {
             fail('bad_phone');
         }
-        if ($code === null || strlen($code) < 4 || strlen($code) > 8) {
-            fail('bad_code');
-        }
-        if (!allow('ver-ip:' . client_ip(), VERIFIES_PER_HOUR, 3600)) {
-            fail('too_many', 429);
-        }
-        $q = $pdo->prepare('SELECT * FROM codes WHERE phone = ?');
-        $q->execute([$phone]);
-        $row = $q->fetch();
-        if (!$row || (int) $row['expires_at'] < $now) {
-            fail('expired');
-        }
-        if ((int) $row['attempts'] >= CODE_TRIES) {
-            $pdo->prepare('DELETE FROM codes WHERE phone = ?')->execute([$phone]);
-            fail('expired');
-        }
-        $pdo->prepare('UPDATE codes SET attempts = attempts + 1 WHERE phone = ?')->execute([$phone]);
-        if (!hash_equals((string) $row['code_hash'], code_hash($phone, $code))) {
-            fail('bad_code', 400, ['triesLeft' => max(0, CODE_TRIES - (int) $row['attempts'] - 1)]);
-        }
-        $pdo->prepare('DELETE FROM codes WHERE phone = ?')->execute([$phone]);
+        $checkCode($phone, (string) $code);
 
         $account = find_account($phone);
         if (!$account) {
@@ -219,6 +227,7 @@ try {
                 ->execute([$phone, (int) $before['docs_used'], (int) $before['cash_used'], $now, $now]);
             $account = find_account($phone);
         }
+        $account = share_device_usage($account, $device);
         $token = issue_token($account, $text('device', 60), 'code');
         reply(['ok' => true, 'token' => $token, 'account' => account_view($account)]);
     }
@@ -233,7 +242,37 @@ try {
         $cash = max((int) $account['cash_used'], $count('cashUsed'));
         $pdo->prepare('UPDATE accounts SET docs_used = ?, cash_used = ?, seen_at = ?, app_version = ?, platform = ? WHERE id = ?')
             ->execute([$docs, $cash, $now, $text('appVersion', 20), $text('platform', 20), $account['id']]);
-        reply(['ok' => true, 'account' => account_view(find_account($account['phone']))]);
+        $account = share_device_usage(find_account($account['phone']), $device);
+        reply(['ok' => true, 'account' => account_view($account)]);
+    }
+
+    if ($route === 'account/phone') {
+        $account = account_by_token($text('token', 64));
+        if (!$account) {
+            fail('signed_out', 401);
+        }
+        $phone = normalize_phone($text('phone', 40));
+        if ($phone === null) {
+            fail('bad_phone');
+        }
+        if ($phone === $account['phone']) {
+            fail('same_phone');
+        }
+        if (find_account($phone) !== null) {
+            fail('number_taken');
+        }
+        $checkCode($phone, (string) preg_replace('/\D+/', '', $text('code', 12)));
+        // A number that had an account before brings the allowance it had already used.
+        $q = $pdo->prepare('SELECT docs_used, cash_used FROM used_allowance WHERE phone_hash = ?');
+        $q->execute([phone_hash($phone)]);
+        $before = $q->fetch() ?: ['docs_used' => 0, 'cash_used' => 0];
+        // The old number keeps what it used, so it cannot start a new free allowance either.
+        $pdo->prepare('INSERT OR REPLACE INTO used_allowance (phone_hash, docs_used, cash_used, deleted_at) VALUES (?, ?, ?, ?)')
+            ->execute([phone_hash($account['phone']), (int) $account['docs_used'], (int) $account['cash_used'], $now]);
+        $pdo->prepare('UPDATE accounts SET phone = ?, docs_used = MAX(docs_used, ?), cash_used = MAX(cash_used, ?) WHERE id = ?')
+            ->execute([$phone, (int) $before['docs_used'], (int) $before['cash_used'], $account['id']]);
+        $pdo->prepare('DELETE FROM codes WHERE phone = ?')->execute([$account['phone']]);
+        reply(['ok' => true, 'account' => account_view(share_device_usage(find_account($phone), $device))]);
     }
 
     if ($route === 'auth/logout') {

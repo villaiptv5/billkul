@@ -4,7 +4,7 @@ import { useAppState } from '../data/app';
 import { formatDay } from '../logic/dates';
 import { formatAmount } from '../logic/money';
 import type { SalesRow } from '../logic/sales';
-import { Stepper } from '../screens/books';
+import { PeriodStepper } from '../screens/PeriodStepper';
 import { BackToDays, MissingCostNote, profitColor, profitText, useSales, wholeAmount } from '../screens/sales';
 import { C } from '../theme';
 import { Empty, Segmented } from '../ui/kit';
@@ -70,7 +70,7 @@ export function SalesPage() {
           />
         </View>
         <View style={{ width: 230 }}>
-          <Stepper label={sales.label} onPrev={sales.previous} onNext={sales.next} canNext={sales.canNext} prevLabel={t(mode === 'day' ? 'previousDay' : 'previousMonth')} nextLabel={t(mode === 'day' ? 'nextDay' : 'nextMonth')} testID="sales-period" />
+          <PeriodStepper period={sales} marked={sales.saleDays} testID="sales-period" />
         </View>
       </PageHeader>
 

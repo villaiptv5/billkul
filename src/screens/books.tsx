@@ -9,6 +9,7 @@ import { formatAmount, money, round2 } from '../logic/money';
 import { lowStockItems, stockHistory, stockLevels, stockState, type StockEvent, type StockState } from '../logic/stock';
 import { C } from '../theme';
 import { Button, IconButton } from '../ui/Button';
+import { Icon } from '../ui/Icon';
 import { Field, NumberField } from '../ui/Input';
 import { Chip, Segmented, Sheet, SheetScroll, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
@@ -42,15 +43,17 @@ export function stockText(item: Item, qty: number, t: Translate): { text: string
 }
 
 /** "‹ label ›" for stepping through days or months. */
-export function Stepper({ label, onPrev, onNext, prevLabel, nextLabel, canNext = true, testID }: { label: string; onPrev: () => void; onNext: () => void; prevLabel: string; nextLabel: string; canNext?: boolean; testID?: string }) {
+export function Stepper({ label, onPrev, onNext, prevLabel, nextLabel, canNext = true, testID, onPick, pickLabel }: { label: string; onPrev: () => void; onNext: () => void; prevLabel: string; nextLabel: string; canNext?: boolean; testID?: string; onPick?: () => void; pickLabel?: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
       <IconButton icon="back" label={prevLabel} size={40} onPress={onPrev} testID={testID ? `${testID}-prev` : undefined} />
-      <View style={{ flex: 1 }}>
+      {/* With onPick, the date itself opens a calendar. */}
+      <Pressable accessibilityRole={onPick ? 'button' : undefined} accessibilityLabel={onPick ? `${label}, ${pickLabel ?? ''}` : undefined} onPress={onPick} disabled={!onPick} testID={testID ? `${testID}-pick` : undefined} style={{ flex: 1, minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+        {onPick ? <Icon name="calendar" size={17} color={C.greenDeep} /> : null}
         <T size={15} w="semibold" center numberOfLines={1} testID={testID}>
           {label}
         </T>
-      </View>
+      </Pressable>
       <View style={{ opacity: canNext ? 1 : 0.3 }}>
         <IconButton icon="chevron" label={nextLabel} size={40} onPress={canNext ? onNext : undefined} testID={testID ? `${testID}-next` : undefined} />
       </View>
