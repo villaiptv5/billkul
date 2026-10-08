@@ -41,10 +41,30 @@ def nodes():
     return []
 
 
+def dismiss_not_responding(found):
+    """The emulator's own apps (often its home screen) sometimes hang and cover BillKul with
+    "... isn't responding". Waiting on them leaves BillKul as it was."""
+    if not any("isn't responding" in n.get('text', '') for n in found):
+        return False
+    for n in found:
+        if n.get('text', '') == 'Wait':
+            m = re.match(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', n.get('bounds', ''))
+            if m:
+                x1, y1, x2, y2 = map(int, m.groups())
+                say('   another app was not responding; tapped Wait')
+                adb('shell', 'input', 'tap', str((x1 + x2) // 2), str((y1 + y2) // 2))
+                time.sleep(1.5)
+                return True
+    return False
+
+
 def find(test_id):
     """Centre of the control with this testID. A trailing * matches any testID that starts with the rest."""
     prefix = test_id[:-1] if test_id.endswith('*') else None
-    for n in nodes():
+    found = nodes()
+    if dismiss_not_responding(found):
+        found = nodes()
+    for n in found:
         rid = n.get('resource-id', '')
         if rid == test_id or (prefix is not None and rid.startswith(prefix)):
             m = re.match(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', n.get('bounds', ''))
@@ -159,6 +179,7 @@ for attempt in range(4):
         adb('shell', 'am', 'force-stop', PACKAGE)
         time.sleep(10)
         continue
+    dismiss_not_responding(nodes())
     if PACKAGE in focus():
         break
     say('the app did not come to the front; trying again:', focus())

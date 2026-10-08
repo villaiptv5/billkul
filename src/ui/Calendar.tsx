@@ -28,7 +28,7 @@ interface CalendarProps {
  * Tapping the month's name shows the twelve months of a year, to get far back quickly.
  */
 export function CalendarSheet({ visible, onClose, value, marked, onPickDay, onPickMonth }: CalendarProps) {
-  const { t, lang } = useLocale();
+  const { t, lang, rtl } = useLocale();
   const today = isoDate();
   const thisMonth = monthKey(today);
   const [shown, setShown] = useState(monthKey(value));
@@ -51,7 +51,7 @@ export function CalendarSheet({ visible, onClose, value, marked, onPickDay, onPi
           {label}
         </T>
         {onLabel ? (
-          <View style={{ transform: [{ rotate: '90deg' }] }}>
+          <View style={{ transform: [{ rotate: rtl ? '-90deg' : '90deg' }] }}>
             <Icon name="chevron" size={16} color={C.muted} />
           </View>
         ) : null}
