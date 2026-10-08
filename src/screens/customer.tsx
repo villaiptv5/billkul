@@ -238,7 +238,7 @@ export function DueScreen() {
                       {[formatDate(doc.date, lang), daysText(days)].filter(Boolean).join(' · ')}
                     </T>
                   </Pressable>
-                  <Button label={t('markPaid')} size="sm" onPress={() => store.markPaid(doc.id)} testID={`paid-${doc.number}`} />
+                  <PaidLine doc={doc} size={13} />
                 </View>
               ))}
             </Card>

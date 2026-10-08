@@ -235,6 +235,7 @@ function account_view(array $account): array
         'cashUsed' => (int) $account['cash_used'],
         'limits' => free_limits(),
         'supportWhatsapp' => setting('support_whatsapp'),
+        'googleClientId' => setting('google_client_id'),
     ];
 }
 

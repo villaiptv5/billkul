@@ -19,7 +19,7 @@ import { useLimits } from '../screens/limits';
 const QUOTE_HISTORY: Col[] = [{ width: 100 }, { flex: 1 }, { width: 120, end: true }, { width: 100 }];
 // An invoice's own line says paid or unpaid, so it needs no status column.
 const INVOICE_HISTORY: Col[] = [{ width: 100 }, { flex: 1 }, { width: 130, end: true }];
-const DUE_COLS: Col[] = [{ width: 110 }, { flex: 1 }, { width: 130, end: true }, { width: 140, end: true }];
+const DUE_COLS: Col[] = [{ width: 110 }, { flex: 1 }, { width: 130, end: true }, { width: 210, end: true }];
 const QUOTE_COLS: Col[] = [{ width: 110 }, { flex: 1 }, { width: 130 }, { width: 140, end: true }];
 
 function Stat({ label, value, symbol, color = C.ink, testID }: { label: string; value: number; symbol: string; color?: string; testID: string }) {
@@ -187,7 +187,7 @@ export function DuePage() {
                   <T size={14.5} w="semibold" latin>{doc.number}</T>,
                   <T size={14} color={C.muted}>{[formatDate(doc.date, lang), daysText(days)].filter(Boolean).join(' · ')}</T>,
                   <T size={14.5} w="semibold" latin>{money(amount, settings.currency)}</T>,
-                  <Button label={t('markPaid')} size="sm" onPress={() => store.markPaid(doc.id)} testID={`paid-${doc.number}`} />,
+                  <PaidLine doc={doc} size={13.5} />,
                 ]}
               />
             ))}

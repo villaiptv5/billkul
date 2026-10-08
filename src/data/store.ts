@@ -36,6 +36,9 @@ export const DEFAULT_SETTINGS: Settings = {
   receiptPaper: 'r80',
   footerNote: '',
   lastBackupAt: '',
+  driveEmail: '',
+  driveFileId: '',
+  driveAsked: false,
 };
 
 export interface State extends AppData {
@@ -471,7 +474,9 @@ export function createStore(kv: KV) {
     const data = parsed?.data;
     if (parsed?.app !== BACKUP_APP || !data || !Array.isArray(data.docs) || !data.settings) return false;
     for (const doc of state.docs) kv.removeItem(K.doc(doc.id));
-    const settings: Settings = { ...DEFAULT_SETTINGS, ...data.settings, setupDone: true };
+    // The Drive backup belongs to this device's sign-in to Google, not to the restored file.
+    const { driveEmail, driveFileId, driveAsked } = state.settings;
+    const settings: Settings = { ...DEFAULT_SETTINGS, ...data.settings, setupDone: true, driveEmail, driveFileId, driveAsked };
     const customers = Array.isArray(data.customers) ? data.customers : [];
     const items = (Array.isArray(data.items) ? data.items : []).map(normalItem);
     // Backups made before the cash book and stock existed simply have none.

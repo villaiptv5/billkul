@@ -21,6 +21,8 @@ server with it. The `data` folder is never part of an upload, so uploading again
 2. Open `https://<the site>/api/admin/` straight away and choose the admin password. Whoever opens that page
    first chooses the password, so do not leave it for later.
 3. In Settings, enter the WhatsApp number customers should contact for Pro.
+4. Once a Google Cloud project exists, enter its Web client ID in Settings. The app then offers automatic
+   backup to the user's own Google Drive; until then that offer stays hidden.
 
 Never delete `api/data` on the hosting: it is the list of accounts.
 

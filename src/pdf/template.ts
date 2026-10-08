@@ -70,6 +70,7 @@ td.amount { font-weight: 600; }
 .trow.grand .v { font-size: 24px; font-weight: 700; }
 .paid { display: inline-block; margin-top: 14px; padding: 4px 16px; border: 2.5px solid #00995A; border-radius: 8px; color: #007A48; font-size: 16px; font-weight: 700; letter-spacing: 2px; transform: rotate(-4deg); }
 html[lang="ur"] .paid { letter-spacing: 0; }
+.paid.unpaid { border-color: #C62828; color: #B3261E; }
 .paid small { display: block; font-size: 10.5px; font-weight: 500; letter-spacing: 0; text-align: center; }
 .notes { margin-top: 26px; padding: 12px 14px; background: #F4F7F5; border-radius: 8px; break-inside: avoid; page-break-inside: avoid; }
 .foot { margin-top: 36px; padding-top: 12px; border-top: 1px solid #DCE5E0; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; font-size: 13px; color: #51635A; break-inside: avoid; page-break-inside: avoid; }
@@ -155,10 +156,15 @@ export function buildDocHtml({ doc, settings, lang, template }: DocHtmlInput): s
     )
     .join('\n');
 
+  // A paid invoice carries a green PAID stamp with the day it was paid; an issued, unpaid one a red UNPAID stamp with its date.
   const paid =
-    doc.type === 'invoice' && doc.status === 'paid'
-      ? `<div><span class="paid display">${escapeHtml(t('paidStamp'))}${doc.paidOn ? `<small>${escapeHtml(formatDate(doc.paidOn, lang))}</small>` : ''}</span></div>`
-      : '';
+    doc.type !== 'invoice'
+      ? ''
+      : doc.status === 'paid'
+        ? `<div><span class="paid display">${escapeHtml(t('paidStamp'))}${doc.paidOn ? `<small>${escapeHtml(formatDate(doc.paidOn, lang))}</small>` : ''}</span></div>`
+        : doc.status === 'due'
+          ? `<div><span class="paid unpaid display">${escapeHtml(t('unpaidStamp'))}<small>${escapeHtml(formatDate(doc.date, lang))}</small></span></div>`
+          : '';
 
   return pageHtml({
     lang,

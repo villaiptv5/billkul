@@ -11,6 +11,7 @@ export interface AccountView {
   cashUsed: number;
   limits: Usage;
   supportWhatsapp: string;
+  googleClientId?: string;
 }
 
 /**
@@ -64,7 +65,7 @@ const live: AccountApi = {
  */
 function fake(): AccountApi {
   let seen: Usage = { docs: 0, cash: 0 };
-  const view = (phone: string): AccountView => ({ phone, plan: 'free', proUntil: '', docsUsed: seen.docs, cashUsed: seen.cash, limits: { docs: 10, cash: 10 }, supportWhatsapp: '+923001234567' });
+  const view = (phone: string): AccountView => ({ phone, plan: 'free', proUntil: '', docsUsed: seen.docs, cashUsed: seen.cash, limits: { docs: 10, cash: 10 }, supportWhatsapp: '+923001234567', googleClientId: '000000000000-phonecheck.apps.googleusercontent.com' });
   let phoneNow = '';
   return {
     requestCode: async (phone) => {

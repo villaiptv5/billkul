@@ -119,6 +119,7 @@ export const en = {
   colAmount: 'Amount',
   madeWith: 'Made with BillKul',
   paidStamp: 'PAID',
+  unpaidStamp: 'UNPAID',
   defaultFooter: 'Thank you for your business.',
   whatsappMessage: '{type} {number} from {shop}: total {total}.',
 
@@ -402,6 +403,21 @@ export const en = {
   deleteAccountTitle: 'Delete your BillKul account?',
   deleteAccountBody: 'Your mobile number is removed from the BillKul server and you are signed out. Your quotations, invoices and other data stay on this device. The free allowance you have used is not given back.',
   deleteAccountBodyPro: 'Your mobile number is removed from the BillKul server, your Pro ends, and you are signed out. Your quotations, invoices and other data stay on this device.',
+  notNow: 'Not now',
+  driveTitle: 'Backup on Google Drive',
+  driveOfferBody: 'Choose the Gmail account where BillKul keeps your backup. From then on BillKul saves a backup to that Google Drive by itself whenever something changes. BillKul can only see the files it makes there.',
+  driveChoose: 'Choose Gmail account',
+  driveConnect: 'Back up to Google Drive',
+  driveOn: 'Saving to the Google Drive of {email}',
+  driveBackupNow: 'Back up now',
+  driveRestore: 'Restore from Google Drive',
+  driveStop: 'Stop Google Drive backup',
+  driveStopBody: 'BillKul stops saving to this Google Drive. The backup already there stays until you delete it.',
+  driveSaved: 'Backup saved to Google Drive.',
+  driveFailed: 'Could not save to Google Drive. Check your internet; BillKul tries again by itself.',
+  driveSignedOut: 'Google needs you to choose the Gmail account again.',
+  driveNone: 'There is no BillKul backup on this Google Drive yet.',
+  driveRestoreTitle: 'Restore the backup saved {when}?',
 };
 
 export type Strings = typeof en;

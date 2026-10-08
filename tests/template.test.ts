@@ -46,6 +46,15 @@ describe('document html', () => {
     expect(html).toContain('26,656'); // 17% of 156,800
     expect(html).toContain('Rs 183,456');
   });
+  it('stamps an unpaid invoice UNPAID in red with its date, and leaves drafts and quotes unstamped', () => {
+    const due: Doc = { ...doc, type: 'invoice', number: 'INV-0009', status: 'due', paidOn: '' };
+    const html = buildDocHtml({ doc: due, settings, lang: 'en' });
+    expect(html).toContain('<span class="paid unpaid display">UNPAID<small>5 Oct 2026</small></span>');
+    expect(html).toContain('.paid.unpaid { border-color: #C62828; color: #B3261E; }');
+    expect(buildDocHtml({ doc: { ...due, status: 'draft' }, settings, lang: 'en' })).not.toContain('UNPAID');
+    expect(buildDocHtml({ doc, settings, lang: 'en' })).not.toContain('UNPAID');
+    expect(buildDocHtml({ doc: due, settings, lang: 'ur' })).toContain('غیر ادا شدہ');
+  });
   it('cannot be broken by what the user types', () => {
     const evil: Doc = { ...doc, customerName: '<script>alert(1)</script>', notes: 'a < b\nline "two"' };
     const html = buildDocHtml({ doc: evil, settings: { ...settings, logo: 'javascript:alert(1)' }, lang: 'en' });

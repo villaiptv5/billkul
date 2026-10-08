@@ -169,6 +169,9 @@ admin('', ['action' => 'save_settings', 'support_whatsapp' => '0331 8222236', 'n
 $r = api('account/sync', ['token' => $token]);
 check($r['account']['supportWhatsapp'] === '+923318222236' && $r['account']['limits']['cash'] === 25, 'the support number and the limits reach the app');
 check(strpos(admin('', ['action' => 'save_settings', 'support_whatsapp' => 'abc', 'limit_docs' => '10', 'limit_cash' => '10']), 'not a mobile number') !== false, 'a bad support number is refused');
+check(strpos(admin('', ['action' => 'save_settings', 'support_whatsapp' => '', 'google_client_id' => 'hello', 'limit_docs' => '10', 'limit_cash' => '25']), 'Google client ID') !== false, 'a wrong Google client ID is refused');
+admin('', ['action' => 'save_settings', 'support_whatsapp' => '0331 8222236', 'google_client_id' => '1234567890-abcdef123.apps.googleusercontent.com', 'limit_docs' => '10', 'limit_cash' => '25']);
+check(api('account/sync', ['token' => $token])['account']['googleClientId'] === '1234567890-abcdef123.apps.googleusercontent.com', 'the Google client ID reaches the app');
 
 // ---- test numbers ----
 check(strpos(admin('', ['action' => 'add_test', 'phone' => '+923005550000', 'code' => '12', 'note' => 'x']), 'must be 6 digits') !== false, 'a test code must be 6 digits');

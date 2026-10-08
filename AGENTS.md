@@ -76,6 +76,13 @@ api.expo.dev, set `EXPO_OFFLINE=1` for expo commands.
   (`src/screens/limits.tsx`); opening, editing, printing and sending what exists is never limited.
   Phone-number rules are written twice and must stay alike: `src/logic/phone.ts` and `normalize_phone`
   in `server/api/lib.php`.
+- **Google Drive backup (phone app).** After sign-in the app offers, once, to choose a Gmail account;
+  from then on `src/backup/auto.ts` saves the whole backup to that account's Drive 20 seconds after a
+  change, when the app goes to the background, and on opening when the last save is over 12 hours old.
+  The Drive calls are in `src/backup/drive.ts` (one file in a "BillKul" folder, written over each time)
+  and use only the `drive.file` permission. Google sign-in is `src/platform/google.ts`; the web version
+  has no Drive backup. Everything stays hidden until the Google client ID is entered on the admin page
+  (it reaches the app with the account), so no rebuild is needed when Google Cloud is set up.
 - **No secrets in the app or the repository.** The server makes its own secret key and stores the admin
   password as a hash, both in `api/data/` on the hosting. `EXPO_PUBLIC_FAKE_SERVER=1` swaps in a
   stand-in server for the automated phone check only; never set it for a build that goes to people.

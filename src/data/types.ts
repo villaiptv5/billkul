@@ -35,6 +35,12 @@ export interface Settings {
   footerNote: string;
   /** ISO timestamp of the last successful backup, or '' if never. */
   lastBackupAt: string;
+  /** The Gmail account whose Google Drive keeps the automatic backup, or '' when it is off. */
+  driveEmail: string;
+  /** The backup file on that Drive, written over each time. */
+  driveFileId: string;
+  /** True once the owner has been offered the Drive backup, so the offer is not repeated. */
+  driveAsked: boolean;
 }
 
 export interface Customer {
@@ -147,6 +153,8 @@ export interface Account {
   limits: Usage;
   /** The owner's WhatsApp number for customers who want Pro, or ''. */
   supportWhatsapp: string;
+  /** The Google sign-in client for the Drive backup, set on the admin page; '' until Google is set up. */
+  googleClientId?: string;
 }
 
 export interface AppData {
