@@ -15,6 +15,7 @@ import { Screen, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { localPhone } from '../logic/phone';
+import { useDriveReady, useDriveRestore } from './drive';
 
 const TYPES: { value: BusinessType; label: StringKey }[] = [
   { value: 'computer', label: 'btComputer' },
@@ -46,6 +47,8 @@ export function SetupScreen() {
   const [phone, setPhone] = useState(settings.phone || (account ? localPhone(account.phone) : ''));
   const [logo, setLogo] = useState(settings.logo);
 
+  const driveReady = useDriveReady();
+  const driveRestore = useDriveRestore();
   const setLanguage = (language: Lang) => store.updateSettings({ language });
 
   const finish = (skip: boolean) => {
@@ -216,6 +219,14 @@ export function SetupScreen() {
               </T>
             </Pressable>
           </View>
+          {driveReady ? (
+            <Pressable accessibilityRole="button" onPress={() => void driveRestore()} testID="setup-drive-restore" style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-end' }}>
+              <Icon name="download" size={20} color={C.greenText} />
+              <T size={15} w="semibold" color={C.greenText}>
+                {t('driveRestore')}
+              </T>
+            </Pressable>
+          ) : null}
         </View>
       </ScrollView>
     </Screen>

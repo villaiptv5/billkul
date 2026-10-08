@@ -223,6 +223,11 @@ if ($action === 'save_settings') {
     if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         back('settings', 'That email address does not look right.');
     }
+    $google = trim((string) ($_POST['google_client_id'] ?? ''));
+    if ($google !== '' && !preg_match('/^[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com$/', $google)) {
+        back('settings', 'That does not look like a Google client ID. It ends with .apps.googleusercontent.com.');
+    }
+    set_setting('google_client_id', $google);
     set_setting('support_whatsapp', (string) $supportPhone);
     set_setting('notify_email', $email);
     set_setting('limit_docs', (string) max(0, min(100000, (int) ($_POST['limit_docs'] ?? DEFAULT_LIMIT))));
@@ -343,6 +348,8 @@ if ($tab === 'settings') {
         . '<p class="muted">The app shows a "Contact us on WhatsApp" button with this number when a free user reaches the limit.</p>'
         . '<label for="ne">Email me when someone asks for a code (optional)</label><input id="ne" type="email" name="notify_email" value="' . h(setting('notify_email')) . '" size="32">'
         . '<p class="muted">Not every hosting delivers this email, and it can land in spam. The "Codes to send" page always shows the code.</p>'
+        . '<label for="gc">Google client ID for Drive backup (Web application type)</label><input id="gc" name="google_client_id" value="' . h(setting('google_client_id')) . '" placeholder="123456789-abc.apps.googleusercontent.com" size="60">'
+        . '<p class="muted">Leave empty until Google Cloud is set up. When it is filled in, the app offers automatic backup to the user\'s Google Drive.</p>'
         . '<div class="row"><div><label for="ld">Free quotations and invoices</label><input id="ld" type="number" min="0" name="limit_docs" value="' . $limits['docs'] . '" style="width:110px"></div>'
         . '<div><label for="lc">Free cash book entries</label><input id="lc" type="number" min="0" name="limit_cash" value="' . $limits['cash'] . '" style="width:110px"></div></div>'
         . '<p style="margin-top:14px"><button class="go">Save</button></p></form></div>';

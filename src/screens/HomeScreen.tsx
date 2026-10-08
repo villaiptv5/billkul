@@ -20,6 +20,7 @@ import { useCashBook, useStock } from './books';
 import { useMonthSales } from './sales';
 import { DocRow, openDoc } from './shared';
 import { PlanNotice, useLimits } from './limits';
+import { DriveOffer } from './drive';
 
 function Stat({ label, value, symbol, color = C.onInk, onPress, testID }: { label: string; value: number; symbol: string; color?: string; onPress?: () => void; testID?: string }) {
   const { rtl } = useLocale();
@@ -123,6 +124,7 @@ export function HomeScreen() {
           </View>
 
           <PlanNotice />
+          <DriveOffer />
 
           {low.length ? (
             <Pressable accessibilityRole="button" onPress={() => nav.navigate('Tabs', { screen: 'Items' })} testID="home-low-stock" style={({ pressed }) => ({ minHeight: 48, borderRadius: 14, borderWidth: 1, borderColor: '#F3C9A4', backgroundColor: '#FFF4E8', paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10, opacity: pressed ? 0.7 : 1 })}>

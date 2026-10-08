@@ -7,6 +7,7 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAccountSync } from './src/account/sync';
+import { useAutoDriveBackup } from './src/backup/auto';
 import { useAppState } from './src/data/app';
 import { DesktopApp } from './src/desktop/DesktopApp';
 import type { StringKey } from './src/i18n';
@@ -101,6 +102,7 @@ export default function App() {
   const [fontsReady] = useFonts(FONT_ASSETS);
   const { ready, settings, account } = useAppState();
   useAccountSync();
+  useAutoDriveBackup();
 
   // In a browser the app has two layouts: the desktop one on a wide window, and the phone one,
   // kept at a phone's width and centred, on a narrow window.

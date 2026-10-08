@@ -17,6 +17,7 @@ import { T } from '../ui/T';
 import { useBackupActions } from './backupActions';
 import { TaxSheet } from './EditorScreen';
 import { AccountCard } from './limits';
+import { DriveSection } from './drive';
 
 export const APP_VERSION: string = require('../../app.json').expo.version;
 
@@ -118,9 +119,7 @@ export function SettingsScreen() {
             <Button label={t('saveBackup')} icon="download" variant="onInk" onPress={backup.saveBackup} testID="save-backup" />
             <Button label={t('restoreBackup')} icon="upload" variant="onInkOutline" onPress={backup.restore} testID="restore-backup" />
           </View>
-          <T size={13} color={C.mint}>
-            {t('backupDriveSoon')}
-          </T>
+          <DriveSection />
         </View>
 
         <Card>

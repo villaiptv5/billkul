@@ -6,7 +6,7 @@ import { api, type AccountView } from './api';
 
 /** Turns the server's answer into the account kept on the device. */
 export function toAccount(view: AccountView, token: string): Account {
-  return { phone: view.phone, token, plan: view.plan, proUntil: view.proUntil, limits: view.limits, supportWhatsapp: view.supportWhatsapp };
+  return { phone: view.phone, token, plan: view.plan, proUntil: view.proUntil, limits: view.limits, supportWhatsapp: view.supportWhatsapp, googleClientId: view.googleClientId ?? '' };
 }
 
 export type SyncResult = 'ok' | 'offline' | 'signed_out';

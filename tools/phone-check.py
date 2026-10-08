@@ -181,8 +181,23 @@ shot('setup-ur')
 if not tap('setup-skip', wait=5):
     swipe_up()
     tap('setup-skip')
-time.sleep(2)
+time.sleep(3)
 shot('home')
+
+# The Google Drive offer. The stand-in server names a Google client that does not exist, so choosing
+# an account must end in a polite message, not a crash: this checks the Google sign-in part loads.
+if find('drive-choose'):
+    shot('drive-offer')
+    tap('drive-choose', pause=8)
+    shot('drive-google')
+    say('after choosing a Google account:', focus())
+    if PACKAGE not in focus():
+        back()
+        time.sleep(3)
+    shot('drive-after')
+    if find('drive-later'):
+        tap('drive-later')
+to_tabs()
 
 # First the screens as a new shop sees them: every label, no data needed.
 tap('tab-Documents')
