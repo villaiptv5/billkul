@@ -5,6 +5,7 @@ import { sortDocs } from '../data/store';
 import { formatDay, formatMonth, isoDate } from '../logic/dates';
 import { formatAmount, money } from '../logic/money';
 import { monthStats } from '../logic/stats';
+import { HeldList } from '../screens/finish';
 import { docTotals } from '../logic/totals';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
@@ -87,6 +88,8 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
         )}
       </View>
 
+      <HeldList wide onOpen={(doc) => go({ page: 'editor', docId: doc.id })} />
+
       <View style={{ gap: 10 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={{ flex: 1 }}>
@@ -112,7 +115,7 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
                     <T size={14.5} numberOfLines={1}>{doc.customerName || t('noCustomer')}</T>,
                     <T size={14} color={C.muted}>{formatDay(doc.date, lang)}</T>,
                     <T size={14.5} w="semibold" latin>{money(docTotals(doc).total, settings.currency)}</T>,
-                    <StatusPill status={doc.status} />,
+                    <StatusPill status={doc.status} held={!!doc.heldAt} />,
                   ]}
                 />
               ))}

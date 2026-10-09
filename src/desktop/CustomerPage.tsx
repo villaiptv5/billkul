@@ -81,14 +81,14 @@ export function CustomerPage({ id }: { id: string }) {
                   invoices
                     ? [
                         <T size={14.5} w="semibold" latin>{doc.number}</T>,
-                        doc.status === 'draft' ? <StatusPill status={doc.status} /> : <PaidLine doc={doc} size={13.5} />,
+                        doc.status === 'draft' ? <StatusPill status={doc.status} held={!!doc.heldAt} /> : <PaidLine doc={doc} size={13.5} />,
                         <T size={14.5} w="semibold" latin>{money(docTotals(doc).total, settings.currency)}</T>,
                       ]
                     : [
                         <T size={14.5} w="semibold" latin>{doc.number}</T>,
                         <T size={14} color={C.muted}>{formatDate(doc.date, lang)}</T>,
                         <T size={14.5} w="semibold" latin>{money(docTotals(doc).total, settings.currency)}</T>,
-                        <StatusPill status={doc.status} />,
+                        <StatusPill status={doc.status} held={!!doc.heldAt} />,
                       ]
                 }
               />

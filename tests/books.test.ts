@@ -204,8 +204,23 @@ describe('sales report', () => {
     const doc = store.createDoc('invoice', extra.date ?? '2026-10-06');
     const saved = store.saveDoc({ ...doc, customerName: extra.customer ?? '', discount: extra.discount ?? 0, taxPercent: extra.taxPercent ?? 0, lines: lines.map((l, i) => ({ id: `l${i}`, unit: '', ...l })) });
     store.markSent(saved.id);
+    store.markPaid(saved.id, saved.date);
     return saved;
   }
+
+  it('counts only paid invoices, on the day the money came in', () => {
+    const fan = store.saveItem({ name: 'Fan', price: 5000, cost: 4000 });
+    const unpaid = store.createDoc('invoice', '2026-10-03');
+    store.saveDoc({ ...unpaid, lines: [{ id: 'a', itemId: fan.id, name: 'Fan', unit: '', qty: 1, price: 5000, cost: 4000 }] });
+    expect(report().invoices).toBe(0); // a draft is not a sale
+    store.markSent(unpaid.id);
+    expect(report()).toMatchObject({ invoices: 0, sales: 0, profit: 0 }); // issued but unpaid is not a sale yet
+    store.markPaid(unpaid.id, '2026-10-08');
+    expect(report('2026-10-03').invoices).toBe(0);
+    expect(report('2026-10-08')).toMatchObject({ invoices: 1, sales: 5000, profit: 1000 });
+    store.markUnpaid(unpaid.id);
+    expect(report().invoices).toBe(0);
+  });
 
   it('counts what sold and the profit on it: sale price less purchase price', () => {
     const ssd = store.saveItem({ name: 'SSD 256 GB', price: 7800, cost: 6000 });
@@ -298,6 +313,7 @@ describe('sales report', () => {
     store.saveItem({ id: ssd.id, name: 'SSD', cost: 6500 });
     const invoice = store.convertToInvoice(quote.id, '2026-10-06');
     expect(invoice?.lines[0].cost).toBe(6500);
+    store.markPaid(invoice!.id, '2026-10-06');
     expect(report().profit).toBe(1300);
   });
 

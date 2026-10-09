@@ -51,7 +51,7 @@ export function DocSummary({ doc }: { doc: Doc }) {
         <T size={15} w="semibold" latin>
           {money(docTotals(doc).total, currency)}
         </T>
-        <StatusPill status={doc.status} />
+        <StatusPill status={doc.status} held={!!doc.heldAt} />
       </View>
     </View>
   );

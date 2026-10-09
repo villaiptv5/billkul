@@ -1,3 +1,4 @@
+import type { ItemRow } from '../logic/itemImport';
 import { isoDate } from '../logic/dates';
 import { formatDocNumber, isEmptyDoc } from '../logic/totals';
 import { SAMPLE_ITEMS } from './seed';
@@ -246,6 +247,29 @@ export function createStore(kv: KV) {
     return item;
   }
 
+  /**
+   * Brings in items read from a spreadsheet. An item whose name is already in the list (any letter case)
+   * is updated with what the sheet gives; the rest are added. "Stock now" sets the count of a counted item.
+   */
+  function importItems(rows: ItemRow[]): { added: number; updated: number } {
+    let added = 0;
+    let updated = 0;
+    for (const row of rows) {
+      const name = row.name.trim();
+      if (!name) continue;
+      const existing = state.items.find((i) => i.name.trim().toLowerCase() === name.toLowerCase());
+      const track = row.track ?? existing?.trackStock ?? false;
+      const item = saveItem({ id: existing?.id, name: existing?.name ?? name, unit: row.unit, price: row.price, cost: row.cost, trackStock: track, lowStock: track ? row.lowAt : 0 });
+      if (existing) updated++;
+      else added++;
+      if (track && row.opening !== undefined) {
+        if (hasMoves(item.id)) setStock(item.id, row.opening);
+        else if (row.opening > 0) addStock(item.id, row.opening);
+      }
+    }
+    return { added, updated };
+  }
+
   function deleteItem(id: string) {
     const items = state.items.filter((i) => i.id !== id);
     kv.setItem(K.items, JSON.stringify(items));
@@ -411,6 +435,28 @@ export function createStore(kv: KV) {
     if (doc && doc.status === 'draft') patchDoc(id, { status: doc.type === 'quote' ? 'sent' : 'due' });
   }
 
+  /**
+   * Finishes a draft: a quote becomes sent; an invoice becomes paid now (the money is in hand) or due
+   * (the customer owes it). Only a paid invoice adds to the cash in hand and to sales.
+   */
+  function completeDoc(id: string, paid: boolean, today: string = isoDate()) {
+    const doc = state.docs.find((d) => d.id === id);
+    if (!doc) return;
+    if (doc.type === 'quote') {
+      patchDoc(id, { status: doc.status === 'draft' ? 'sent' : doc.status, heldAt: undefined });
+      return;
+    }
+    patchDoc(id, paid ? { status: 'paid', paidOn: today, heldAt: undefined } : { status: doc.status === 'paid' ? 'paid' : 'due', heldAt: undefined });
+  }
+
+  /** Puts an unfinished document aside, optionally under a name, to serve the next customer. */
+  function holdDoc(id: string, name = '') {
+    const doc = state.docs.find((d) => d.id === id);
+    if (!doc || doc.status !== 'draft') return;
+    const label = name.trim();
+    patchDoc(id, { heldAt: new Date().toISOString(), ...(label && !doc.customerId ? { customerName: label } : {}) });
+  }
+
   function markAccepted(id: string) {
     const doc = state.docs.find((d) => d.id === id);
     if (doc && doc.type === 'quote') patchDoc(id, { status: 'accepted' });
@@ -509,6 +555,7 @@ export function createStore(kv: KV) {
     saveCustomers,
     deleteCustomer,
     saveItem,
+    importItems,
     deleteItem,
     addStock,
     setStock,
@@ -520,6 +567,8 @@ export function createStore(kv: KV) {
     deleteDoc,
     discardIfEmpty,
     markSent,
+    completeDoc,
+    holdDoc,
     markAccepted,
     markPaid,
     markUnpaid,

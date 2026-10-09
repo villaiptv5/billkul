@@ -22,8 +22,11 @@ export interface DocEditor {
   totals: DocTotals;
   save: (patch: Partial<Doc>) => void;
   addItem: (item: Item) => void;
-  /** Adds a line for a name that is not in the price list yet, and adds it to the price list. */
-  addNewItem: (name: string) => void;
+  /**
+   * Adds a line for a name that is not in the items list yet. With `keep`, the item is saved to the
+   * list too; without, it is a one-off line on this document only.
+   */
+  addNewItem: (input: { name: string; unit: string; price: number; cost: number; keep: boolean }) => void;
   changeLine: (line: DocLine, patch: Partial<DocLine>) => void;
   removeLine: (line: DocLine) => void;
   pickCustomer: (c: Customer) => void;
@@ -63,7 +66,10 @@ export function useDocEditor(docId: string): DocEditor | null {
     totals: docTotals(doc),
     save,
     addItem,
-    addNewItem: (name) => addItem(store.saveItem({ name, unit: '', price: 0 })),
+    addNewItem: ({ name, unit, price, cost, keep }) => {
+      if (keep) return addItem(store.saveItem({ name, unit, price, cost }));
+      save({ lines: [...doc.lines, { id: uid(), itemId: '', name: name.trim(), unit: unit.trim(), qty: 1, price, cost }] });
+    },
     changeLine,
     removeLine: (line) => save({ lines: doc.lines.filter((l) => l.id !== line.id) }),
     pickCustomer: (c) => save({ customerId: c.id, customerName: c.name, customerPhone: c.phone }),

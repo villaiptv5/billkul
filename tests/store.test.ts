@@ -168,3 +168,40 @@ describe('backup', () => {
     expect(kv.getItem(`bk1:doc:${old.id}`)).toBeNull();
   });
 });
+
+describe('completing and holding', () => {
+  const line = { id: 'l', itemId: '', name: 'Mouse', unit: '', qty: 1, price: 300 };
+
+  it('completes an invoice as paid now, or as due', async () => {
+    await store.load();
+    const a = store.createDoc('invoice', '2026-10-09');
+    store.saveDoc({ ...a, lines: [line] });
+    store.completeDoc(a.id, true, '2026-10-09');
+    expect(store.getState().docs.find((d) => d.id === a.id)).toMatchObject({ status: 'paid', paidOn: '2026-10-09' });
+    const b = store.createDoc('invoice', '2026-10-09');
+    store.saveDoc({ ...b, lines: [line] });
+    store.completeDoc(b.id, false);
+    expect(store.getState().docs.find((d) => d.id === b.id)).toMatchObject({ status: 'due', paidOn: '' });
+  });
+
+  it('completes a quote as sent', async () => {
+    await store.load();
+    const q = store.createDoc('quote', '2026-10-09');
+    store.saveDoc({ ...q, lines: [line] });
+    store.completeDoc(q.id, true);
+    expect(store.getState().docs.find((d) => d.id === q.id)?.status).toBe('sent');
+  });
+
+  it('holds a draft under a name, and completing clears the hold', async () => {
+    await store.load();
+    const a = store.createDoc('invoice', '2026-10-09');
+    store.saveDoc({ ...a, lines: [line] });
+    store.holdDoc(a.id, '  Blue shirt ');
+    const held = store.getState().docs.find((d) => d.id === a.id)!;
+    expect(held.heldAt).toBeTruthy();
+    expect(held.customerName).toBe('Blue shirt');
+    expect(held.status).toBe('draft');
+    store.completeDoc(a.id, true);
+    expect(store.getState().docs.find((d) => d.id === a.id)?.heldAt).toBeUndefined();
+  });
+});

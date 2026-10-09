@@ -96,7 +96,7 @@ export function HistoryRow({ doc, onPress, last }: { doc: Doc; onPress: () => vo
         <T size={15} w="semibold" latin>
           {money(docTotals(doc).total, currency)}
         </T>
-        <StatusPill status={doc.status} />
+        <StatusPill status={doc.status} held={!!doc.heldAt} />
       </View>
       <Icon name="chevron" size={18} color={C.muted} stroke={2} />
     </Pressable>

@@ -252,12 +252,30 @@ if tap('new-invoice'):
     if tap('item-search'):
         text('Fan')
         tap('item-add-new')
-        back()
-        if tap('price-0'):
+        # A new name opens the new item form: sale and purchase price, and whether to keep it.
+        shot('new-item')
+        if tap('item-price'):
             text('4500')
-            back()
+        if tap('item-cost'):
+            text('3800')
+        back()
+        tap('new-item-add')
     shot('editor')
-    if tap('preview', pause=5):
+    # Hold it for the next customer, then come back to it from the Dashboard.
+    if tap('hold'):
+        shot('hold')
+        tap('hold-new', pause=2)
+        shot('editor-after-hold')
+        back()
+        time.sleep(1)
+        to_tabs()
+        tap('tab-Home')
+        shot('home-on-hold')
+        tap('held-*')
+    if tap('complete'):
+        shot('complete')
+        tap('complete-paid', pause=4)
+    if find('open-receipt') or tap('preview', pause=5):
         shot('preview')
         started = time.time()
         seen = nodes()
@@ -287,7 +305,6 @@ if tap('new-invoice'):
             if PACKAGE not in focus():
                 back()
         swipe_up()
-        tap('mark-paid', wait=6)
         shot('preview-paid')
 to_tabs()
 

@@ -18,6 +18,7 @@ import { T } from '../ui/T';
 import { ReceiptSheet } from './receipt';
 import { PaidLine } from './customer';
 import { showDoc } from './shared';
+import { CompleteSheet } from './finish';
 
 const SHADOW = Platform.select({
   web: { boxShadow: '0 6px 20px rgba(11,31,23,0.14)' },
@@ -72,13 +73,36 @@ export function PreviewScreen() {
   }, [doc, nav]);
 
   const html = useMemo(() => (doc ? buildDocHtml({ doc, settings, lang }) : ''), [doc, settings, lang]);
+  // Actions read the page as it is when they run, so one asked for before completing prints the finished invoice.
+  const htmlRef = useRef(html);
+  htmlRef.current = html;
+  const [completing, setCompleting] = useState(false);
+  const after = useRef<(() => void) | null>(null);
+  const completed = useRef(false);
+  const status = doc?.status;
+  useEffect(() => {
+    if (status && status !== 'draft' && after.current) {
+      const next = after.current;
+      after.current = null;
+      next();
+    }
+  }, [status]);
   if (!doc) return null;
+
+  /** A draft invoice is completed (paid now or not yet) before it is printed or sent. */
+  const finishFirst = (action: () => void) => {
+    if (doc.type === 'invoice' && doc.status === 'draft') {
+      after.current = action;
+      setCompleting(true);
+    } else action();
+  };
 
   const fileName = docFileName(doc);
   const onLayout = (e: LayoutChangeEvent) => setWidth(Math.floor(e.nativeEvent.layout.width));
 
   /** Runs a send or print action, then marks the document as gone to the customer. */
-  const run = async (action: () => Promise<boolean | void>) => {
+  const run = (action: () => Promise<boolean | void>) => finishFirst(() => void runNow(action));
+  const runNow = async (action: () => Promise<boolean | void>) => {
     if (busy) return;
     setBusy(true);
     try {
@@ -91,7 +115,8 @@ export function PreviewScreen() {
     }
   };
 
-  const whatsappText = () => {
+  const whatsappText = () => finishFirst(whatsappTextNow);
+  const whatsappTextNow = () => {
     const text = t('whatsappMessage', {
       type: t(doc.type),
       number: doc.number,
@@ -125,6 +150,16 @@ export function PreviewScreen() {
           </View>
         </View>
 
+        {doc.type === 'invoice' && doc.status === 'draft' ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line }}>
+            <View style={{ flex: 1 }}>
+              <T size={14} color={C.muted}>
+                {doc.heldAt ? t('onHold') : t('stDraft')}
+              </T>
+            </View>
+            <Button label={t('complete')} icon="check" size="sm" onPress={() => setCompleting(true)} testID="preview-complete" />
+          </View>
+        ) : null}
         {doc.type === 'invoice' && doc.status !== 'draft' ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line }}>
             <View style={{ flex: 1 }}>
@@ -140,18 +175,18 @@ export function PreviewScreen() {
 
         {IS_PHONE ? (
           <View style={{ gap: 8 }}>
-            <Button label={t('sendPdf')} icon="chat" size="lg" head disabled={busy} onPress={() => run(() => sharePdf(html, fileName))} testID="send-pdf" />
+            <Button label={t('sendPdf')} icon="chat" size="lg" head disabled={busy} onPress={() => run(() => sharePdf(htmlRef.current, fileName))} testID="send-pdf" />
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <Button label={t('sendImage')} icon="image" variant="secondary" disabled={busy} onPress={() => run(() => capture.shoot(() => shareImage(pageRef.current, fileName)))} style={{ flex: 1 }} testID="send-image" />
-              <Button label={t('print')} icon="printer" variant="secondary" disabled={busy} onPress={() => run(() => printDoc(html))} style={{ flex: 1 }} testID="print" />
+              <Button label={t('print')} icon="printer" variant="secondary" disabled={busy} onPress={() => run(() => printDoc(htmlRef.current))} style={{ flex: 1 }} testID="print" />
             </View>
-            <Button label={t('thermalReceipt')} icon="printer" variant="secondary" onPress={() => setReceipt(true)} testID="open-receipt" />
+            <Button label={t('thermalReceipt')} icon="printer" variant="secondary" onPress={() => finishFirst(() => setReceipt(true))} testID="open-receipt" />
           </View>
         ) : (
           <View style={{ gap: 8 }}>
-            <Button label={`${t('print')} / ${t('savePdf')}`} icon="printer" size="lg" head disabled={busy} onPress={() => run(() => printDoc(html))} testID="print" />
+            <Button label={`${t('print')} / ${t('savePdf')}`} icon="printer" size="lg" head disabled={busy} onPress={() => run(() => printDoc(htmlRef.current))} testID="print" />
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Button label={t('thermalReceipt')} icon="printer" variant="secondary" onPress={() => setReceipt(true)} style={{ flex: 1 }} testID="open-receipt" />
+              <Button label={t('thermalReceipt')} icon="printer" variant="secondary" onPress={() => finishFirst(() => setReceipt(true))} style={{ flex: 1 }} testID="open-receipt" />
               <Button label={t('sendWhatsappText')} icon="chat" variant="secondary" onPress={whatsappText} style={{ flex: 1 }} testID="send-whatsapp-text" />
             </View>
             <T size={13} color={C.muted}>
@@ -161,6 +196,19 @@ export function PreviewScreen() {
         )}
       </ScrollView>
       <ReceiptSheet doc={doc} visible={receipt} onClose={() => setReceipt(false)} />
+      <CompleteSheet
+        doc={doc}
+        visible={completing}
+        onClose={() => {
+          setCompleting(false);
+          // Closed without completing: the print or send that was waiting is dropped.
+          if (!completed.current) after.current = null;
+          completed.current = false;
+        }}
+        onDone={() => {
+          completed.current = true;
+        }}
+      />
     </Screen>
   );
 }

@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAppState } from '../data/app';
 import { formatDay, isoDate, monthKey } from '../logic/dates';
 import { formatAmount } from '../logic/money';
-import { salesReport, type SalesReport, type SalesRow } from '../logic/sales';
+import { paidDate, salesReport, type SalesReport, type SalesRow } from '../logic/sales';
 import type { RootNav } from '../nav';
 import { C } from '../theme';
 import { Icon } from '../ui/Icon';
@@ -21,7 +21,7 @@ export function useSales() {
   const period = usePeriod('month');
   const report = useMemo(() => salesReport(docs, items, period.prefix), [docs, items, period.prefix]);
   // Days with an invoice get a dot on the calendar.
-  const saleDays = useMemo(() => new Set(docs.filter((d) => d.type === 'invoice' && d.status !== 'draft').map((d) => d.date)), [docs]);
+  const saleDays = useMemo(() => new Set(docs.filter((d) => d.type === 'invoice' && d.status === 'paid').map(paidDate)), [docs]);
   return {
     ...period,
     report,

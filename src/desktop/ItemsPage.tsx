@@ -3,6 +3,7 @@ import { Pressable, View } from 'react-native';
 import { store, useAppState } from '../data/app';
 import type { Item } from '../data/types';
 import { stockText, StockSheet, useStock } from '../screens/books';
+import { ImportItemsSheet } from '../screens/ImportItems';
 import { C } from '../theme';
 import { Button, IconButton } from '../ui/Button';
 import { NumberField, SearchBox } from '../ui/Input';
@@ -23,6 +24,7 @@ export function ItemsPage() {
   const [query, setQuery] = useState('');
   const [lowOnly, setLowOnly] = useState(false);
   const [dialog, setDialog] = useState<{ item?: Item } | null>(null);
+  const [importing, setImporting] = useState(false);
   const [adding, setAdding] = useState<Item | null>(null);
   const counted = items.some((i) => i.trackStock);
   const { snug } = useDeskSize();
@@ -38,6 +40,7 @@ export function ItemsPage() {
   return (
     <View style={{ gap: 20 }}>
       <PageHeader title={t('tabItems')} subtitle={items.length ? `${items.length === 1 ? t('itemCountOne') : t('itemCountMany', { n: items.length })} · ${t('priceIn', { code: settings.currency.code })}` : undefined}>
+        <Button label={t('importItems')} icon="upload" variant="secondary" onPress={() => setImporting(true)} testID="import-items" />
         <Button label={t('newItem')} icon="plus" head onPress={() => setDialog({})} testID="add-item" />
       </PageHeader>
 
@@ -97,6 +100,7 @@ export function ItemsPage() {
 
       <ItemDialog visible={!!dialog} item={dialog?.item} onClose={() => setDialog(null)} />
       <StockSheet visible={!!adding} mode="add" item={adding ?? undefined} onClose={() => setAdding(null)} />
+      <ImportItemsSheet visible={importing} onClose={() => setImporting(false)} />
     </View>
   );
 }

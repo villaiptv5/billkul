@@ -34,6 +34,11 @@ export interface SalesReport {
   missingCost: string[];
 }
 
+/** The day an invoice's money came in: the day it was marked paid, or its own date. */
+export function paidDate(doc: Doc): string {
+  return doc.paidOn || doc.date;
+}
+
 function blank(key: string, label: string, detail = ''): SalesRow {
   return { key, label, detail, qty: 0, sales: 0, profit: 0, invoices: 0 };
 }
@@ -44,7 +49,8 @@ function tidy(row: SalesRow): SalesRow {
 
 /**
  * Sales and the profit on them for a day ("2026-10-06") or a month ("2026-10").
- * A sale counts on the invoice date once the invoice is issued; drafts and quotes never count.
+ * A sale counts only once it is paid, on the day the money came in: an unpaid invoice, a draft or a
+ * quote is not a sale yet. (Stock still goes down when an unpaid invoice is issued: the goods have left.)
  * Profit is the sale price less the purchase price; tax collected is not income, so it is left out.
  */
 export function salesReport(docs: Doc[], items: Item[], period: string): SalesReport {
@@ -56,7 +62,8 @@ export function salesReport(docs: Doc[], items: Item[], period: string): SalesRe
   const total = blank('total', '');
 
   for (const doc of docs) {
-    if (doc.type !== 'invoice' || doc.status === 'draft' || !doc.date.startsWith(period)) continue;
+    const when = paidDate(doc);
+    if (doc.type !== 'invoice' || doc.status !== 'paid' || !when.startsWith(period)) continue;
     const subtotal = doc.lines.reduce((sum, l) => sum + lineTotal(l), 0);
     if (!(subtotal > 0)) continue;
     // The discount is taken off the whole invoice, so each line gives up its share of it.
@@ -85,17 +92,17 @@ export function salesReport(docs: Doc[], items: Item[], period: string): SalesRe
     invoice.sales = subtotal - discount;
     byInvoice.push({ ...tidy(invoice), detail: doc.customerName, key: doc.id, label: doc.number });
 
-    const day = byDay.get(doc.date) ?? blank(doc.date, doc.date);
+    const day = byDay.get(when) ?? blank(when, when);
     for (const sum of [day, total]) {
       sum.qty += invoice.qty;
       sum.sales += invoice.sales;
       sum.profit += invoice.profit;
       sum.invoices += 1;
     }
-    byDay.set(doc.date, day);
+    byDay.set(when, day);
   }
 
-  const dates = new Map(docs.map((d) => [d.id, `${d.date}|${d.createdAt}`]));
+  const dates = new Map(docs.map((d) => [d.id, `${paidDate(d)}|${d.createdAt}`]));
   return {
     invoices: total.invoices,
     qty: round2(total.qty),

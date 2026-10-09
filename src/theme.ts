@@ -34,6 +34,7 @@ export const STATUS_TONES: Record<string, StatusTone> = {
   accepted: { bg: '#D5F1EE', fg: '#0A5A54' },
   due: { bg: '#FFE7D1', fg: '#8A3A00' },
   paid: { bg: '#D8F5E6', fg: '#00603A' },
+  held: { bg: '#FFF1C2', fg: '#6B4E00' },
 };
 
 export const R = { sm: 10, md: 12, lg: 14, xl: 16 } as const;
