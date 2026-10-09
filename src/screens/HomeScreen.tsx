@@ -17,6 +17,7 @@ import { Card, Empty } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { useCashBook, useStock } from './books';
+import { HeldList } from './finish';
 import { useMonthSales } from './sales';
 import { DocRow, openDoc } from './shared';
 import { PlanNotice, useLimits } from './limits';
@@ -137,6 +138,8 @@ export function HomeScreen() {
               <Icon name="chevron" size={18} color={C.orange} stroke={2} />
             </Pressable>
           ) : null}
+
+          <HeldList onOpen={(doc) => nav.navigate('Editor', { docId: doc.id })} />
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <T size={15} w="semibold" head accessibilityRole="header">

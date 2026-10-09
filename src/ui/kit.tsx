@@ -69,13 +69,15 @@ export function Divider() {
 
 const STATUS_KEY: Record<DocStatus, StringKey> = { draft: 'stDraft', sent: 'stSent', accepted: 'stAccepted', due: 'stDue', paid: 'stPaid' };
 
-export function StatusPill({ status }: { status: DocStatus }) {
+/** A draft put on hold says so, so the shopkeeper sees which ones are waiting for a customer. */
+export function StatusPill({ status, held }: { status: DocStatus; held?: boolean }) {
   const { t } = useLocale();
-  const tone = STATUS_TONES[status];
+  const onHold = held && status === 'draft';
+  const tone = STATUS_TONES[onHold ? 'held' : status];
   return (
     <View style={{ backgroundColor: tone.bg, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 2 }}>
       <T size={12} w="semibold" color={tone.fg}>
-        {t(STATUS_KEY[status])}
+        {onHold ? t('onHold') : t(STATUS_KEY[status])}
       </T>
     </View>
   );

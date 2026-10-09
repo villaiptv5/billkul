@@ -18,6 +18,9 @@ import { CustomerPicker } from './CustomerPicker';
 import { showDoc } from './shared';
 import { LineStock, useStock } from './books';
 import { matchItems, useDocEditor } from './useDocEditor';
+import { CompleteSheet, HoldSheet } from './finish';
+import { NewItemSheet } from './NewItemSheet';
+import { useLimits } from './limits';
 
 export function EditorScreen() {
   const nav = useNavigation<RootNav>();
@@ -31,6 +34,9 @@ export function EditorScreen() {
   const [query, setQuery] = useState('');
   const [pickingCustomer, setPickingCustomer] = useState(false);
   const [editingTax, setEditingTax] = useState(false);
+  const [newName, setNewName] = useState<string | null>(null);
+  const [finishing, setFinishing] = useState<'complete' | 'hold' | null>(null);
+  const limits = useLimits();
 
   // A document opened and left blank is thrown away when the screen closes.
   useEffect(() => nav.addListener('beforeRemove', () => void store.discardIfEmpty(docId)), [nav, docId]);
@@ -58,6 +64,31 @@ export function EditorScreen() {
   const preview = () => {
     if (!doc.lines.length) return notify(t('needLine'));
     showDoc(nav, 'Preview', docId);
+  };
+
+  const draft = doc.status === 'draft';
+
+  const complete = () => {
+    if (!doc.lines.length) return notify(t('needLine'));
+    if (doc.type === 'quote') {
+      store.completeDoc(doc.id, false);
+      nav.replace('Preview', { docId });
+      notify(t('quoteCompleted'));
+      return;
+    }
+    setFinishing('complete');
+  };
+
+  const hold = () => {
+    if (!doc.lines.length) return notify(t('needLine'));
+    setFinishing('hold');
+  };
+
+  const held = (startNew: boolean) => {
+    if (startNew && limits.allowDoc()) {
+      const next = store.createDoc(doc.type);
+      nav.replace('Editor', { docId: next.id });
+    } else nav.goBack();
   };
 
   const title = doc.status === 'draft' ? t(doc.type === 'quote' ? 'newQuote' : 'newInvoice') : t(doc.type);
@@ -144,7 +175,7 @@ export function EditorScreen() {
                 {!exact ? (
                   <Pressable
                     accessibilityRole="button"
-                    onPress={() => { editor.addNewItem(name); setQuery(''); }}
+                    onPress={() => setNewName(name)}
                     testID="item-add-new"
                     style={{ minHeight: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}
                   >
@@ -242,20 +273,43 @@ export function EditorScreen() {
           <Field label={`${t('notes')} (${t('optional')})`} value={doc.notes} onChangeText={(notes) => save({ notes })} placeholder={t('notesPh')} multiline testID="notes" />
         </ScrollView>
 
-        <View style={{ backgroundColor: C.surface, borderTopWidth: 1, borderTopColor: C.line, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <View style={{ flex: 1 }}>
-            <T size={13} color={C.muted}>
-              {t('total')}
-            </T>
-            <T size={22} w="bold" head latin numberOfLines={1} testID="total">
-              {money(totals.total, settings.currency)}
-            </T>
+        <View style={{ backgroundColor: C.surface, borderTopWidth: 1, borderTopColor: C.line, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 14, gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+            <View style={{ flex: 1 }}>
+              <T size={13} color={C.muted}>
+                {t('total')}
+              </T>
+              <T size={22} w="bold" head latin numberOfLines={1} testID="total">
+                {money(totals.total, settings.currency)}
+              </T>
+            </View>
+            {draft ? (
+              <Button label={t('preview')} variant="ghost" size="sm" onPress={preview} testID="preview" style={{ paddingHorizontal: 12 }} />
+            ) : (
+              <Button label={t('preview')} size="lg" head onPress={preview} testID="preview" style={{ paddingHorizontal: 28 }} />
+            )}
           </View>
-          <Button label={t('preview')} size="lg" head onPress={preview} testID="preview" style={{ paddingHorizontal: 28 }} />
+          {draft ? (
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              {doc.type === 'invoice' ? <Button label={t('hold')} variant="secondary" size="lg" onPress={hold} testID="hold" style={{ flex: 1 }} /> : null}
+              <Button label={t('complete')} icon="check" size="lg" head onPress={complete} testID="complete" style={{ flex: 1.5 }} />
+            </View>
+          ) : null}
         </View>
       </View>
 
       <CustomerPicker visible={pickingCustomer} onClose={() => setPickingCustomer(false)} onPick={pickCustomer} />
+      <CompleteSheet doc={doc} visible={finishing === 'complete'} onClose={() => setFinishing(null)} onDone={() => nav.replace('Preview', { docId })} />
+      <NewItemSheet
+        name={newName ?? ''}
+        visible={newName !== null}
+        onClose={() => setNewName(null)}
+        onAdd={(input) => {
+          editor.addNewItem(input);
+          setQuery('');
+        }}
+      />
+      <HoldSheet doc={doc} visible={finishing === 'hold'} onClose={() => setFinishing(null)} onHeld={held} />
       <TaxSheet visible={editingTax} onClose={() => setEditingTax(false)} percent={doc.taxPercent} onSave={(taxPercent) => save({ taxPercent })} />
     </Screen>
   );

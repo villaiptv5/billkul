@@ -131,6 +131,8 @@ export interface Doc {
   quoteId: string;
   /** Local date the invoice was marked as paid, yyyy-mm-dd, or ''. */
   paidOn: string;
+  /** Set when the document was put on hold to serve someone else; cleared when it is completed. */
+  heldAt?: string;
   createdAt: string;
   updatedAt: string;
 }

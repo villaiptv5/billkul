@@ -9,6 +9,7 @@ import { C } from '../theme';
 import { Button, IconButton } from '../ui/Button';
 import { NumberField, SearchBox } from '../ui/Input';
 import { Chip, Empty, Screen, TopBar } from '../ui/kit';
+import { ImportItemsSheet } from './ImportItems';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { stockText, useStock } from './books';
@@ -20,6 +21,7 @@ export function ItemsScreen() {
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<{ id: string; price: number } | null>(null);
   const [lowOnly, setLowOnly] = useState(false);
+  const [importing, setImporting] = useState(false);
   const { levels, low } = useStock();
   const counted = items.some((i) => i.trackStock);
 
@@ -36,7 +38,16 @@ export function ItemsScreen() {
 
   return (
     <Screen bottom={false}>
-      <TopBar title={t('tabItems')} big right={<Button label={t('add')} icon="plus" size="sm" onPress={() => nav.navigate('ItemEdit')} testID="add-item" style={{ marginEnd: 4 }} />} />
+      <TopBar
+        title={t('tabItems')}
+        big
+        right={
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginEnd: 4 }}>
+            <IconButton icon="upload" label={t('importItems')} onPress={() => setImporting(true)} testID="import-items" />
+            <Button label={t('add')} icon="plus" size="sm" onPress={() => nav.navigate('ItemEdit')} testID="add-item" />
+          </View>
+        }
+      />
       <View style={{ backgroundColor: C.surface, paddingHorizontal: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: C.line }}>
         <SearchBox value={query} onChangeText={setQuery} placeholder={t('searchItems')} tone="sunken" testID="items-search" />
       </View>
@@ -135,6 +146,7 @@ export function ItemsScreen() {
           );
         }}
       />
+      <ImportItemsSheet visible={importing} onClose={() => setImporting(false)} />
     </Screen>
   );
 }

@@ -115,7 +115,7 @@ export function DocumentsPage({ type, onNew }: { type: DocType; onNew: (type: Do
                 <T size={14.5} numberOfLines={1}>{doc.customerName || t('noCustomer')}</T>,
                 <T size={14} color={C.muted}>{formatDay(doc.date, lang)}</T>,
                 <T size={14.5} w="semibold" latin>{money(docTotals(doc).total, settings.currency)}</T>,
-                <StatusPill status={doc.status} />,
+                <StatusPill status={doc.status} held={!!doc.heldAt} />,
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                   {action(doc)}
                   <IconButton icon="trash" label={`${t('delete')} ${doc.number}`} color={C.muted} onPress={() => remove(doc)} testID={`delete-${doc.number}`} />

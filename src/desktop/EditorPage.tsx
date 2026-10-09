@@ -24,6 +24,8 @@ import { T } from '../ui/T';
 import { Panel } from './parts';
 import { useDesk } from './route';
 import { useLimits } from '../screens/limits';
+import { CompleteSheet, HoldSheet } from '../screens/finish';
+import { NewItemSheet } from '../screens/NewItemSheet';
 
 // Keeps the preview in view while the form beside it scrolls.
 const STICKY = { position: 'sticky', top: 0 } as unknown as ViewStyle;
@@ -48,7 +50,45 @@ export function EditorPage({ docId }: { docId: string }) {
   useEffect(() => () => void store.discardIfEmpty(docId), [docId]);
   const suggestions = useMemo(() => matchItems(items, query, 8), [items, query]);
   const html = useMemo(() => (doc ? buildDocHtml({ doc, settings, lang }) : ''), [doc, settings, lang]);
+  // A print or send asked for on a draft invoice waits until it is completed, then uses the finished page.
+  const htmlRef = useRef(html);
+  htmlRef.current = html;
+  const [newName, setNewName] = useState<string | null>(null);
+  const [finishing, setFinishing] = useState<'complete' | 'hold' | null>(null);
+  const after = useRef<(() => void) | null>(null);
+  const completed = useRef(false);
+  const status = doc?.status;
+  useEffect(() => {
+    if (status && status !== 'draft' && after.current) {
+      const next = after.current;
+      after.current = null;
+      next();
+    }
+  }, [status]);
+  const limits = useLimits();
   if (!editor || !doc) return null;
+  const draft = doc.status === 'draft';
+
+  const finishFirst = (action: () => void) => {
+    if (!doc.lines.length) return notify(t('needLine'));
+    if (doc.type === 'invoice' && doc.status === 'draft') {
+      after.current = action;
+      setFinishing('complete');
+    } else action();
+  };
+
+  const complete = () => {
+    if (!doc.lines.length) return notify(t('needLine'));
+    if (doc.type === 'quote') {
+      store.completeDoc(doc.id, false);
+      notify(t('quoteCompleted'));
+    } else setFinishing('complete');
+  };
+
+  const held = (startNew: boolean) => {
+    if (startNew && limits.allowDoc()) go({ page: 'editor', docId: store.createDoc(doc.type).id });
+    else back();
+  };
 
   const { totals, save, changeLine } = editor;
   const name = query.trim();
@@ -67,8 +107,7 @@ export function EditorPage({ docId }: { docId: string }) {
     if (!name) return;
     if (suggestions.length) addItem(suggestions[0]);
     else {
-      editor.addNewItem(name);
-      setQuery('');
+      setNewName(name);
     }
   };
 
@@ -77,24 +116,23 @@ export function EditorPage({ docId }: { docId: string }) {
     setPickingCustomer(false);
   };
 
-  const print = async () => {
-    if (!doc.lines.length) return notify(t('needLine'));
+  const print = () => finishFirst(() => void printNow());
+  const printNow = async () => {
     try {
-      await printDoc(html);
+      await printDoc(htmlRef.current);
       store.markSent(doc.id);
     } catch {
       notify(t('shareFailed'));
     }
   };
 
-  const whatsapp = () => {
-    if (!doc.lines.length) return notify(t('needLine'));
+  const whatsapp = () => finishFirst(whatsappNow);
+  const whatsappNow = () => {
     const text = t('whatsappMessage', { type: t(doc.type), number: doc.number, shop: settings.shopName || t('myShop'), total: money(totals.total, settings.currency) });
     openWhatsappText(whatsappNumber(doc.customerPhone), text);
     store.markSent(doc.id);
   };
 
-  const limits = useLimits();
   const convert = () => {
     if (!doc.invoiceId && !limits.allowDoc()) return;
     const made = store.convertToInvoice(doc.id);
@@ -142,7 +180,7 @@ export function EditorPage({ docId }: { docId: string }) {
               {doc.number}
             </T>
           </View>
-          <StatusPill status={doc.status} />
+          <StatusPill status={doc.status} held={!!doc.heldAt} />
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: C.tintGreen }}>
             <Icon name="check" size={15} color={C.greenDark} stroke={2.4} />
             <T size={12.5} w="semibold" color={C.greenDark}>
@@ -230,7 +268,7 @@ export function EditorPage({ docId }: { docId: string }) {
                   </Pressable>
                 ))}
                 {!exact ? (
-                  <Pressable accessibilityRole="button" onPress={() => { editor.addNewItem(name); setQuery(''); }} testID="item-add-new" style={{ minHeight: 44, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Pressable accessibilityRole="button" onPress={() => setNewName(name)} testID="item-add-new" style={{ minHeight: 44, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <Icon name="plus" size={18} color={C.greenText} stroke={2.2} />
                     <T size={14.5} w="semibold" color={C.greenText}>
                       {t('addAsNewItem', { name })}
@@ -325,11 +363,17 @@ export function EditorPage({ docId }: { docId: string }) {
         {/* The live preview */}
         <View style={snug ? { gap: 12, width: '100%', maxWidth: 640, alignSelf: 'center' } : [{ flex: 1, gap: 12, minWidth: 0 }, STICKY]}>
           {/* The actions sit above the page so they stay in reach on a short screen. */}
+          {draft ? (
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              {isQuote ? null : <Button label={t('hold')} variant="secondary" size="lg" onPress={() => (doc.lines.length ? setFinishing('hold') : notify(t('needLine')))} style={{ flex: 1 }} testID="hold" />}
+              <Button label={t('complete')} icon="check" size="lg" head onPress={complete} style={{ flex: 1.5 }} testID="complete" />
+            </View>
+          ) : null}
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Button label={`${t('print')} / ${t('savePdf')}`} icon="printer" head onPress={print} style={{ flex: 1.3 }} testID="print" />
             <Button label={t('sendWhatsappText')} icon="chat" variant="secondary" onPress={whatsapp} style={{ flex: 1 }} testID="send-whatsapp-text" />
           </View>
-          <Button label={t('thermalReceipt')} icon="printer" variant="secondary" onPress={() => (doc.lines.length ? setReceipt(true) : notify(t('needLine')))} testID="open-receipt" />
+          <Button label={t('thermalReceipt')} icon="printer" variant="secondary" onPress={() => finishFirst(() => setReceipt(true))} testID="open-receipt" />
           <View
             onLayout={(e: LayoutChangeEvent) => setPreviewWidth(Math.floor(e.nativeEvent.layout.width))}
             style={{ borderRadius: 6, backgroundColor: C.surface, overflow: 'hidden', boxShadow: '0 6px 24px rgba(11,31,23,0.14)' } as ViewStyle}
@@ -346,6 +390,28 @@ export function EditorPage({ docId }: { docId: string }) {
 
       <CustomerPicker visible={pickingCustomer} onClose={() => setPickingCustomer(false)} onPick={pickCustomer} />
       <ReceiptSheet doc={doc} visible={receipt} onClose={() => setReceipt(false)} />
+      <CompleteSheet
+        doc={doc}
+        visible={finishing === 'complete'}
+        onClose={() => {
+          setFinishing(null);
+          if (!completed.current) after.current = null;
+          completed.current = false;
+        }}
+        onDone={() => {
+          completed.current = true;
+        }}
+      />
+      <NewItemSheet
+        name={newName ?? ''}
+        visible={newName !== null}
+        onClose={() => setNewName(null)}
+        onAdd={(input) => {
+          editor.addNewItem(input);
+          setQuery('');
+        }}
+      />
+      <HoldSheet doc={doc} visible={finishing === 'hold'} onClose={() => setFinishing(null)} onHeld={held} />
       <TaxSheet visible={editingTax} onClose={() => setEditingTax(false)} percent={doc.taxPercent} onSave={(taxPercent) => save({ taxPercent })} />
     </View>
   );
