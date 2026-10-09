@@ -95,3 +95,22 @@ describe('month stats', () => {
     expect(s.due).toBe(82000); // everything still owed
   });
 });
+
+describe('received', () => {
+  it('lists the paid invoices that make up Received, and adds to the same figure', async () => {
+    const { receivedIn, monthStats } = await import('../src/logic/stats');
+    const base = { customerId: '', customerName: '', customerPhone: '', discount: 0, taxPercent: 0, notes: '', invoiceId: '', quoteId: '', createdAt: '', updatedAt: '' };
+    const line = (price: number) => [{ id: 'l', itemId: '', name: 'x', unit: '', qty: 1, price }];
+    const docs = [
+      { ...base, id: 'a', type: 'invoice', seq: 1, number: 'INV-0001', date: '2026-10-06', status: 'due', paidOn: '', lines: line(30000) },
+      { ...base, id: 'b', type: 'invoice', seq: 2, number: 'INV-0002', date: '2026-10-06', status: 'paid', paidOn: '2026-10-06', lines: line(19000) },
+      { ...base, id: 'c', type: 'invoice', seq: 4, number: 'INV-0004', date: '2026-10-07', status: 'paid', paidOn: '2026-10-08', lines: line(30000) },
+      { ...base, id: 'd', type: 'invoice', seq: 5, number: 'INV-0005', date: '2026-09-28', status: 'paid', paidOn: '2026-09-30', lines: line(5000) },
+      { ...base, id: 'e', type: 'quote', seq: 1, number: 'Q-0001', date: '2026-10-06', status: 'accepted', paidOn: '', lines: line(84000) },
+    ] as never[];
+    const got = receivedIn(docs, '2026-10');
+    expect(got.docs.map((d: { number: string }) => d.number)).toEqual(['INV-0004', 'INV-0002']);
+    expect(got.total).toBe(49000);
+    expect(monthStats(docs, '2026-10-09').received).toBe(got.total);
+  });
+});

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useAppState } from '../data/app';
 import { sortDocs } from '../data/store';
@@ -6,6 +6,7 @@ import { formatDay, formatMonth, isoDate } from '../logic/dates';
 import { formatAmount, money } from '../logic/money';
 import { monthStats } from '../logic/stats';
 import { HeldList } from '../screens/finish';
+import { ReceivedSheet } from '../screens/received';
 import { docTotals } from '../logic/totals';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
@@ -48,6 +49,7 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
   const { settings, docs } = useAppState();
   const today = isoDate();
   const stats = useMemo(() => monthStats(docs, today), [docs, today]);
+  const [showReceived, setShowReceived] = useState(false);
   const recent = useMemo(() => sortDocs(docs).slice(0, 8), [docs]);
   const book = useCashBook();
   const { low } = useStock();
@@ -62,7 +64,7 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
         <Stat label={t('quoted')} value={stats.quoted} symbol={settings.currency.symbol} onPress={() => go({ page: 'documents', type: 'quote' })} testID="home-quoted" />
         <Stat label={t('invoiced')} value={stats.invoiced} symbol={settings.currency.symbol} onPress={() => go({ page: 'documents', type: 'invoice' })} testID="home-invoiced" />
-        <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.greenText} onPress={() => go({ page: 'cash' })} testID="home-received" />
+        <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.greenText} onPress={() => setShowReceived(true)} testID="home-received" />
         <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orange} onPress={() => go({ page: 'due' })} testID="home-due" />
       </View>
 
@@ -125,6 +127,14 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
           )}
         </Panel>
       </View>
+      <ReceivedSheet
+        visible={showReceived}
+        onClose={() => setShowReceived(false)}
+        onOpen={(doc) => {
+          setShowReceived(false);
+          go({ page: 'editor', docId: doc.id });
+        }}
+      />
     </View>
   );
 }

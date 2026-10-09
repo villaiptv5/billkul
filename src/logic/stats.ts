@@ -130,3 +130,10 @@ export function customerSummary(docs: Doc[], customerId: string): CustomerSummar
   }
   return { ...s, quoted: round2(s.quoted), invoiced: round2(s.invoiced), paid: round2(s.paid), due: round2(s.due) };
 }
+
+/** The paid invoices behind the Received figure: paid in the period ("2026-10" or a day), newest first. */
+export function receivedIn(docs: Doc[], period: string): { docs: Doc[]; total: number } {
+  const paid = docs.filter((d) => d.type === 'invoice' && d.status === 'paid' && (d.paidOn || d.date).startsWith(period));
+  paid.sort((a, b) => (b.paidOn || b.date).localeCompare(a.paidOn || a.date) || b.seq - a.seq);
+  return { docs: paid, total: round2(paid.reduce((sum, d) => sum + docTotals(d).total, 0)) };
+}
