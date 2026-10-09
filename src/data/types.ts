@@ -133,6 +133,8 @@ export interface Doc {
   paidOn: string;
   /** Set when the document was put on hold to serve someone else; cleared when it is completed. */
   heldAt?: string;
+  /** When the document stopped being a draft (completed, printed or sent), as an ISO timestamp. */
+  issuedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

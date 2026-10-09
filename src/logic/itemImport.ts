@@ -23,8 +23,8 @@ type Field = keyof ItemRow;
 const COLUMNS: { field: Field; en: string; ur: string; words: string[]; width: number }[] = [
   { field: 'name', en: 'Item name', ur: 'آئٹم کا نام', words: ['name', 'item', 'product', 'نام', 'آئٹم'], width: 32 },
   { field: 'unit', en: 'Unit', ur: 'یونٹ', words: ['unit', 'یونٹ'], width: 12 },
-  { field: 'price', en: 'Sale price', ur: 'فروخت قیمت', words: ['sale', 'selling', 'price', 'rate', 'فروخت'], width: 14 },
   { field: 'cost', en: 'Purchase price', ur: 'خرید قیمت', words: ['purchase', 'cost', 'buying', 'خرید'], width: 16 },
+  { field: 'price', en: 'Sale price', ur: 'فروخت قیمت', words: ['sale', 'selling', 'price', 'rate', 'فروخت'], width: 14 },
   { field: 'track', en: 'Count stock (yes/no)', ur: 'اسٹاک گنیں (ہاں/نہیں)', words: ['count', 'track', 'گنیں'], width: 20 },
   { field: 'opening', en: 'Stock now', ur: 'موجودہ اسٹاک', words: ['opening', 'stock now', 'in stock', 'quantity', 'qty', 'موجودہ'], width: 12 },
   { field: 'lowAt', en: 'Low stock alert at', ur: 'کم اسٹاک کی وارننگ', words: ['low', 'alert', 'warn', 'وارننگ', 'کم'], width: 18 },
@@ -35,8 +35,8 @@ export function itemTemplate(): Uint8Array {
   const rows: Cell[][] = [
     COLUMNS.map((c) => c.en),
     COLUMNS.map((c) => c.ur),
-    ['USB Mouse', 'piece', 950, 700, 'yes', 25, 5],
-    ['Laptop repair', 'job', 3000, '', 'no', '', ''],
+    ['USB Mouse', 'piece', 700, 950, 'yes', 25, 5],
+    ['Laptop repair', 'job', '', 3000, 'no', '', ''],
   ];
   return buildXlsx(rows, 'Items', COLUMNS.map((c) => c.width));
 }

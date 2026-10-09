@@ -412,7 +412,7 @@ export function LineStock({ doc, line, levels }: { doc: Doc; line: DocLine; leve
   );
 }
 
-/** Sale price and purchase price side by side, for the item form. */
+/** Purchase price, then sale price, side by side, for the item form. */
 export function PriceFields({ price, setPrice, cost, setCost, onSubmit }: { price: number; setPrice: (n: number) => void; cost: number; setCost: (n: number) => void; onSubmit?: () => void }) {
   const { t } = useLocale();
   const currency = useAppState().settings.currency;
@@ -422,15 +422,15 @@ export function PriceFields({ price, setPrice, cost, setCost, onSubmit }: { pric
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <View style={{ flex: 1, gap: 6 }}>
           <T size={13} w="semibold" color={C.muted}>
-            {`${t('salePrice')} (${currency.code})`}
-          </T>
-          <NumberField label={t('salePrice')} value={price} onChange={setPrice} width={140} height={52} align="end" blankZero onSubmit={onSubmit} testID="item-price" />
-        </View>
-        <View style={{ flex: 1, gap: 6 }}>
-          <T size={13} w="semibold" color={C.muted}>
             {`${t('purchasePrice')} (${currency.code})`}
           </T>
           <NumberField label={t('purchasePrice')} value={cost} onChange={setCost} width={140} height={52} align="end" blankZero onSubmit={onSubmit} testID="item-cost" />
+        </View>
+        <View style={{ flex: 1, gap: 6 }}>
+          <T size={13} w="semibold" color={C.muted}>
+            {`${t('salePrice')} (${currency.code})`}
+          </T>
+          <NumberField label={t('salePrice')} value={price} onChange={setPrice} width={140} height={52} align="end" blankZero onSubmit={onSubmit} testID="item-price" />
         </View>
       </View>
       {margin === null ? (

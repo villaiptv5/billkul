@@ -106,7 +106,7 @@ export const en = {
   importItems: 'Import from sheet',
   importTitle: 'Import items from a sheet',
   importStep1: '1. Download the template and open it in Excel or Google Sheets.',
-  importStep2: '2. Write one item on each row: name, sale price, purchase price and the rest. Leave a box empty to keep what an item already has.',
+  importStep2: '2. Write one item on each row: name, purchase price, sale price and the rest. Leave a box empty to keep what an item already has.',
   importStep3: '3. Save it (Excel or CSV) and choose it here. Items with the same name are updated, the rest are added.',
   downloadTemplate: 'Download the template',
   chooseSheet: 'Choose your sheet',

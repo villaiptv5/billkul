@@ -90,3 +90,16 @@ describe('Urdu lettering', () => {
     expect(splitLatin('کیش بک')).toEqual([{ text: 'کیش بک', latin: false }]);
   });
 });
+
+describe('receipt time', () => {
+  it('shows the time of the sale next to the date', async () => {
+    const { receiptWhen } = await import('../src/pdf/receipt');
+    const at = new Date(2026, 9, 9, 15, 24).toISOString();
+    const doc = { date: '2026-10-09', issuedAt: at, createdAt: new Date(2026, 9, 9, 15, 1).toISOString() } as never;
+    expect(receiptWhen(doc, 'en')).toMatch(/^9 Oct 2026, 3:24\s?pm$/i);
+    const old = { date: '2026-10-09', createdAt: new Date(2026, 9, 9, 9, 5).toISOString() } as never;
+    expect(receiptWhen(old, 'en')).toMatch(/^9 Oct 2026, 9:05\s?am$/i);
+    const other = { date: '2026-10-06', issuedAt: at, createdAt: at } as never;
+    expect(receiptWhen(other, 'en')).toBe('6 Oct 2026');
+  });
+});

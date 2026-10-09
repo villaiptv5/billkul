@@ -432,7 +432,7 @@ export function createStore(kv: KV) {
   /** Quote or invoice has gone to the customer: a quote becomes sent, an invoice becomes due. */
   function markSent(id: string) {
     const doc = state.docs.find((d) => d.id === id);
-    if (doc && doc.status === 'draft') patchDoc(id, { status: doc.type === 'quote' ? 'sent' : 'due' });
+    if (doc && doc.status === 'draft') patchDoc(id, { status: doc.type === 'quote' ? 'sent' : 'due', issuedAt: new Date().toISOString() });
   }
 
   /**
@@ -442,11 +442,12 @@ export function createStore(kv: KV) {
   function completeDoc(id: string, paid: boolean, today: string = isoDate()) {
     const doc = state.docs.find((d) => d.id === id);
     if (!doc) return;
+    const issuedAt = doc.issuedAt ?? new Date().toISOString();
     if (doc.type === 'quote') {
-      patchDoc(id, { status: doc.status === 'draft' ? 'sent' : doc.status, heldAt: undefined });
+      patchDoc(id, { status: doc.status === 'draft' ? 'sent' : doc.status, heldAt: undefined, issuedAt });
       return;
     }
-    patchDoc(id, paid ? { status: 'paid', paidOn: today, heldAt: undefined } : { status: doc.status === 'paid' ? 'paid' : 'due', heldAt: undefined });
+    patchDoc(id, paid ? { status: 'paid', paidOn: today, heldAt: undefined, issuedAt } : { status: doc.status === 'paid' ? 'paid' : 'due', heldAt: undefined, issuedAt });
   }
 
   /** Puts an unfinished document aside, optionally under a name, to serve the next customer. */
