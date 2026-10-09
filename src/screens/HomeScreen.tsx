@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, View } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
@@ -18,6 +18,7 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { useCashBook, useStock } from './books';
 import { HeldList } from './finish';
+import { ReceivedSheet } from './received';
 import { useMonthSales } from './sales';
 import { DocRow, openDoc } from './shared';
 import { PlanNotice, useLimits } from './limits';
@@ -60,6 +61,7 @@ export function HomeScreen() {
   const { low } = useStock();
   const sales = useMonthSales();
 
+  const [showReceived, setShowReceived] = useState(false);
   const limits = useLimits();
   const create = (type: DocType) => {
     if (!limits.allowDoc()) return;
@@ -108,7 +110,7 @@ export function HomeScreen() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             <Stat label={t('quoted')} value={stats.quoted} symbol={settings.currency.symbol} onPress={() => nav.navigate('Tabs', { screen: 'Documents', params: { type: 'quote' } })} testID="home-quoted" />
             <Stat label={t('invoiced')} value={stats.invoiced} symbol={settings.currency.symbol} onPress={() => nav.navigate('Tabs', { screen: 'Documents', params: { type: 'invoice' } })} testID="home-invoiced" />
-            <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.green} onPress={() => nav.navigate('Tabs', { screen: 'Cash' })} testID="home-received" />
+            <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.green} onPress={() => setShowReceived(true)} testID="home-received" />
             <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orangeOnInk} onPress={() => nav.navigate('Due')} testID="home-due" />
           </View>
 
@@ -165,6 +167,14 @@ export function HomeScreen() {
           </Card>
         </View>
       </ScrollView>
+      <ReceivedSheet
+        visible={showReceived}
+        onClose={() => setShowReceived(false)}
+        onOpen={(doc) => {
+          setShowReceived(false);
+          nav.navigate('Preview', { docId: doc.id });
+        }}
+      />
     </View>
   );
 }
