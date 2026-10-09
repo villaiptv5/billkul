@@ -1,6 +1,6 @@
 import type { Doc, Lang, ReceiptPaper, Settings } from '../data/types';
 import { translate, type StringKey, type Vars } from '../i18n';
-import { formatDate } from '../logic/dates';
+import { formatDate, formatTime, isoDate } from '../logic/dates';
 import { formatAmount, money } from '../logic/money';
 import { docTotals, lineTotal } from '../logic/totals';
 import { escapeHtml } from './template';
@@ -139,7 +139,7 @@ ${settings.phone.trim() ? `<div class="small num">${escapeHtml(settings.phone.tr
 </div>
 <hr class="rule">
 <div class="row"><span class="kind">${escapeHtml(t(isQuote ? 'docQuotation' : 'docInvoice'))}</span><span class="num amount">${escapeHtml(doc.number)}</span></div>
-<div class="row"><span>${escapeHtml(t('date'))}</span><span>${escapeHtml(formatDate(doc.date, lang))}</span></div>
+<div class="row"><span>${escapeHtml(t('date'))}</span><span>${escapeHtml(receiptWhen(doc, lang))}</span></div>
 ${doc.customerName.trim() ? `<div class="row"><span>${escapeHtml(t('customer'))}</span><span class="${tight(doc.customerName).trim()}" dir="auto">${escapeHtml(doc.customerName.trim())}</span></div>` : ''}
 ${doc.customerPhone ? `<div class="row"><span>${escapeHtml(t('phone'))}</span><span class="num">${escapeHtml(doc.customerPhone)}</span></div>` : ''}
 <hr class="rule">
@@ -158,4 +158,17 @@ ${doc.notes.trim() ? `<div class="notes small${tight(doc.notes)}" dir="auto">${t
 <div class="c small">${escapeHtml(t('madeWith'))}</div>
 </body>
 </html>`;
+}
+
+/**
+ * The date on the receipt with the time of the sale: when the invoice was completed, or for an older
+ * one when it was started. The time is left out when that moment was on another day than the invoice date.
+ */
+export function receiptWhen(doc: Doc, lang: Lang): string {
+  const date = formatDate(doc.date, lang);
+  const stamp = doc.issuedAt || doc.createdAt;
+  if (!stamp) return date;
+  const local = new Date(stamp);
+  if (Number.isNaN(local.getTime()) || isoDate(local) !== doc.date) return date;
+  return `${date}, ${formatTime(stamp, lang)}`;
 }

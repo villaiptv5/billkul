@@ -35,7 +35,7 @@ describe('reading sheets', () => {
 describe('items from a sheet', () => {
   it('takes the template columns, with Rs, commas and yes/no', () => {
     const table = readSheet(itemTemplate());
-    table.push(['SSD 256 GB', 'piece', 'Rs 7,800', '6,000', 'yes', '12', '3'], ['', '', '100'], ['Fitting', '', '500', '', 'no', '', '']);
+    table.push(['SSD 256 GB', 'piece', '6,000', 'Rs 7,800', 'yes', '12', '3'], ['', '', '100'], ['Fitting', '', '', '500', 'no', '', '']);
     const sheet = itemsFromSheet(table);
     expect(sheet.rows).toEqual([
       { name: 'SSD 256 GB', unit: 'piece', price: 7800, cost: 6000, track: true, opening: 12, lowAt: 3 },
@@ -50,7 +50,7 @@ describe('items from a sheet', () => {
   });
 
   it('reads a sheet without headings in the template order', () => {
-    expect(itemsFromSheet([['Bulb', 'piece', '250', '180']]).rows).toEqual([{ name: 'Bulb', unit: 'piece', price: 250, cost: 180 }]);
+    expect(itemsFromSheet([['Bulb', 'piece', '180', '250']]).rows).toEqual([{ name: 'Bulb', unit: 'piece', price: 250, cost: 180 }]);
   });
 });
 
