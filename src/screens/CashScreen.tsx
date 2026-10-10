@@ -14,7 +14,6 @@ import { Card, Empty, Screen, Segmented, TopBar } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { CashEntrySheet, cashDetail, cashTitle, ExpensesPanel, useCashBook } from './books';
-import { SalesPanel } from './sales';
 import { useLimits } from './limits';
 
 const PAGE = 60;
@@ -68,7 +67,7 @@ export function CashScreen() {
   const { t, lang, rtl } = useLocale();
   const { settings, cash } = useAppState();
   const book = useCashBook();
-  const [view, setView] = useState<'entries' | 'expenses' | 'sales'>('entries');
+  const [view, setView] = useState<'entries' | 'expenses'>('entries');
   const [sheet, setSheet] = useState<{ kind: CashKind; entry?: CashEntry } | null>(null);
   const [shown, setShown] = useState(PAGE);
   const days = useMemo(() => byDay(book.rows.slice(0, shown)), [book.rows, shown]);
@@ -122,13 +121,10 @@ export function CashScreen() {
           options={[
             { value: 'entries', label: t('entries'), testID: 'cash-entries' },
             { value: 'expenses', label: t('expenses'), testID: 'cash-expenses' },
-            { value: 'sales', label: t('sales'), testID: 'cash-sales' },
           ]}
         />
 
-        {view === 'sales' ? (
-          <SalesPanel onOpenInvoice={(docId) => nav.navigate('Preview', { docId })} />
-        ) : view === 'expenses' ? (
+        {view === 'expenses' ? (
           <Card style={{ padding: 14 }}>
             <ExpensesPanel rows={book.rows} />
           </Card>

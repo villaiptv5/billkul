@@ -1,6 +1,6 @@
 import type { Doc, Lang, ReceiptPaper, Settings } from '../data/types';
 import { translate, type StringKey, type Vars } from '../i18n';
-import { formatDate, formatTime, isoDate } from '../logic/dates';
+import { formatDate, formatDateTime } from '../logic/dates';
 import { formatAmount, money } from '../logic/money';
 import { docTotals, lineTotal } from '../logic/totals';
 import { escapeHtml } from './template';
@@ -165,10 +165,5 @@ ${doc.notes.trim() ? `<div class="notes small${tight(doc.notes)}" dir="auto">${t
  * one when it was started. The time is left out when that moment was on another day than the invoice date.
  */
 export function receiptWhen(doc: Doc, lang: Lang): string {
-  const date = formatDate(doc.date, lang);
-  const stamp = doc.issuedAt || doc.createdAt;
-  if (!stamp) return date;
-  const local = new Date(stamp);
-  if (Number.isNaN(local.getTime()) || isoDate(local) !== doc.date) return date;
-  return `${date}, ${formatTime(stamp, lang)}`;
+  return formatDateTime(doc.date, doc.issuedAt || doc.createdAt, lang);
 }

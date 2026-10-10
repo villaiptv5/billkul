@@ -58,7 +58,7 @@ export function cashRows({ cash, docs, stockMoves, items }: CashSources): CashRo
     if (doc.type !== 'invoice' || doc.status !== 'paid') continue;
     const amount = docTotals(doc).total;
     if (!(amount > 0)) continue;
-    rows.push({ key: `d:${doc.id}`, date: doc.paidOn || doc.date, kind: 'in', amount, category: '', source: 'invoice', refId: doc.id, note: doc.customerName, label: doc.number, createdAt: doc.updatedAt });
+    rows.push({ key: `d:${doc.id}`, date: doc.paidOn || doc.date, kind: 'in', amount, category: '', source: 'invoice', refId: doc.id, note: doc.customerName, label: doc.number, createdAt: doc.paidAt || doc.issuedAt || doc.updatedAt });
   }
   const names = new Map(items.map((i) => [i.id, i.name]));
   for (const move of stockMoves) {

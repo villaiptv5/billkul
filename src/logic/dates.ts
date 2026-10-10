@@ -94,3 +94,20 @@ export function monthGrid(month: string): string[][] {
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
   return weeks;
 }
+
+/**
+ * "10 Oct 2026, 2:25 pm": a date with the time something happened on it. The time is left out when the
+ * moment was on another day (an invoice dated earlier, say), so a time never stands next to the wrong date.
+ */
+export function formatDateTime(iso: string, stamp: string | undefined, lang: Lang): string {
+  const date = formatDate(iso, lang);
+  if (!stamp) return date;
+  const local = new Date(stamp);
+  if (Number.isNaN(local.getTime()) || isoDate(local) !== iso) return date;
+  return `${date}, ${formatTime(stamp, lang)}`;
+}
+
+/** "10 Oct 2026, 2:25 pm" for right now: when a report was made. */
+export function formatNow(lang: Lang, now: Date = new Date()): string {
+  return formatDateTime(isoDate(now), now.toISOString(), lang);
+}

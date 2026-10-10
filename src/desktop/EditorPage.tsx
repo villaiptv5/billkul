@@ -189,7 +189,7 @@ export function EditorPage({ docId }: { docId: string }) {
             </T>
           </View>
         </View>
-        {isQuote && doc.status === 'sent' ? <Button label={t('markAccepted')} variant="secondary" onPress={() => store.markAccepted(doc.id)} testID="mark-accepted" /> : null}
+        {isQuote && (doc.status === 'sent' || doc.status === 'rejected') ? <Button label={t('markAccepted')} variant="secondary" onPress={() => store.markAccepted(doc.id)} testID="mark-accepted" /> : null}
         {isQuote && invoice ? <Button label={t('openInvoice', { number: invoice.number })} variant="secondary" onPress={() => go({ page: 'editor', docId: invoice.id })} testID="open-invoice" /> : null}
         {isQuote && !invoice && doc.status !== 'draft' ? <Button label={t('convertToInvoice')} onPress={convert} testID="convert" /> : null}
         {isQuote && (doc.status === 'sent' || doc.status === 'accepted') ? <Button label={t('rejectQuote')} icon="close" variant="secondary" onPress={() => void reject(doc)} testID="reject-quote" /> : null}

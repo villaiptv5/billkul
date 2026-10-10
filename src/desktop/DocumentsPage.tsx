@@ -24,7 +24,7 @@ const FILTERS: Record<DocType, DocStatus[]> = {
   invoice: ['draft', 'due', 'paid'],
 };
 
-const COLS: Col[] = [{ width: 110 }, { flex: 1 }, { width: 110 }, { width: 140, end: true }, { width: 110 }, { width: 290, end: true }];
+const COLS: Col[] = [{ width: 110 }, { flex: 1 }, { width: 110 }, { width: 140, end: true }, { width: 110 }, { width: 370, end: true }];
 // On a narrower window the date column is left out.
 const SNUG_COLS = COLS.filter((_, i) => i !== 2);
 
@@ -75,6 +75,7 @@ export function DocumentsPage({ type, onNew }: { type: DocType; onNew: (type: Do
         </>
       ) : (
         <>
+          {doc.status === 'rejected' ? <Button label={t('acceptQuote')} variant="secondary" size="sm" onPress={() => store.markAccepted(doc.id)} testID={`accept-${doc.number}`} /> : null}
           <Button label={t('convertToInvoice')} size="sm" onPress={() => convert(doc)} testID={`convert-${doc.number}`} />
           {rejectButton}
         </>

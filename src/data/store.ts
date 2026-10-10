@@ -459,7 +459,7 @@ export function createStore(kv: KV) {
       patchDoc(id, { status: doc.status === 'draft' ? 'sent' : doc.status, heldAt: undefined, issuedAt });
       return;
     }
-    patchDoc(id, paid ? { status: 'paid', paidOn: today, heldAt: undefined, issuedAt } : { status: doc.status === 'paid' ? 'paid' : 'due', heldAt: undefined, issuedAt });
+    patchDoc(id, paid ? { status: 'paid', paidOn: today, paidAt: new Date().toISOString(), heldAt: undefined, issuedAt } : { status: doc.status === 'paid' ? 'paid' : 'due', heldAt: undefined, issuedAt });
   }
 
   /** Puts an unfinished document aside, optionally under a name, to serve the next customer. */
@@ -477,7 +477,7 @@ export function createStore(kv: KV) {
 
   function markPaid(id: string, today: string = isoDate()) {
     const doc = state.docs.find((d) => d.id === id);
-    if (doc && doc.type === 'invoice') patchDoc(id, { status: 'paid', paidOn: today });
+    if (doc && doc.type === 'invoice') patchDoc(id, { status: 'paid', paidOn: today, paidAt: new Date().toISOString() });
   }
 
   function markUnpaid(id: string) {

@@ -250,3 +250,39 @@ describe('rejecting quotes', () => {
     expect(monthStats(store.getState().docs, '2026-10-09')).toMatchObject({ quoted: 0, invoiced: 0, due: 0 });
   });
 });
+
+describe('accepting a rejected quote again', () => {
+  it('goes back to accepted with no invoice, ready to send or convert', () => {
+    const q = store.createDoc('quote', '2026-10-10');
+    store.saveDoc({ ...q, lines: [{ id: 'l', itemId: '', name: 'Tiles', unit: '', qty: 1, price: 30000 }] });
+    store.markSent(q.id);
+    store.rejectQuote(q.id);
+    store.markAccepted(q.id);
+    expect(store.getState().docs.find((d) => d.id === q.id)?.status).toBe('accepted');
+  });
+});
+
+describe('times on reports', () => {
+  it('puts the time next to the date only when it happened that day', async () => {
+    const { formatDateTime } = await import('../src/logic/dates');
+    expect(formatDateTime('2026-10-10', new Date(2026, 9, 10, 14, 25).toISOString(), 'en')).toMatch(/^10 Oct 2026, 2:25\s?pm$/i);
+    expect(formatDateTime('2026-10-06', new Date(2026, 9, 10, 14, 25).toISOString(), 'en')).toBe('6 Oct 2026');
+    expect(formatDateTime('2026-10-06', undefined, 'en')).toBe('6 Oct 2026');
+  });
+
+  it('prints the sales report with totals, days and items', async () => {
+    const { buildSalesReportHtml } = await import('../src/pdf/reports');
+    const { salesReport } = await import('../src/logic/sales');
+    const fan = store.saveItem({ name: 'Fan', price: 5000, cost: 4000 });
+    const d = store.createDoc('invoice', '2026-10-10');
+    store.saveDoc({ ...d, lines: [{ id: 'a', itemId: fan.id, name: 'Fan', unit: '', qty: 2, price: 5000, cost: 4000 }] });
+    store.completeDoc(d.id, true, '2026-10-10');
+    const report = salesReport(store.getState().docs, store.getState().items, '2026-10');
+    const html = buildSalesReportHtml({ report, mode: 'month', period: 'October 2026', settings: store.getState().settings, lang: 'en' });
+    expect(html).toContain('SALES REPORT');
+    expect(html).toContain('10 Oct 2026');
+    expect(html).toContain('10,000');
+    expect(html).toContain('2,000');
+    expect(html).toMatch(/Made \d+ \w+ \d{4}, \d+:\d{2}/);
+  });
+});
