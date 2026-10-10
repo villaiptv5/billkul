@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { useAppState } from '../data/app';
 import { formatDay } from '../logic/dates';
 import { formatAmount } from '../logic/money';
 import type { SalesRow } from '../logic/sales';
 import { PeriodStepper } from '../screens/PeriodStepper';
-import { BackToDays, MissingCostNote, profitColor, profitText, useSales, wholeAmount } from '../screens/sales';
+import { BackToDays, MissingCostNote, profitColor, profitText, SalesPrintSheet, useSales, wholeAmount } from '../screens/sales';
+import { Button } from '../ui/Button';
 import { C } from '../theme';
 import { Empty, Segmented } from '../ui/kit';
 import { useDeskSize } from '../ui/layout';
@@ -54,6 +55,7 @@ export function SalesPage() {
   const { snug } = useDeskSize();
   const sales = useSales();
   const { report, mode } = sales;
+  const [printing, setPrinting] = useState(false);
   const numbers = [t('colSold'), t('sales'), t('profit')];
 
   return (
@@ -72,7 +74,9 @@ export function SalesPage() {
         <View style={{ width: 230 }}>
           <PeriodStepper period={sales} marked={sales.saleDays} testID="sales-period" />
         </View>
+        <Button label={t('print')} icon="printer" variant="secondary" onPress={() => setPrinting(true)} testID="sales-print" />
       </PageHeader>
+      <SalesPrintSheet sales={sales} visible={printing} onClose={() => setPrinting(false)} wide />
 
       <BackToDays sales={sales} />
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BackHandler, Pressable, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAppState } from '../data/app';
@@ -8,7 +8,11 @@ import { paidDate, salesReport, type SalesReport, type SalesRow } from '../logic
 import type { RootNav } from '../nav';
 import { C } from '../theme';
 import { Icon } from '../ui/Icon';
-import { Card, Screen, Segmented, TopBar } from '../ui/kit';
+import { Card, Screen, Segmented, Sheet, SheetScroll, TopBar } from '../ui/kit';
+import { Button } from '../ui/Button';
+import { buildSalesReportHtml, reportFileName } from '../pdf/reports';
+import { money } from '../logic/money';
+import { ReportPreview } from './reports';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { usePeriod } from './period';
@@ -195,6 +199,7 @@ export function SalesScreen() {
   const { t } = useLocale();
   const sales = useSales();
   const { fromList, backToList } = sales;
+  const [printing, setPrinting] = useState(false);
 
   // The phone's own back button also returns to the day-by-day list first.
   useEffect(() => {
@@ -208,10 +213,28 @@ export function SalesScreen() {
 
   return (
     <Screen>
-      <TopBar title={t('salesReport')} onBack={fromList ? backToList : () => nav.goBack()} />
+      <TopBar
+        title={t('salesReport')}
+        onBack={fromList ? backToList : () => nav.goBack()}
+        right={<Button label={t('print')} icon="printer" variant="ghost" size="sm" onPress={() => setPrinting(true)} testID="sales-print" style={{ paddingHorizontal: 10 }} />}
+      />
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <SalesPanel sales={sales} onOpenInvoice={(docId) => nav.navigate('Preview', { docId })} />
       </ScrollView>
+      <SalesPrintSheet sales={sales} visible={printing} onClose={() => setPrinting(false)} />
     </Screen>
+  );
+}
+
+/** The sales report as a page, ready to print, save as PDF or send. */
+export function SalesPrintSheet({ sales, visible, onClose, wide }: { sales: Sales; visible: boolean; onClose: () => void; wide?: boolean }) {
+  const { t, lang } = useLocale();
+  const { settings } = useAppState();
+  const html = useMemo(() => (visible ? buildSalesReportHtml({ report: sales.report, mode: sales.mode, period: sales.name, settings, lang }) : ''), [visible, sales.report, sales.mode, sales.name, settings, lang]);
+  const message = `${t('salesReport')} · ${sales.name} · ${settings.shopName || t('myShop')}: ${t('sales')} ${money(sales.report.sales, settings.currency)}, ${t('profit')} ${money(sales.report.profit, settings.currency)}`;
+  return (
+    <Sheet visible={visible} onClose={onClose} title={`${t('salesReport')} · ${sales.name}`} full>
+      <SheetScroll>{visible ? <ReportPreview html={html} fileName={reportFileName(t('salesReport'), sales.name)} message={message} wide={wide} /> : null}</SheetScroll>
+    </Sheet>
   );
 }

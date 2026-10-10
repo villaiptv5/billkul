@@ -1,9 +1,10 @@
 import type { Customer, Lang, Settings } from '../data/types';
 import { translate, type StringKey, type Vars } from '../i18n';
 import { cashDetail, cashTitle } from '../logic/cashLabels';
-import { formatDate } from '../logic/dates';
+import { formatDate, formatDateTime, formatNow } from '../logic/dates';
 import type { CashRow } from '../logic/ledger';
 import { formatAmount, money, round2 } from '../logic/money';
+import type { SalesReport } from '../logic/sales';
 import type { CustomerSummary } from '../logic/stats';
 import { docTotals } from '../logic/totals';
 import { escapeHtml, pageHtml, shopHeadHtml } from './template';
@@ -19,9 +20,11 @@ td.green { color: #007A48; }
 .empty { margin-top: 28px; padding: 22px; text-align: center; color: #51635A; background: #F4F7F5; border-radius: 8px; }
 `;
 
-function foot(lang: Lang): string {
-  return `<div class="foot"><div></div><div class="mark">${escapeHtml(translate(lang, 'madeWith'))}</div></div>`;
+/** The foot of every report: when it was made, and the BillKul mark. */
+export function reportFoot(lang: Lang): string {
+  return `<div class="foot"><div class="small muted">${escapeHtml(translate(lang, 'reportMadeAt', { when: formatNow(lang) }))}</div><div class="mark">${escapeHtml(translate(lang, 'madeWith'))}</div></div>`;
 }
+const foot = reportFoot;
 
 export type CashSide = 'in' | 'out' | 'all';
 
@@ -58,7 +61,7 @@ export function buildCashReportHtml({ rows, side, period, settings, lang }: Cash
     .map((row) => {
       const detail = cashDetail(row);
       const what = `<td><div dir="auto">${escapeHtml(cashTitle(row, t))}</div>${detail ? `<div class="unit muted" dir="auto">${escapeHtml(detail)}</div>` : ''}</td>`;
-      const date = `<td class="small" style="white-space:nowrap">${escapeHtml(formatDate(row.date, lang))}</td>`;
+      const date = `<td class="small" style="white-space:nowrap">${escapeHtml(formatDateTime(row.date, row.createdAt, lang))}</td>`;
       if (side === 'all') {
         return `<tr>${date}${what}<td class="r num green">${row.kind === 'in' ? formatAmount(row.amount) : ''}</td><td class="r num">${row.kind === 'out' ? formatAmount(row.amount) : ''}</td></tr>`;
       }
@@ -120,7 +123,7 @@ export function buildStatementHtml({ customer, summary, date, settings, lang }: 
       const paid = doc.status === 'paid';
       const status = paid ? t('paidOn', { date: formatDate(doc.paidOn || doc.date, lang) }) : t('unpaid');
       return `<tr>
-<td class="small" style="white-space:nowrap">${escapeHtml(formatDate(doc.date, lang))}</td>
+<td class="small" style="white-space:nowrap">${escapeHtml(formatDateTime(doc.date, doc.issuedAt || doc.createdAt, lang))}</td>
 <td class="num">${escapeHtml(doc.number)}</td>
 <td class="small ${paid ? 'muted' : 'red'}">${escapeHtml(status)}</td>
 <td class="r num amount">${formatAmount(docTotals(doc).total)}</td>
@@ -173,4 +176,67 @@ export function reportFileName(...parts: string[]): string {
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 60);
+}
+
+export interface SalesReportInput {
+  report: SalesReport;
+  /** 'month' lists the month day by day; 'day' lists that day's invoices. */
+  mode: 'day' | 'month';
+  /** "October 2026" or "6 Oct 2026", as it should print. */
+  period: string;
+  settings: Settings;
+  lang: Lang;
+}
+
+/** The sales report for a day or a month: the totals, each day (or each invoice), and each item. Paid invoices only. */
+export function buildSalesReportHtml({ report, mode, period, settings, lang }: SalesReportInput): string {
+  const t = (key: StringKey, vars?: Vars) => translate(lang, key, vars);
+  const signed = (n: number) => (n < 0 ? `− ${formatAmount(Math.abs(n))}` : formatAmount(n));
+  const rowsBy = mode === 'month' ? [...report.byDay].sort((a, b) => a.label.localeCompare(b.label)) : report.byInvoice;
+  const firstCol = mode === 'month' ? t('date') : t('invoice');
+  const lines = rowsBy
+    .map((r) => {
+      const label = mode === 'month' ? formatDate(r.label, lang) : r.label;
+      const detail = mode === 'month' ? t('soldCount', { n: formatAmount(r.qty) }) : r.detail;
+      return `<tr><td><div class="num">${escapeHtml(label)}</div>${detail ? `<div class="unit muted" dir="auto">${escapeHtml(detail)}</div>` : ''}</td><td class="r num">${formatAmount(r.qty)}</td><td class="r num">${formatAmount(r.sales)}</td><td class="r num ${r.profit < 0 ? 'red' : 'green'}">${signed(r.profit)}</td></tr>`;
+    })
+    .join('\n');
+  const items = report.byItem
+    .map((r) => `<tr><td dir="auto">${escapeHtml(r.label)}</td><td class="r num">${formatAmount(r.qty)}</td><td class="r num">${formatAmount(r.sales)}</td><td class="r num ${r.profit < 0 ? 'red' : 'green'}">${signed(r.profit)}</td></tr>`)
+    .join('\n');
+  const head = (first: string) => `<thead><tr><th>${escapeHtml(first)}</th><th class="r">${escapeHtml(t('colSold'))}</th><th class="r">${escapeHtml(t('sales'))}</th><th class="r">${escapeHtml(t('profit'))}</th></tr></thead>`;
+  const tile = (label: string, value: string, cls = '') => `<div class="tile"><div class="label muted">${escapeHtml(label)}</div><div class="strong num ${cls}">${value}</div></div>`;
+
+  return pageHtml({
+    lang,
+    title: `${t('salesReport')} ${period}`,
+    template: settings.template,
+    css: `${REPORT_CSS}
+.tiles { display: flex; gap: 12px; margin-top: 20px; }
+.tile { flex: 1; padding: 10px 12px; border: 1px solid #DCE5E0; border-radius: 8px; }
+.tile .label { font-size: 12px; }
+.tile .strong { font-size: 17px; font-weight: 700; margin-top: 2px; }
+h3 { font-size: 14px; margin: 22px 0 0; }`,
+    body: `${shopHeadHtml(settings, lang, t('docSalesReport'), escapeHtml(period))}
+${
+  report.invoices
+    ? `<div class="tiles">
+${tile(t('invoices'), formatAmount(report.invoices))}
+${tile(t('itemsSold'), formatAmount(report.qty))}
+${tile(t('sales'), escapeHtml(money(report.sales, settings.currency)))}
+${tile(t(report.profit < 0 ? 'loss' : 'profit'), escapeHtml(money(Math.abs(report.profit), settings.currency)), report.profit < 0 ? 'red' : 'green')}
+</div>
+<h3>${escapeHtml(t(mode === 'month' ? 'dayByDay' : 'invoices'))}</h3>
+<table>${head(firstCol)}<tbody>
+${lines}
+</tbody></table>
+<h3>${escapeHtml(t('byItem'))}</h3>
+<table>${head(t('colItem'))}<tbody>
+${items}
+</tbody></table>
+${report.missingCost.length ? `<div class="small muted" style="margin-top:12px">${escapeHtml(t('missingCost', { names: report.missingCost.join(', ') }))}</div>` : ''}`
+    : `<div class="empty">${escapeHtml(t(mode === 'day' ? 'noSalesOn' : 'noSalesIn', { day: period, month: period }))}</div>`
+}
+${foot(lang)}`,
+  });
 }

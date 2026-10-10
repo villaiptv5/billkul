@@ -1,6 +1,6 @@
 import type { Doc, Lang, Settings, TemplateId } from '../data/types';
 import { translate, type StringKey, type Vars } from '../i18n';
-import { formatDate } from '../logic/dates';
+import { formatDate, formatDateTime } from '../logic/dates';
 import { formatAmount, money } from '../logic/money';
 import { docTotals, lineTotal } from '../logic/totals';
 
@@ -188,7 +188,7 @@ export function buildDocHtml({ doc, settings, lang, template }: DocHtmlInput): s
   </div>
   <div class="end">
     <div class="label muted">${escapeHtml(t('date'))}</div>
-    <div class="strong">${escapeHtml(formatDate(doc.date, lang))}</div>
+    <div class="strong">${escapeHtml(formatDateTime(doc.date, doc.issuedAt || doc.createdAt, lang))}</div>
   </div>
 </div>
 

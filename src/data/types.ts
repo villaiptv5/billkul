@@ -136,6 +136,8 @@ export interface Doc {
   heldAt?: string;
   /** When the document stopped being a draft (completed, printed or sent), as an ISO timestamp. */
   issuedAt?: string;
+  /** When the invoice was marked paid, as an ISO timestamp: the time on the cash book line. */
+  paidAt?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -13,7 +13,7 @@ import type { RootNav } from '../nav';
 import { C } from '../theme';
 import { Button, IconButton } from '../ui/Button';
 import { Icon } from '../ui/Icon';
-import { Card, Empty } from '../ui/kit';
+import { Card, Empty, Sheet, SheetScroll } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { CashEntrySheet, useCashBook, useStock } from './books';
@@ -62,6 +62,7 @@ export function HomeScreen() {
   const sales = useMonthSales();
 
   const [monthSide, setMonthSide] = useState<CashKind | null>(null);
+  const [menu, setMenu] = useState(false);
   const [entry, setEntry] = useState<CashEntry | null>(null);
   const limits = useLimits();
   const create = (type: DocType) => {
@@ -96,7 +97,7 @@ export function HomeScreen() {
                 </T>
               </Pressable>
             </View>
-            <IconButton icon="sliders" label={t('tabSettings')} color={C.onInk} onPress={() => nav.navigate('Settings')} testID="open-settings" />
+            <IconButton icon="menu" label={t('menu')} color={C.onInk} onPress={() => setMenu(true)} testID="open-menu" />
           </View>
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -180,7 +181,45 @@ export function HomeScreen() {
           if (found) setEntry(found);
         }}
       />
+      <Sheet visible={menu} onClose={() => setMenu(false)} title={t('menu')}>
+        <SheetScroll>
+          <MenuRow
+            icon="chart"
+            label={t('salesReport')}
+            onPress={() => {
+              setMenu(false);
+              nav.navigate('Sales');
+            }}
+            testID="menu-sales"
+          />
+          <MenuRow
+            icon="sliders"
+            label={t('tabSettings')}
+            onPress={() => {
+              setMenu(false);
+              nav.navigate('Settings');
+            }}
+            testID="open-settings"
+          />
+        </SheetScroll>
+      </Sheet>
       <CashEntrySheet visible={!!entry} onClose={() => setEntry(null)} kind={entry?.kind ?? 'in'} entry={entry ?? undefined} />
     </View>
+  );
+}
+
+function MenuRow({ icon, label, onPress, testID }: { icon: 'chart' | 'sliders'; label: string; onPress: () => void; testID: string }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} testID={testID} style={({ pressed }) => ({ minHeight: 60, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 14, opacity: pressed ? 0.6 : 1 })}>
+      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: C.tintGreen, alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name={icon} size={20} color={C.greenDark} stroke={2.1} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <T size={16} w="semibold">
+          {label}
+        </T>
+      </View>
+      <Icon name="chevron" size={18} color={C.muted} />
+    </Pressable>
   );
 }

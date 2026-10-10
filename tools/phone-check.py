@@ -326,10 +326,6 @@ to_tabs()
 shot('cash-entries')
 tap('cash-expenses')
 shot('cash-expenses')
-tap('cash-sales')
-shot('cash-sales')
-if tap('sales-on-*', wait=4):
-    shot('cash-sales-day')
 if tap('cash-print', pause=5):
     shot('cash-report')
     tap('report-side-out', pause=4)
@@ -359,13 +355,27 @@ if tap('home-profit'):
         shot('sales-calendar-months')
         back()
         time.sleep(1)
+    if tap('sales-print', wait=5, pause=5):
+        shot('sales-print')
+        back()
+        time.sleep(1)
 to_tabs()
-if tap('open-settings'):
+# The menu on the Dashboard: Sales report and Settings.
+tap('tab-Home')
+if tap('open-menu'):
+    shot('menu')
+    tap('menu-sales', pause=2)
+    shot('menu-sales')
+to_tabs()
+tap('tab-Home')
+if tap('open-menu') and tap('open-settings'):
     shot('settings')
     back()
     time.sleep(1)
     say('PHONE BACK BUTTON leaves Settings:', find('tab-Home') is not None, focus())
     to_tabs()
+    tap('tab-Home')
+    tap('open-menu')
     tap('open-settings')
     swipe_up()
     shot('settings-lower')

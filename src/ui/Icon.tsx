@@ -6,7 +6,7 @@ import { useLocale } from './locale';
 export type IconName =
   | 'home' | 'file' | 'users' | 'box' | 'sliders' | 'plus' | 'search' | 'chevron' | 'back' | 'check'
   | 'cloudCheck' | 'cloudUp' | 'cloudOff' | 'chat' | 'printer' | 'image' | 'download' | 'upload' | 'pencil'
-  | 'close' | 'trash' | 'more' | 'user' | 'wallet' | 'moneyIn' | 'moneyOut' | 'alert' | 'chart' | 'calendar';
+  | 'close' | 'trash' | 'more' | 'user' | 'wallet' | 'moneyIn' | 'moneyOut' | 'alert' | 'chart' | 'calendar' | 'menu';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   home: (<><Path d="M3 11l9-8 9 8" /><Path d="M5 10v10h14V10" /></>),
@@ -36,6 +36,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
   moneyIn: <Path d="M17 7L7 17M7 9v8h8" />,
   moneyOut: <Path d="M7 17L17 7M9 7h8v8" />,
   chart: <Path d="M5 20v-8M12 20V5M19 20v-11M3 20h18" />,
+  menu: <Path d="M4 7h16M4 12h16M4 17h16" />,
   calendar: (<><Rect x="3.5" y="5" width="17" height="15.5" rx="2" /><Path d="M3.5 10h17M8 3v4M16 3v4" /></>),
   alert: (<><Path d="M12 4l9 16H3z" /><Path d="M12 10v4.5M12 17.2v.1" /></>),
 };

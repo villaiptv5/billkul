@@ -97,6 +97,11 @@ export function DocumentsScreen() {
                   {t('invoiceMade', { number: madeInvoice.number })}
                 </T>
               </Pressable>
+            ) : doc.status === 'rejected' ? (
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <Button label={t('acceptQuote')} variant="secondary" size="sm" onPress={() => store.markAccepted(doc.id)} testID={`accept-${doc.number}`} style={{ flex: 1 }} />
+                <Button label={t('convertToInvoice')} size="sm" onPress={() => convert(doc)} testID={`convert-${doc.number}`} style={{ flex: 1 }} />
+              </View>
             ) : (
               <Button label={t('convertToInvoice')} size="sm" onPress={() => convert(doc)} testID={`convert-${doc.number}`} />
             )
@@ -169,7 +174,7 @@ export function DocumentsScreen() {
             ) : null}
             <Button label={t('open')} variant="secondary" onPress={() => { const d = menuFor; setMenuFor(null); nav.navigate('Preview', { docId: d.id }); }} testID="menu-open" />
             <Button label={t('edit')} icon="pencil" variant="secondary" onPress={() => { const d = menuFor; setMenuFor(null); nav.navigate('Editor', { docId: d.id }); }} testID="menu-edit" />
-            {menuFor.type === 'quote' && menuFor.status === 'sent' ? (
+            {menuFor.type === 'quote' && (menuFor.status === 'sent' || menuFor.status === 'rejected') ? (
               <Button label={t('markAccepted')} variant="secondary" onPress={() => { store.markAccepted(menuFor.id); setMenuFor(null); }} testID="menu-accept" />
             ) : null}
             {menuFor.type === 'quote' && (menuFor.status === 'sent' || menuFor.status === 'accepted') ? (
