@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useAppState } from '../data/app';
+import type { CashEntry, CashKind } from '../data/types';
 import { sortDocs } from '../data/store';
 import { formatDay, formatMonth, isoDate } from '../logic/dates';
 import { formatAmount, money } from '../logic/money';
 import { monthStats } from '../logic/stats';
 import { HeldList } from '../screens/finish';
-import { ReceivedSheet } from '../screens/received';
+import { CashMonthSheet } from '../screens/cashMonth';
+import { CashEntrySheet } from '../screens/books';
 import { docTotals } from '../logic/totals';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
@@ -46,10 +48,11 @@ function Stat({ label, value, symbol, color = C.ink, onPress, testID }: { label:
 export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void }) {
   const { t, lang } = useLocale();
   const { go } = useDesk();
-  const { settings, docs } = useAppState();
+  const { settings, docs, cash } = useAppState();
   const today = isoDate();
   const stats = useMemo(() => monthStats(docs, today), [docs, today]);
-  const [showReceived, setShowReceived] = useState(false);
+  const [monthSide, setMonthSide] = useState<CashKind | null>(null);
+  const [entry, setEntry] = useState<CashEntry | null>(null);
   const recent = useMemo(() => sortDocs(docs).slice(0, 8), [docs]);
   const book = useCashBook();
   const { low } = useStock();
@@ -64,12 +67,13 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
         <Stat label={t('quoted')} value={stats.quoted} symbol={settings.currency.symbol} onPress={() => go({ page: 'documents', type: 'quote' })} testID="home-quoted" />
         <Stat label={t('invoiced')} value={stats.invoiced} symbol={settings.currency.symbol} onPress={() => go({ page: 'documents', type: 'invoice' })} testID="home-invoiced" />
-        <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.greenText} onPress={() => setShowReceived(true)} testID="home-received" />
         <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orange} onPress={() => go({ page: 'due' })} testID="home-due" />
+        <Stat label={t('cashInHand')} value={book.inHand} symbol={settings.currency.symbol} color={book.inHand < 0 ? C.orange : C.ink} onPress={() => go({ page: 'cash' })} testID="home-cash" />
       </View>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-        <Stat label={t('cashInHand')} value={book.inHand} symbol={settings.currency.symbol} color={book.inHand < 0 ? C.orange : C.ink} onPress={() => go({ page: 'cash' })} testID="home-cash" />
+        <Stat label={t('inThisMonth')} value={book.month.in} symbol={settings.currency.symbol} color={C.greenText} onPress={() => setMonthSide('in')} testID="home-month-in" />
+        <Stat label={t('outThisMonth')} value={book.month.out} symbol={settings.currency.symbol} color={C.orange} onPress={() => setMonthSide('out')} testID="home-month-out" />
         <Stat label={`${t(sales.profit < 0 ? 'lossOnSales' : 'profitOnSales')} · ${t('thisMonth')}`} value={Math.round(Math.abs(sales.profit))} symbol={settings.currency.symbol} color={sales.profit < 0 ? C.danger : C.greenText} onPress={() => go({ page: 'sales' })} testID="home-profit" />
         {low.length ? (
           <Pressable accessibilityRole="link" onPress={() => go({ page: 'items' })} testID="home-low-stock" style={{ flexGrow: 2, flexBasis: 416 }}>
@@ -127,14 +131,18 @@ export function HomePage({ onNew }: { onNew: (type: 'quote' | 'invoice') => void
           )}
         </Panel>
       </View>
-      <ReceivedSheet
-        visible={showReceived}
-        onClose={() => setShowReceived(false)}
-        onOpen={(doc) => {
-          setShowReceived(false);
-          go({ page: 'editor', docId: doc.id });
+      <CashMonthSheet
+        kind={monthSide}
+        onClose={() => setMonthSide(null)}
+        onOpen={(row) => {
+          setMonthSide(null);
+          if (row.source === 'invoice') return go({ page: 'editor', docId: row.refId });
+          if (row.source === 'stock') return go({ page: 'items' });
+          const found = cash.find((e) => e.id === row.refId);
+          if (found) setEntry(found);
         }}
       />
+      <CashEntrySheet visible={!!entry} onClose={() => setEntry(null)} kind={entry?.kind ?? 'in'} entry={entry ?? undefined} />
     </View>
   );
 }

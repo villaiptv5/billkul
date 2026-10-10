@@ -44,3 +44,10 @@ The official WhatsApp sending service is not connected yet. Until it is:
 - After the first code the app asks for a password (6 characters or more); from then on the number signs in with it, no code. 10 wrong passwords in an hour stop that number for the hour. "Forgot password" sends a code and the app asks for a new password. A new password signs out every other device.
 - Sign-in tokens and codes are stored as fingerprints, not as they are. Passwords and the admin password are hashed.
 - The app's limits are checked in the app; the server is the record of the plan and of what was used.
+
+## Sync between phone and PC (Pro)
+
+- `sync/push` and `sync/pull` keep every device signed in to a Pro number showing the same shop.
+- One row per record in `sync_records` (documents, customers, items, cash entries, stock entries, shop settings), numbered by the account's change counter. Devices send what changed, and ask for what changed after the last number they saw, about every 5 seconds while open.
+- Limits: 4 MB per push, 500 records per push, 1 MB per record, 200,000 records per account.
+- Free accounts are refused (`not_pro`). Deleting the account deletes its records.

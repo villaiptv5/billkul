@@ -14,7 +14,6 @@ import { Card, Empty, Screen, Segmented, TopBar } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { CashEntrySheet, cashDetail, cashTitle, ExpensesPanel, useCashBook } from './books';
-import { useDue } from './customer';
 import { SalesPanel } from './sales';
 import { useLimits } from './limits';
 
@@ -69,7 +68,6 @@ export function CashScreen() {
   const { t, lang, rtl } = useLocale();
   const { settings, cash } = useAppState();
   const book = useCashBook();
-  const due = useDue();
   const [view, setView] = useState<'entries' | 'expenses' | 'sales'>('entries');
   const [sheet, setSheet] = useState<{ kind: CashKind; entry?: CashEntry } | null>(null);
   const [shown, setShown] = useState(PAGE);
@@ -84,7 +82,7 @@ export function CashScreen() {
 
   return (
     <Screen bottom={false}>
-      <TopBar title={t('cashBook')} big right={<Button label={t('printReport')} icon="printer" variant="ghost" size="sm" onPress={() => nav.navigate('CashReport')} testID="cash-print" style={{ paddingHorizontal: 10 }} />} />
+      <TopBar title={t('cashBook')} big />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, paddingTop: 4, gap: 14 }}>
         <View style={{ backgroundColor: C.ink, borderRadius: 18, padding: 16, gap: 14 }}>
           <View style={{ gap: 2 }}>
@@ -100,40 +98,22 @@ export function CashScreen() {
               </T>
             </View>
           </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1, backgroundColor: C.inkPanel, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, gap: 2 }}>
-              <T size={12.5} color={C.onInkMuted}>
-                {t('inThisMonth')}
-              </T>
-              <T size={16} w="semibold" head latin color={C.green} end={rtl} testID="cash-month-in">
-                {formatAmount(book.month.in)}
-              </T>
-            </View>
-            <View style={{ flex: 1, backgroundColor: C.inkPanel, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, gap: 2 }}>
-              <T size={12.5} color={C.onInkMuted}>
-                {t('outThisMonth')}
-              </T>
-              <T size={16} w="semibold" head latin color={C.orangeOnInk} end={rtl} testID="cash-month-out">
-                {formatAmount(book.month.out)}
-              </T>
-            </View>
-          </View>
-          <Pressable accessibilityRole="button" onPress={() => nav.navigate('Due')} testID="cash-due" style={({ pressed }) => ({ minHeight: 46, backgroundColor: C.inkPanel, borderRadius: 12, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 8, opacity: pressed ? 0.7 : 1 })}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: 46, backgroundColor: C.inkPanel, borderRadius: 12, paddingHorizontal: 12, gap: 8 }}>
             <View style={{ flex: 1 }}>
               <T size={13.5} color={C.onInkSoft}>
-                {t('dueFromCustomers')}
+                {t('totalCashOut')}
               </T>
             </View>
-            <T size={16} w="semibold" head latin color={due.total > 0 ? C.orangeOnInk : C.onInk}>
-              {formatAmount(due.total)}
+            <T size={16} w="semibold" head latin color={C.orangeOnInk} testID="cash-out-total">
+              {formatAmount(book.out)}
             </T>
-            <Icon name="chevron" size={18} color={C.onInkMuted} stroke={2} />
-          </Pressable>
+          </View>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Button label={t('moneyIn')} icon="moneyIn" head onPress={() => limits.allowCash() && setSheet({ kind: 'in' })} testID="money-in" style={{ flex: 1, minHeight: 54, borderRadius: 14 }} />
-          <Button label={t('moneyOut')} icon="moneyOut" variant="secondary" head onPress={() => limits.allowCash() && setSheet({ kind: 'out' })} testID="money-out" style={{ flex: 1, minHeight: 54, borderRadius: 14 }} />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Button label={t('moneyIn')} head onPress={() => limits.allowCash() && setSheet({ kind: 'in' })} testID="money-in" style={{ flex: 1, minHeight: 54, borderRadius: 14, paddingHorizontal: 6 }} />
+          <Button label={t('moneyOut')} variant="secondary" head onPress={() => limits.allowCash() && setSheet({ kind: 'out' })} testID="money-out" style={{ flex: 1, minHeight: 54, borderRadius: 14, paddingHorizontal: 6 }} />
+          <Button label={t('printReport')} variant="secondary" onPress={() => nav.navigate('CashReport')} testID="cash-print" style={{ flex: 1, minHeight: 54, borderRadius: 14, paddingHorizontal: 6 }} />
         </View>
 
         <Segmented

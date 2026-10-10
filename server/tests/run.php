@@ -292,6 +292,47 @@ check(strpos($html, 'now belongs to +923555555555') !== false, 'admin: the accou
 check(api('account/sync', ['token' => $a['token']])['error'] === 'signed_out', 'admin: after the move the old sign-ins end');
 check(api('auth/start', ['phone' => '0355 5555555'])['exists'] === true, 'admin: the new number now has the account');
 
+// ---- sync between a phone and a PC (Pro) ----
+db()->exec('DELETE FROM throttle');
+$shop = sign_up('0366 6666666', 'phone-dddddddddddddddd');
+$phoneToken = $shop['token'];
+check(api('sync/pull', ['token' => $phoneToken, 'since' => 0])['error'] === 'not_pro', 'sync: a Free account cannot sync');
+db()->exec("UPDATE accounts SET plan = 'pro', pro_until = NULL WHERE phone = '+923666666666'");
+api('account/password', ['token' => $phoneToken, 'password' => 'syncpass1']);
+$pc = api('auth/password', ['phone' => '0366 6666666', 'password' => 'syncpass1', 'device' => 'web']);
+$pcToken = $pc['token'];
+$r = api('sync/push', ['token' => $phoneToken, 'changes' => [
+    ['kind' => 'doc', 'id' => 'd1', 'body' => ['id' => 'd1', 'number' => 'INV-0001', 'lines' => [], 'extra' => new stdClass()]],
+    ['kind' => 'settings', 'id' => 'shop', 'body' => ['shopName' => 'Al Noor', 'currency' => ['code' => 'PKR', 'symbol' => 'Rs']]],
+]]);
+check($r['ok'] === true && $r['rev'] === 2, 'sync: the phone pushes two records');
+$r = api('sync/pull', ['token' => $pcToken, 'since' => 0]);
+check(count($r['changes']) === 2 && $r['rev'] === 2 && $r['more'] === false, 'sync: the PC pulls them');
+$doc = array_values(array_filter($r['changes'], fn ($c) => $c['id'] === 'd1'))[0];
+check($doc['body']['number'] === 'INV-0001' && $doc['body']['lines'] === [] && $doc['body']['extra'] === [], 'sync: the record comes back as it was sent');
+$raw = (string) db()->query("SELECT body FROM sync_records WHERE rid = 'd1'")->fetchColumn();
+check(strpos($raw, '"extra":{}') !== false && strpos($raw, '"lines":[]') !== false, 'sync: an empty {} stays an object and [] a list');
+api('sync/push', ['token' => $pcToken, 'changes' => [['kind' => 'doc', 'id' => 'd1', 'body' => null], ['kind' => 'customer', 'id' => 'c1', 'body' => ['id' => 'c1', 'name' => 'Ali']]]]);
+$r = api('sync/pull', ['token' => $phoneToken, 'since' => 2]);
+check(count($r['changes']) === 2 && $r['rev'] === 4, 'sync: the phone pulls only what changed since');
+$del = array_values(array_filter($r['changes'], fn ($c) => $c['id'] === 'd1'))[0];
+check($del['body'] === null, 'sync: a deleted record comes as empty');
+check(api('sync/pull', ['token' => $phoneToken, 'since' => 4])['changes'] === [], 'sync: nothing new, nothing sent');
+check(api('sync/push', ['token' => $pcToken, 'changes' => [['kind' => 'secret', 'id' => 'x', 'body' => ['a' => 1]]]])['error'] === 'bad_request', 'sync: an unknown kind is refused');
+check(api('sync/push', ['token' => $pcToken, 'changes' => [['kind' => 'doc', 'id' => '../etc', 'body' => ['a' => 1]]]])['error'] === 'bad_request', 'sync: a strange id is refused');
+$many = [];
+for ($i = 0; $i < 450; $i++) {
+    $many[] = ['kind' => 'item', 'id' => "i$i", 'body' => ['id' => "i$i", 'name' => "Item $i"]];
+}
+api('sync/push', ['token' => $pcToken, 'changes' => $many]);
+$first = api('sync/pull', ['token' => $phoneToken, 'since' => 4]);
+check(count($first['changes']) === 400 && $first['more'] === true, 'sync: a long list comes in pages');
+$second = api('sync/pull', ['token' => $phoneToken, 'since' => $first['rev']]);
+check(count($second['changes']) === 50 && $second['more'] === false, 'sync: and the rest on the next page');
+check(api('sync/pull', ['token' => $a['token'] ?? 'x', 'since' => 0])['error'] === 'signed_out', 'sync: a signed-out device is refused');
+api('account/delete', ['token' => $phoneToken]);
+check((int) db()->query("SELECT COUNT(*) FROM sync_records")->fetchColumn() === 0, 'sync: deleting the account deletes its records');
+
 // ---- the admin page is closed without the password ----
 admin('', ['action' => 'logout']);
 check(strpos(admin('?tab=accounts'), 'Admin password') !== false && strpos(admin('?tab=accounts'), '+923001234567') === false, 'signed out, the admin page shows nothing but the sign-in form');

@@ -24,7 +24,7 @@ import { T } from '../ui/T';
 import { Panel } from './parts';
 import { useDesk } from './route';
 import { useLimits } from '../screens/limits';
-import { CompleteSheet, HoldSheet } from '../screens/finish';
+import { CompleteSheet, HoldSheet, liveInvoiceOf, useRejectQuote } from '../screens/finish';
 import { NewItemSheet } from '../screens/NewItemSheet';
 
 // Keeps the preview in view while the form beside it scrolls.
@@ -66,6 +66,7 @@ export function EditorPage({ docId }: { docId: string }) {
     }
   }, [status]);
   const limits = useLimits();
+  const reject = useRejectQuote();
   if (!editor || !doc) return null;
   const draft = doc.status === 'draft';
 
@@ -95,7 +96,7 @@ export function EditorPage({ docId }: { docId: string }) {
   const exact = items.some((i) => i.name.toLowerCase() === name.toLowerCase());
   const taxName = settings.taxLabel.trim() || t('tax');
   const isQuote = doc.type === 'quote';
-  const invoice = doc.invoiceId ? docs.find((d) => d.id === doc.invoiceId) : undefined;
+  const invoice = liveInvoiceOf(docs, doc);
 
   const addItem = (item: Item) => {
     editor.addItem(item);
@@ -134,7 +135,7 @@ export function EditorPage({ docId }: { docId: string }) {
   };
 
   const convert = () => {
-    if (!doc.invoiceId && !limits.allowDoc()) return;
+    if (!invoice && !limits.allowDoc()) return;
     const made = store.convertToInvoice(doc.id);
     if (made) go({ page: 'editor', docId: made.id });
   };
@@ -191,6 +192,7 @@ export function EditorPage({ docId }: { docId: string }) {
         {isQuote && doc.status === 'sent' ? <Button label={t('markAccepted')} variant="secondary" onPress={() => store.markAccepted(doc.id)} testID="mark-accepted" /> : null}
         {isQuote && invoice ? <Button label={t('openInvoice', { number: invoice.number })} variant="secondary" onPress={() => go({ page: 'editor', docId: invoice.id })} testID="open-invoice" /> : null}
         {isQuote && !invoice && doc.status !== 'draft' ? <Button label={t('convertToInvoice')} onPress={convert} testID="convert" /> : null}
+        {isQuote && (doc.status === 'sent' || doc.status === 'accepted') ? <Button label={t('rejectQuote')} icon="close" variant="secondary" onPress={() => void reject(doc)} testID="reject-quote" /> : null}
         {!isQuote && doc.status === 'due' ? <Button label={t('markPaid')} onPress={() => store.markPaid(doc.id)} testID="mark-paid" /> : null}
         {!isQuote && doc.status === 'paid' ? <Button label={t('markUnpaid')} variant="secondary" onPress={() => store.markUnpaid(doc.id)} testID="mark-unpaid" /> : null}
         <IconButton icon="trash" label={t('delete')} color={C.muted} onPress={remove} testID="delete-doc" />

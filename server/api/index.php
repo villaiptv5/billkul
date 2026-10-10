@@ -12,6 +12,8 @@
  *   index.php?r=account/password {token, password, current}  set or change the password
  *   index.php?r=account/phone   {token, phone, code}    move the account to a new number (code from auth/request)
  *   index.php?r=account/delete  {token}                 delete the account for good
+ *   index.php?r=sync/push       {token, changes}        Pro: store changed records of the shop
+ *   index.php?r=sync/pull       {token, since}          Pro: records changed after a revision
  *
  * Every answer is JSON: {"ok":true,...} or {"ok":false,"error":"<word>"}.
  * The route is a query value, not a path, so no rewrite rules are needed on the hosting.
@@ -60,7 +62,12 @@ try {
         fail('post_only', 405);
     }
 
-    $raw = (string) file_get_contents('php://input', false, null, 0, 8192);
+    // Sync carries the shop's records; everything else is a few small fields.
+    $limit = $route === 'sync/push' ? SYNC_MAX_BYTES : 8192;
+    $raw = (string) file_get_contents('php://input', false, null, 0, $limit + 1);
+    if (strlen($raw) > $limit) {
+        fail('too_large', 413);
+    }
     $in = json_decode($raw, true);
     if (!is_array($in)) {
         fail('bad_request');
@@ -275,6 +282,74 @@ try {
         reply(['ok' => true, 'account' => account_view(share_device_usage(find_account($phone), $device))]);
     }
 
+    if ($route === 'sync/push' || $route === 'sync/pull') {
+        $account = account_by_token($text('token', 64));
+        if (!$account) {
+            fail('signed_out', 401);
+        }
+        if (!is_pro($account)) {
+            fail('not_pro', 403);
+        }
+        $id = (int) $account['id'];
+        if ($route === 'sync/push') {
+            // Read again keeping objects as objects, so an empty {} inside a record stays {}.
+            $changes = json_decode($raw)->changes ?? null;
+            if (!is_array($changes) || count($changes) > SYNC_MAX_BATCH) {
+                fail('bad_request');
+            }
+            $count = (int) $pdo->query('SELECT COUNT(*) FROM sync_records WHERE account_id = ' . $id)->fetchColumn();
+            $pdo->beginTransaction();
+            $rev = (int) $pdo->query('SELECT sync_rev FROM accounts WHERE id = ' . $id)->fetchColumn();
+            $put = $pdo->prepare('INSERT OR REPLACE INTO sync_records (account_id, kind, rid, rev, body) VALUES (?, ?, ?, ?, ?)');
+            $exists = $pdo->prepare('SELECT 1 FROM sync_records WHERE account_id = ? AND kind = ? AND rid = ?');
+            foreach ($changes as $change) {
+                $kind = is_object($change) && is_scalar($change->kind ?? null) ? (string) $change->kind : '';
+                $rid = is_object($change) && is_scalar($change->id ?? null) ? (string) $change->id : '';
+                if (!in_array($kind, SYNC_KINDS, true) || !preg_match('/^[A-Za-z0-9_:.-]{1,80}$/', $rid)) {
+                    $pdo->rollBack();
+                    fail('bad_request');
+                }
+                $body = $change->body ?? null;
+                if ($body !== null && !is_object($body)) {
+                    $pdo->rollBack();
+                    fail('bad_request');
+                }
+                $json = $body === null ? null : json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                if ($json !== null && strlen($json) > SYNC_MAX_RECORD) {
+                    $pdo->rollBack();
+                    fail('too_large', 413);
+                }
+                $exists->execute([$id, $kind, $rid]);
+                if (!$exists->fetchColumn()) {
+                    if (++$count > SYNC_MAX_RECORDS) {
+                        $pdo->rollBack();
+                        fail('too_many_records', 413);
+                    }
+                }
+                $put->execute([$id, $kind, $rid, ++$rev, $json]);
+            }
+            $pdo->prepare('UPDATE accounts SET sync_rev = ?, seen_at = ? WHERE id = ?')->execute([$rev, $now, $id]);
+            $pdo->commit();
+            reply(['ok' => true, 'rev' => $rev]);
+        }
+        $since = max(0, (int) ($in['since'] ?? 0));
+        $q = $pdo->prepare('SELECT kind, rid, rev, body FROM sync_records WHERE account_id = ? AND rev > ? ORDER BY rev LIMIT ' . (SYNC_PAGE + 1));
+        $q->execute([$id, $since]);
+        $rows = $q->fetchAll();
+        $more = count($rows) > SYNC_PAGE;
+        $rows = array_slice($rows, 0, SYNC_PAGE);
+        $out = [];
+        $last = $since;
+        foreach ($rows as $row) {
+            $out[] = ['kind' => $row['kind'], 'id' => $row['rid'], 'body' => $row['body'] === null ? null : json_decode((string) $row['body'])];
+            $last = (int) $row['rev'];
+        }
+        if (!$more) {
+            $last = max($last, (int) $pdo->query('SELECT sync_rev FROM accounts WHERE id = ' . $id)->fetchColumn());
+        }
+        reply(['ok' => true, 'changes' => $out, 'rev' => $last, 'more' => $more]);
+    }
+
     if ($route === 'auth/logout') {
         $token = $text('token', 64);
         if (preg_match('/^[a-f0-9]{64}$/', $token)) {
@@ -292,6 +367,7 @@ try {
             ->execute([phone_hash($account['phone']), (int) $account['docs_used'], (int) $account['cash_used'], $now]);
         $pdo->prepare('DELETE FROM tokens WHERE account_id = ?')->execute([$account['id']]);
         $pdo->prepare('DELETE FROM codes WHERE phone = ?')->execute([$account['phone']]);
+        $pdo->prepare('DELETE FROM sync_records WHERE account_id = ?')->execute([$account['id']]);
         $pdo->prepare('DELETE FROM accounts WHERE id = ?')->execute([$account['id']]);
         reply(['ok' => true]);
     }

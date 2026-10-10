@@ -9,7 +9,7 @@ import { C } from '../theme';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { Field } from '../ui/Input';
-import { Sheet, SheetScroll } from '../ui/kit';
+import { Sheet, SheetScroll, useDialogs } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { CustomerPicker } from './CustomerPicker';
@@ -155,4 +155,31 @@ export function HeldList({ onOpen, wide }: { onOpen: (doc: Doc) => void; wide?: 
       </View>
     </View>
   );
+}
+
+/** Rejecting a quote, after asking; a paid invoice made from it stops it, with the reason. */
+export function useRejectQuote(): (quote: Doc) => Promise<boolean> {
+  const { t } = useLocale();
+  const { confirm, notify } = useDialogs();
+  const { docs } = useAppState();
+  return async (quote: Doc) => {
+    const invoice = quote.invoiceId ? docs.find((d) => d.id === quote.invoiceId && d.status !== 'cancelled') : undefined;
+    if (invoice?.status === 'paid') {
+      notify(t('rejectPaid', { invoice: invoice.number }));
+      return false;
+    }
+    const body = invoice ? t('rejectBodyInvoice', { invoice: invoice.number }) : t('rejectBody');
+    if (!(await confirm({ title: t('rejectTitle', { number: quote.number }), body, confirmLabel: t('rejectQuote'), danger: true }))) return false;
+    const blocked = store.rejectQuote(quote.id);
+    if (blocked) {
+      notify(t('rejectPaid', { invoice: blocked.number }));
+      return false;
+    }
+    return true;
+  };
+}
+
+/** The invoice made from a quote, unless it was cancelled. */
+export function liveInvoiceOf(docs: Doc[], quote: Doc): Doc | undefined {
+  return quote.invoiceId ? docs.find((d) => d.id === quote.invoiceId && d.status !== 'cancelled') : undefined;
 }

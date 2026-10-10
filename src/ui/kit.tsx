@@ -67,7 +67,7 @@ export function Divider() {
   return <View style={{ height: 1, backgroundColor: C.lineSoft }} />;
 }
 
-const STATUS_KEY: Record<DocStatus, StringKey> = { draft: 'stDraft', sent: 'stSent', accepted: 'stAccepted', due: 'stDue', paid: 'stPaid' };
+const STATUS_KEY: Record<DocStatus, StringKey> = { draft: 'stDraft', sent: 'stSent', accepted: 'stAccepted', rejected: 'stRejected', due: 'stDue', paid: 'stPaid', cancelled: 'stCancelled' };
 
 /** A draft put on hold says so, so the shopkeeper sees which ones are waiting for a customer. */
 export function StatusPill({ status, held }: { status: DocStatus; held?: boolean }) {

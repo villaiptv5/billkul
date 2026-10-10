@@ -11,12 +11,17 @@ export interface MonthStats {
   due: number;
 }
 
+/** Drafts are unfinished, and rejected quotes and cancelled invoices were called off: none of them count. */
+export function counts(doc: Doc): boolean {
+  return doc.status !== 'draft' && doc.status !== 'rejected' && doc.status !== 'cancelled';
+}
+
 /** Drafts are unfinished, so they never count. */
 export function monthStats(docs: Doc[], today: string): MonthStats {
   const month = monthKey(today);
   const s: MonthStats = { quoted: 0, invoiced: 0, received: 0, due: 0 };
   for (const doc of docs) {
-    if (doc.status === 'draft') continue;
+    if (!counts(doc)) continue;
     const total = docTotals(doc).total;
     if (doc.type === 'quote') {
       if (monthKey(doc.date) === month) s.quoted += total;
@@ -119,11 +124,11 @@ export function customerSummary(docs: Doc[], customerId: string): CustomerSummar
     const total = docTotals(doc).total;
     if (doc.type === 'quote') {
       s.quotes.push(doc);
-      if (doc.status !== 'draft') s.quoted += total;
+      if (counts(doc)) s.quoted += total;
       continue;
     }
     s.invoices.push(doc);
-    if (doc.status === 'draft') continue;
+    if (!counts(doc)) continue;
     s.invoiced += total;
     if (doc.status === 'paid') s.paid += total;
     else s.due += total;

@@ -20,6 +20,12 @@ const CODES_PER_HOUR = 5;       // per phone number
 const REQUESTS_PER_HOUR = 120;  // code requests per internet address
 const VERIFIES_PER_HOUR = 300;  // code checks per internet address
 const DEFAULT_LIMIT = 10;       // free documents, and free cash book entries
+const SYNC_KINDS = ['settings', 'doc', 'customer', 'item', 'cash', 'stock'];
+const SYNC_MAX_BYTES = 4 * 1024 * 1024;   // one push
+const SYNC_MAX_BATCH = 500;               // records in one push
+const SYNC_MAX_RECORD = 1024 * 1024;      // one record (a logo can be large)
+const SYNC_MAX_RECORDS = 200000;          // records kept for one account
+const SYNC_PAGE = 400;                    // records in one pull
 const PASSWORD_MIN = 6;         // shortest password an account may have
 const PASSWORD_FAILS = 10;      // wrong passwords per number per hour before it is locked for the hour
 const FRESH_CODE_SIGN_IN = 1800; // after signing in with a code, a new password may be set without the old one for 30 minutes
@@ -142,6 +148,14 @@ function migrate(PDO $pdo): void
         // same phone carries on from it. Only a one-way fingerprint of the phone's app ID is kept.
         $pdo->exec('CREATE TABLE IF NOT EXISTS device_usage (device_hash TEXT PRIMARY KEY, docs_used INTEGER NOT NULL, cash_used INTEGER NOT NULL, seen_at INTEGER NOT NULL)');
         $pdo->exec('PRAGMA user_version = 4');
+    }
+    if ($version < 5) {
+        // Pro: the shop's records, so a phone and a PC signed in to the same number stay the same.
+        // One row per record; rev is the account's change counter when the row last changed.
+        $pdo->exec('CREATE TABLE IF NOT EXISTS sync_records (account_id INTEGER NOT NULL, kind TEXT NOT NULL, rid TEXT NOT NULL, rev INTEGER NOT NULL, body TEXT, PRIMARY KEY (account_id, kind, rid))');
+        $pdo->exec('CREATE INDEX IF NOT EXISTS sync_records_rev ON sync_records (account_id, rev)');
+        $pdo->exec('ALTER TABLE accounts ADD COLUMN sync_rev INTEGER NOT NULL DEFAULT 0');
+        $pdo->exec('PRAGMA user_version = 5');
     }
 }
 

@@ -16,9 +16,10 @@ import { T } from '../ui/T';
 import { PaidLine } from './customer';
 import { DocSummary, openDoc } from './shared';
 import { useLimits } from './limits';
+import { liveInvoiceOf, useRejectQuote } from './finish';
 
 const FILTERS: Record<DocType, DocStatus[]> = {
-  quote: ['draft', 'sent', 'accepted'],
+  quote: ['draft', 'sent', 'accepted', 'rejected'],
   invoice: ['draft', 'due', 'paid'],
 };
 
@@ -57,8 +58,9 @@ export function DocumentsScreen() {
   };
 
   const limits = useLimits();
+  const reject = useRejectQuote();
   const convert = (quote: Doc) => {
-    if (!quote.invoiceId && !limits.allowDoc()) return;
+    if (!liveInvoiceOf(docs, quote) && !limits.allowDoc()) return;
     const invoice = store.convertToInvoice(quote.id);
     if (invoice) {
       changeType('invoice');
@@ -71,7 +73,7 @@ export function DocumentsScreen() {
     if (await confirm({ title: t('deleteDocTitle', { number: doc.number }), body: t('deleteWarning'), confirmLabel: t('delete'), danger: true })) store.deleteDoc(doc.id);
   };
 
-  const invoiceOf = (quote: Doc) => (quote.invoiceId ? docs.find((d) => d.id === quote.invoiceId) : undefined);
+  const invoiceOf = (quote: Doc) => liveInvoiceOf(docs, quote);
   const quoteOf = (invoice: Doc) => (invoice.quoteId ? docs.find((d) => d.id === invoice.quoteId) : undefined);
 
   const renderDoc = ({ item: doc }: { item: Doc }) => {
@@ -102,6 +104,10 @@ export function DocumentsScreen() {
             <View style={{ minHeight: 24, justifyContent: 'center' }}>
               <PaidLine doc={doc} />
             </View>
+          ) : doc.status === 'cancelled' ? (
+            <T size={13} color={C.muted}>
+              {t('stCancelled')}
+            </T>
           ) : (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 24 }}>
               <Icon name="check" size={16} color={C.greenText} stroke={2.2} />
@@ -165,6 +171,19 @@ export function DocumentsScreen() {
             <Button label={t('edit')} icon="pencil" variant="secondary" onPress={() => { const d = menuFor; setMenuFor(null); nav.navigate('Editor', { docId: d.id }); }} testID="menu-edit" />
             {menuFor.type === 'quote' && menuFor.status === 'sent' ? (
               <Button label={t('markAccepted')} variant="secondary" onPress={() => { store.markAccepted(menuFor.id); setMenuFor(null); }} testID="menu-accept" />
+            ) : null}
+            {menuFor.type === 'quote' && (menuFor.status === 'sent' || menuFor.status === 'accepted') ? (
+              <Button
+                label={t('rejectQuote')}
+                icon="close"
+                variant="secondary"
+                onPress={() => {
+                  const d = menuFor;
+                  setMenuFor(null);
+                  void reject(d);
+                }}
+                testID="menu-reject"
+              />
             ) : null}
             {menuFor.type === 'invoice' && menuFor.status === 'due' ? (
               <Button label={t('markPaid')} onPress={() => { store.markPaid(menuFor.id); setMenuFor(null); }} testID="menu-paid" />

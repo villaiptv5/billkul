@@ -46,6 +46,13 @@ export function useDaysText() {
 export function PaidLine({ doc, size = 13 }: { doc: Doc; size?: number }) {
   const { t, lang } = useLocale();
   if (doc.type !== 'invoice' || doc.status === 'draft') return null;
+  if (doc.status === 'cancelled') {
+    return (
+      <T size={size} color={C.muted}>
+        {t('stCancelled')}
+      </T>
+    );
+  }
   if (doc.status === 'paid') {
     return (
       <T size={size} color={C.muted}>

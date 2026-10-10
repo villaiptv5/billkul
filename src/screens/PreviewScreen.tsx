@@ -160,7 +160,7 @@ export function PreviewScreen() {
             <Button label={t('complete')} icon="check" size="sm" onPress={() => setCompleting(true)} testID="preview-complete" />
           </View>
         ) : null}
-        {doc.type === 'invoice' && doc.status !== 'draft' ? (
+        {doc.type === 'invoice' && doc.status !== 'draft' && doc.status !== 'cancelled' ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line }}>
             <View style={{ flex: 1 }}>
               <PaidLine doc={doc} size={14} />

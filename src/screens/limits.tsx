@@ -1,9 +1,11 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore } from 'react';
 import { Pressable, View } from 'react-native';
 import { api } from '../account/api';
 import { syncAccount, toAccount } from '../account/sync';
 import { store, useAppState } from '../data/app';
-import { formatDate } from '../logic/dates';
+import { formatDate, formatTime } from '../logic/dates';
+import { sync } from '../sync/live';
+import { Icon } from '../ui/Icon';
 import { joinPhone, localPhone, ltr, normalizePhone, showPhone } from '../logic/phone';
 import { allowance, type Allowance } from '../logic/plan';
 import { openWhatsappText } from '../platform/docActions';
@@ -175,6 +177,7 @@ export function AccountCard() {
         {plan.pro ? null : <Button label={t('getPro')} onPress={limits.showPro} testID="account-get-pro" style={{ flexGrow: 1 }} />}
         <Button label={t('signOut')} variant="secondary" onPress={() => void signOut()} testID="account-sign-out" style={{ flexGrow: 1 }} />
       </View>
+      <SyncLine pro={plan.pro} />
       <Button label={t('changePassword')} variant="secondary" onPress={() => setChanging(true)} testID="account-change-password" />
       <ChangePasswordSheet visible={changing} onClose={() => setChanging(false)} />
       <Button label={t('changeMyNumber')} variant="secondary" onPress={() => setMoving(true)} testID="account-change-number" />
@@ -376,5 +379,26 @@ function ChangeNumberSheet({ visible, onClose }: { visible: boolean; onClose: ()
         )}
       </SheetScroll>
     </Sheet>
+  );
+}
+
+/** Whether this device keeps in step with the others (Pro), and when it last did. */
+function SyncLine({ pro }: { pro: boolean }) {
+  const { t, lang } = useLocale();
+  const status = useSyncExternalStore(sync.subscribe, sync.getStatus, sync.getStatus);
+  const text = !pro ? t('syncPro') : status.result === 'offline' ? t('syncWaiting') : status.lastAt ? t('syncOn', { time: formatTime(status.lastAt, lang) }) : t('syncStarting');
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 12, backgroundColor: C.bgDeep }}>
+      <Icon name={pro && status.result !== 'offline' ? 'cloudCheck' : 'cloudOff'} size={22} color={pro ? C.greenDark : C.muted} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <T size={14} w="semibold">
+          {t('syncTitle')}
+        </T>
+        <T size={13} color={C.muted} testID="account-sync">
+          {text}
+        </T>
+      </View>
+      {pro ? <Button label={t('syncNow')} variant="ghost" size="sm" onPress={() => void sync.syncNow()} testID="account-sync-now" style={{ paddingHorizontal: 8 }} /> : null}
+    </View>
   );
 }

@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { API_URL } from '../config';
 import type { Usage } from '../data/types';
+import type { SyncRecord } from '../data/store';
 import { deviceId } from '../platform/deviceId';
 
 /** What the account server says about an account (account_view in server/api/lib.php). */
@@ -20,16 +21,16 @@ export interface AccountView {
  * Why a request did not succeed. The words come from the server, except:
  * offline = the server could not be reached; server = it answered with something unexpected.
  */
-export type ApiError = 'bad_phone' | 'same_phone' | 'number_taken' | 'wait' | 'too_many' | 'bad_code' | 'expired' | 'signed_out' | 'no_password' | 'bad_password' | 'weak_password' | 'setup' | 'server' | 'offline';
+export type ApiError = 'not_pro' | 'too_large' | 'bad_phone' | 'same_phone' | 'number_taken' | 'wait' | 'too_many' | 'bad_code' | 'expired' | 'signed_out' | 'no_password' | 'bad_password' | 'weak_password' | 'setup' | 'server' | 'offline';
 
 export type ApiResult<T> = ({ ok: true } & T) | { ok: false; error: ApiError; wait?: number; triesLeft?: number };
 
 const APP_VERSION: string = require('../../app.json').expo.version;
-const KNOWN: ApiError[] = ['bad_phone', 'same_phone', 'number_taken', 'wait', 'too_many', 'bad_code', 'expired', 'signed_out', 'no_password', 'bad_password', 'weak_password', 'setup'];
+const KNOWN: ApiError[] = ['not_pro', 'too_large', 'bad_phone', 'same_phone', 'number_taken', 'wait', 'too_many', 'bad_code', 'expired', 'signed_out', 'no_password', 'bad_password', 'weak_password', 'setup'];
 
-async function call<T>(route: string, body: Record<string, unknown>): Promise<ApiResult<T>> {
+async function call<T>(route: string, body: Record<string, unknown>, timeoutMs = 15000): Promise<ApiResult<T>> {
   const abort = new AbortController();
-  const timer = setTimeout(() => abort.abort(), 15000);
+  const timer = setTimeout(() => abort.abort(), timeoutMs);
   try {
     // Every request says which phone it comes from, so the free allowance follows the phone too.
     const sent = { ...body, deviceId: await deviceId() };
@@ -56,6 +57,10 @@ export interface AccountApi {
   deleteAccount(token: string): Promise<ApiResult<object>>;
   /** Moves the signed-in account to a new number, proved with a code sent to it by requestCode. */
   changePhone(token: string, phone: string, code: string): Promise<ApiResult<{ account: AccountView }>>;
+  /** Pro: sends changed records of the shop; returns the server's change number. */
+  syncPush(token: string, changes: SyncRecord[]): Promise<ApiResult<{ rev: number }>>;
+  /** Pro: records changed after a change number, a page at a time. */
+  syncPull(token: string, since: number): Promise<ApiResult<{ changes: SyncRecord[]; rev: number; more: boolean }>>;
 }
 
 const live: AccountApi = {
@@ -68,6 +73,8 @@ const live: AccountApi = {
   logout: (token) => call('auth/logout', { token }),
   deleteAccount: (token) => call('account/delete', { token }),
   changePhone: (token, phone, code) => call('account/phone', { token, phone, code }),
+  syncPush: (token, changes) => call('sync/push', { token, changes }, 60000),
+  syncPull: (token, since) => call('sync/pull', { token, since }, 60000),
 };
 
 /**
@@ -99,6 +106,8 @@ function fake(): AccountApi {
     },
     logout: async () => ({ ok: true }),
     deleteAccount: async () => ({ ok: true }),
+    syncPush: async () => ({ ok: false, error: 'not_pro' }),
+    syncPull: async () => ({ ok: false, error: 'not_pro' }),
     changePhone: async (_token, phone, code) => {
       if (code !== '123456') return { ok: false, error: 'bad_code', triesLeft: 4 };
       phoneNow = phone;
