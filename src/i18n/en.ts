@@ -142,6 +142,7 @@ export const en = {
   syncStarting: 'Same data on every phone and computer signed in to this number. Syncing…',
   syncPro: 'With Pro, your phone and computer show the same shop, kept in step within seconds.',
   syncNow: 'Sync now',
+  drivePausedTap: 'Drive backup paused. Tap to carry on',
   needLine: 'Add at least one item first.',
   taxPercent: 'Tax percent',
   taxName: 'Tax name',
@@ -282,7 +283,7 @@ export const en = {
   openInvoice: 'Open invoice {number}',
   about: 'About',
   backupExplainPc:
-    'Your work is kept in this browser, on this computer. Save a backup file and keep it somewhere safe, such as your Google Drive. To bring your data to another computer or to your phone, restore from that file there.',
+    'Your work is kept in this browser, on this computer. Back it up to your Google Drive below, or save a backup file yourself. With Pro, your phone and this computer also stay in step by themselves.',
   restoreBodyPc: 'Everything in BillKul on this computer is replaced with the contents of the backup file.',
   shopProfileOnDocs: 'This appears at the top of every quote and invoice.',
   colDocuments: 'Documents',

@@ -8,6 +8,7 @@ import { formatDocNumber } from '../logic/totals';
 import { pickLogo } from '../platform/logo';
 import { TaxSheet } from '../screens/EditorScreen';
 import { useBackupActions } from '../screens/backupActions';
+import { DriveSection } from '../screens/drive';
 import { APP_VERSION, NumbersSheet, Option, Row } from '../screens/SettingsScreen';
 import { C } from '../theme';
 import { Button } from '../ui/Button';
@@ -127,6 +128,7 @@ export function SettingsPage() {
               <Button label={t('saveBackup')} icon="download" variant="onInk" onPress={backup.saveBackup} testID="save-backup" />
               <Button label={t('restoreBackup')} icon="upload" variant="onInkOutline" onPress={backup.restore} testID="restore-backup" />
             </View>
+            <DriveSection />
           </View>
 
           <Panel>

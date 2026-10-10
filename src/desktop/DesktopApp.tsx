@@ -4,6 +4,8 @@ import { store, useAppState } from '../data/app';
 import type { DocType } from '../data/types';
 import type { StringKey } from '../i18n';
 import { useBackupActions } from '../screens/backupActions';
+import { startDriveBackup, useDriveProblem } from '../backup/auto';
+import { DriveOffer } from '../screens/drive';
 import { SetupScreen } from '../screens/SetupScreen';
 import { SetPasswordScreen, SignInScreen } from '../screens/SignInScreen';
 import { useLimits } from '../screens/limits';
@@ -101,12 +103,16 @@ function Sidebar({ route, go, onNew, rail }: { route: Route; go: (r: Route) => v
   const { t } = useLocale();
   const { settings } = useAppState();
   const backup = useBackupActions();
+  // On a PC, Google's permission lasts about an hour; after that one tap here lets the Drive backup carry on.
+  const driveProblem = useDriveProblem();
+  const paused = driveProblem === 'signed_out' && !!settings.driveEmail;
   // Pages that are not in the sidebar light up the entry they were opened from.
   const PARENT: Partial<Record<Route['page'], NavPage>> = { editor: 'documents', cashReport: 'cash', due: 'home', customer: 'customers', statement: 'customers' };
   const current: NavPage = PARENT[route.page] ?? (route.page as NavPage);
 
   const open = (page: NavPage) => go(page === 'documents' ? { page, type: route.page === 'documents' ? route.type : 'quote' } : { page });
-  const backupColor = backup.backedUp ? C.mint : C.orangeOnInk;
+  const backupColor = backup.backedUp && !paused ? C.mint : C.orangeOnInk;
+  const backupText = paused ? t('drivePausedTap') : backup.status;
 
   return (
     <View role="navigation" style={{ width: rail ? RAIL_WIDTH : SIDEBAR_WIDTH, backgroundColor: C.ink, paddingHorizontal: rail ? 8 : 16, paddingTop: 22, paddingBottom: 16, gap: 22 }}>
@@ -144,16 +150,16 @@ function Sidebar({ route, go, onNew, rail }: { route: Route; go: (r: Route) => v
 
       <Pressable
         accessibilityRole="link"
-        accessibilityLabel={backup.status}
-        onPress={() => go({ page: 'settings' })}
+        accessibilityLabel={backupText}
+        onPress={() => (paused ? void startDriveBackup() : go({ page: 'settings' }))}
         testID="side-backup"
         style={{ flexDirection: 'row', alignItems: 'center', justifyContent: rail ? 'center' : 'flex-start', gap: 10, paddingHorizontal: 6, minHeight: 44 }}
       >
-        <Icon name={backup.backedUp ? 'cloudCheck' : 'cloudOff'} size={rail ? 22 : 20} color={backupColor} stroke={2} />
+        <Icon name={backup.backedUp && !paused ? 'cloudCheck' : 'cloudOff'} size={rail ? 22 : 20} color={backupColor} stroke={2} />
         {rail ? null : (
           <View style={{ flex: 1 }}>
             <T size={12.5} color={backupColor}>
-              {backup.status}
+              {backupText}
             </T>
           </View>
         )}
@@ -293,6 +299,7 @@ export function DesktopApp() {
     <DeskContext.Provider value={desk}>
       <View style={{ flex: 1, flexDirection: 'row', backgroundColor: C.bg, direction: rtl ? 'rtl' : 'ltr' }}>
         <Sidebar route={route} go={go} onNew={onNew} rail={rail} />
+        <DriveOffer />
         <ScrollView ref={scroll} style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: snug ? 24 : 32, paddingTop: 28, paddingBottom: 48 }} keyboardShouldPersistTaps="handled">
           <View role="main" style={{ width: '100%', maxWidth: 1240, alignSelf: 'center' }}>
             {page}
