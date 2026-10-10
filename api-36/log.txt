@@ -1,0 +1,118 @@
+Performing Streamed Install
+Success
+16 Physical size: 1080x2400
+saved 01-signin-en.png
+saved 02-signin-ur.png
+saved 03-signin-number.png
+saved 04-signin-code.png
+saved 05-set-password.png
+saved 06-setup-ur.png
+!! not found: setup-skip
+saved 07-home.png
+saved 08-drive-offer.png
+saved 09-drive-google.png
+after choosing a Google account: mCurrentFocus=Window{70e0777 u0 com.google.android.gms/com.google.android.gms.auth.uiflows.addaccount.PreAddAccountActivity}
+saved 10-drive-after.png
+saved 11-empty-documents-quotes.png
+saved 12-empty-documents-invoices.png
+saved 13-empty-cash.png
+saved 14-empty-cash-report.png
+saved 15-empty-cash-report-both.png
+report screen: mCurrentFocus=Window{4084ae6 u0 com.billkul.app/com.billkul.app.MainActivity}
+!! not found: sheet-close
+saved 16-empty-cash-form.png
+saved 17-editor-empty.png
+saved 18-new-item.png
+saved 19-editor.png
+saved 20-hold.png
+saved 21-editor-after-hold.png
+saved 22-home-on-hold.png
+saved 23-complete.png
+saved 24-preview.png
+preview: 68 controls read in 2.2s; mCurrentFocus=Window{4084ae6 u0 com.billkul.app/com.billkul.app.MainActivity}
+saved 25-receipt.png
+saved 26-receipt-58.png
+after send-image: mCurrentFocus=Window{4084ae6 u0 com.billkul.app/com.billkul.app.MainActivity}
+shared picture: not found
+saved 27-preview-paid.png
+!! the app froze; restarting it
+saved 28-frozen.png
+freeze record: anr_2026-10-10-10-11-57-934
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! could not get back to the tabs: mCurrentFocus=Window{44f26af u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+!! not found: tab-Home
+saved 29-home-data.png
+!! not found: tab-Documents
+saved 30-documents-quotes.png
+!! not found: tab-invoices
+saved 31-documents-invoices.png
+!! not found: tab-Cash
+saved 32-cash.png
+!! not found: money-out
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! could not get back to the tabs: mCurrentFocus=Window{44f26af u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+saved 33-cash-entries.png
+!! not found: cash-expenses
+saved 34-cash-expenses.png
+!! not found: cash-print
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! could not get back to the tabs: mCurrentFocus=Window{1b1ffe4 u0 com.billkul.app/com.billkul.app.MainActivity}
+!! not found: tab-Customers
+saved 35-customers.png
+!! not found: tab-Items
+saved 36-items.png
+!! not found: tab-Home
+!! not found: home-due
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! could not get back to the tabs: mCurrentFocus=Window{2115a1b u0 com.billkul.app/com.billkul.app.MainActivity}
+!! not found: home-profit
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! could not get back to the tabs: mCurrentFocus=Window{44f26af u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+!! not found: tab-Home
+!! not found: open-menu
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! could not get back to the tabs: mCurrentFocus=Window{44f26af u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+!! not found: tab-Home
+!! not found: open-menu
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! not found: sheet-close
+!! not found: back
+!! could not get back to the tabs: mCurrentFocus=Window{44f26af u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+done

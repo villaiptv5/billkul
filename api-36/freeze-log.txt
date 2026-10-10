@@ -1,0 +1,435 @@
+--------- beginning of main
+10-10 10:11:41.448   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:41.448   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:41.448   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:41.448   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:41.448   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:41.458  1026  1026 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-10 10:11:41.464  1026  1026 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-10 10:11:42.491  6518  6518 W AccessibilityNodeInfoDumper: Fetch time: 23ms
+--------- beginning of system
+10-10 10:11:42.494   630  2887 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+10-10 10:11:42.494   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.495   630   630 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.501  6518  6526 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-10 10:11:42.501  6518  6530 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-10 10:11:42.501  6518  6527 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-10 10:11:42.501   630   686 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:42.507  1026  1026 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-10 10:11:42.539   630   686 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:43.382   630  1691 W AS.PlaybackActivityMon: No piid assigned for invalid/internal port id 15
+10-10 10:11:43.508   630   686 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:47.399  6541  6541 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: window
+10-10 10:11:47.435  1634  1634 E abb     : Failed to read message: protocol fault (couldn't read status length): Success: Success
+10-10 10:11:47.436   630  1485 W AdbDebuggingManager: Read failed with count -1
+10-10 10:11:47.448   630  1485 E AdbDebuggingManager: Caught an exception opening the socket: java.io.IOException: Connection refused
+10-10 10:11:48.058   630   686 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:48.058   630   686 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:49.058   630   686 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:51.441   630   686 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:51.449   630   686 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: Cannot acquire BluetoothActivityEnergyInfo
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: java.util.concurrent.ExecutionException: java.lang.RuntimeException: error: 11
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at java.util.concurrent.CompletableFuture.reportGet(CompletableFuture.java:372)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at java.util.concurrent.CompletableFuture.get(CompletableFuture.java:2072)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at com.android.server.power.stats.BluetoothPowerStatsCollector.collectBluetoothActivityInfo(BluetoothPowerStatsCollector.java:192)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at com.android.server.power.stats.BluetoothPowerStatsCollector.collectStats(BluetoothPowerStatsCollector.java:155)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at com.android.server.power.stats.PowerStatsCollector.collectAndDeliverStats(PowerStatsCollector.java:176)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at com.android.server.power.stats.PowerStatsCollector$$ExternalSyntheticLambda0.run(R8$$SyntheticClass:0)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.os.Handler.handleCallback(Handler.java:995)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.os.Handler.dispatchMessage(Handler.java:103)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.os.Looper.loopOnce(Looper.java:248)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.os.Looper.loop(Looper.java:338)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.os.HandlerThread.run(HandlerThread.java:85)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: Caused by: java.lang.RuntimeException: error: 11
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at com.android.server.power.stats.BluetoothPowerStatsCollector$1.onBluetoothActivityEnergyInfoError(BluetoothPowerStatsCollector.java:181)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.bluetooth.BluetoothAdapter$OnBluetoothActivityEnergyInfoProxy.lambda$onBluetoothActivityEnergyInfoAvailable$0(BluetoothAdapter.java:1037)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.bluetooth.BluetoothAdapter$OnBluetoothActivityEnergyInfoProxy$$ExternalSyntheticLambda1.run(D8$$SyntheticClass:0)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.bluetooth.BluetoothUtils.lambda$executeFromBinder$0(BluetoothUtils.java:343)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.bluetooth.BluetoothUtils$$ExternalSyntheticLambda1.run(D8$$SyntheticClass:0)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at com.android.server.SystemServerInitThreadPool$$ExternalSyntheticLambda0.execute(R8$$SyntheticClass:0)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.bluetooth.BluetoothUtils.executeFromBinder(BluetoothUtils.java:343)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.bluetooth.BluetoothAdapter$OnBluetoothActivityEnergyInfoProxy.onBluetoothActivityEnergyInfoAvailable(BluetoothAdapter.java:1035)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.bluetooth.IBluetoothActivityEnergyInfoListener$Stub.onTransact(IBluetoothActivityEnergyInfoListener.java:98)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.os.Binder.execTransactInternal(Binder.java:1426)
+10-10 10:11:51.651   630   697 E BluetoothPowerStatsCollector: 	at android.os.Binder.execTransact(Binder.java:1365)
+10-10 10:11:52.499   630   686 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.818   630   679 W ActivityTaskManager: callingPackage for (uid=-1, pid=0) has no WPC
+10-10 10:11:52.819   630   679 W ActivityStartInterceptor: Starting home with component specified, uid=0
+10-10 10:11:52.822   630   679 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_OVERRIDE
+10-10 10:11:52.822   630   679 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_FULLSCREEN_OVERRIDE
+10-10 10:11:52.823   630   679 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_RESIZEABLE_ACTIVITY_OVERRIDES
+10-10 10:11:52.823   630   679 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_MIN_ASPECT_RATIO_OVERRIDE
+10-10 10:11:52.845   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.845   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.845   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.845   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.847   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:52.848   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:53.069   630  1236 W ProcessStats: Tracking association SourceState{f32f5dc system/1000 ImpBg #6753} whose proc state 6 is better than process ProcessState{d4c2574 com.google.android.googlequicksearchbox:search/10146 pkg=com.google.android.googlequicksearchbox} proc state 15 (5 skipped)
+10-10 10:11:53.288   630   678 W Looper  : Slow dispatch took 152ms android.fg app=system_server main=false group=FOREGROUND h=android.os.Handler c=com.android.server.wm.ActivityMetricsLogger$$ExternalSyntheticLambda0@be793c8 m=0
+10-10 10:11:53.290   630   681 W system_server: Long monitor contention with owner android.anim (682) at void com.android.server.wm.WindowSurfacePlacer$Traverser.run()(WindowSurfacePlacer.java:55) waiters=0 in void com.android.server.wm.WindowManagerService$H.handleMessage(android.os.Message) for 192ms
+10-10 10:11:53.300   630  1649 W system_server: Long monitor contention with owner android.anim (682) at void com.android.server.wm.WindowSurfacePlacer$Traverser.run()(WindowSurfacePlacer.java:55) waiters=1 in void com.android.server.wm.WindowManagerService.reportSystemGestureExclusionChanged(com.android.server.wm.Session, android.view.IWindow, java.util.List) for 190ms
+10-10 10:11:53.306  1026  1090 W Looper  : Slow dispatch took 198ms wmshell.main app=com.android.systemui main=false group=FOREGROUND h=android.os.Handler c=com.android.wm.shell.transition.Transitions$TransitionPlayerImpl$$ExternalSyntheticLambda0@666efed m=0
+10-10 10:11:53.318  5518  5550 W earchbox:search: Missing inline cache for void fsvi.m(java.lang.Object, fsva)
+10-10 10:11:53.322  5518  5675 W earchbox:search: Long monitor contention with owner BG Thread #0 (5664) at void alhc.run()(PG:20) waiters=1 in com.google.android.apps.gsa.nga.api.NgaState alhi.a() for 173ms
+10-10 10:11:53.324  5518  5671 W earchbox:search: Long monitor contention with owner BG Thread #0 (5664) at void alhc.run()(PG:20) waiters=2 in com.google.android.apps.gsa.nga.api.NgaState alhi.a() for 175ms
+10-10 10:11:53.329   630   681 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{141635202 u0 com.billkul.app/.MainActivity t8}
+10-10 10:11:53.463   630   679 W Looper  : Slow dispatch took 121ms android.ui app=system_server main=false group=TOP_APP h=com.android.server.am.ActivityManagerService$UiHandler c=com.android.server.am.UidObserverController$$ExternalSyntheticLambda0@722bdc0 m=0
+10-10 10:11:53.667  1467  1467 W NotificationCenter: NotificationCenter$NotificationQueue.notifyPendingNotificationsOnExecutor():877 Heavy notify work detected on UI thread: [kig->gkl, kig->fef, kig->ilu, kig->jnx, kig->fro, kig->ilu, kig->jvb, kig->ilu, kig->ilu, kig->ilu, kig->ilu, kig->ilu, kig->ilu, kig->ilu, kig->imt, kig->khg, kig->ilu, kig->ilu, kig->lux, kig->ilu, kig->ilu, kig->ijm, kig->fcb, kig->khc] takes 37ms
+10-10 10:11:53.699   630  2887 W PackageConfigPersister: App-specific configuration not found for packageName: com.google.android.apps.nexuslauncher and userId: 0
+10-10 10:11:53.954   630  1236 W ActivityTaskManager: callingPackage for (uid=0, pid=6578) has no WPC
+10-10 10:11:53.955   630  1236 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_OVERRIDE
+10-10 10:11:53.955   630  1236 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_FULLSCREEN_OVERRIDE
+10-10 10:11:53.956   630  1236 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_RESIZEABLE_ACTIVITY_OVERRIDES
+10-10 10:11:53.956   630  1236 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_MIN_ASPECT_RATIO_OVERRIDE
+10-10 10:11:53.964  1283  1283 W SplitSelectStateCtor: Missing session instanceIds
+10-10 10:11:54.181  5518  5688 W acte    : Account id is not cached
+10-10 10:11:54.415   630  6575 W HWUI    : Failed to initialize 101010-2 format, error = EGL_SUCCESS
+10-10 10:11:54.417  1026  1090 W Looper  : Slow dispatch took 117ms wmshell.main app=com.android.systemui main=false group=FOREGROUND h=android.os.Handler c=com.android.wm.shell.transition.Transitions$TransitionPlayerImpl$$ExternalSyntheticLambda0@aa9f1cc m=0
+10-10 10:11:54.417  1026  1090 W Looper  : Slow delivery took 52ms wmshell.main app=com.android.systemui main=false group=FOREGROUND h=android.os.Handler c=android.window.TaskOrganizer$1$$ExternalSyntheticLambda4@1d04c15 m=0
+10-10 10:11:54.454  1026  1090 W Looper  : Drained
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.548  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.609  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.614  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.614  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.614  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.614  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.614  1575  2030 W zdf     : Disposing empty manager. Did you forgot to subscribe observables?
+10-10 10:11:54.767  5518  5518 E rdv     : onError
+10-10 10:11:54.767  5518  5518 E rdv     : afvv: errorCode: 65561, engine: 2
+10-10 10:11:54.767  5518  5518 E rdv     : 	at auki.a(PG:23)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at abhl.hv(PG:13)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at fyqd.e(PG:9)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at ahbi.d(PG:154)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at ahbi.iW(PG:26)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at abhm.c(PG:102)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at abhn.run(PG:1)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:524)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at java.util.concurrent.FutureTask.run(FutureTask.java:317)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at aggv.run(PG:20)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at aght.run(PG:3)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at aght.run(PG:3)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at java.lang.Thread.run(Thread.java:1119)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at aggj.run(PG:42)
+10-10 10:11:54.767  5518  5518 E rdv     : Caused by: afvx: errorCode: 65586, engine: 2
+10-10 10:11:54.767  5518  5518 E rdv     : 	at abhl.hv(PG:6)
+10-10 10:11:54.767  5518  5518 E rdv     : 	... 14 more
+10-10 10:11:54.767  5518  5518 E rdv     : Caused by: afvt: errorCode: 401, engine: 2
+10-10 10:11:54.767  5518  5518 E rdv     : 	at rds.b(PG:30)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at abii.hJ(PG:11)
+10-10 10:11:54.767  5518  5518 E rdv     : 	at ahbi.d(PG:129)
+10-10 10:11:54.767  5518  5518 E rdv     : 	... 12 more
+10-10 10:11:54.794  5518  5518 W qrh     : Failed to sync device settings.
+10-10 10:11:54.795  5518  5688 W dnfi    : (REDACTED) Failed to get connectivityLock in %d ms
+10-10 10:11:54.813  5518  5518 W JobInfo : Job 'com.google.android.googlequicksearchbox/com.google.android.apps.gsa.tasks.BackgroundTasksJobService#-353' has a deadline with functional constraints and an extremely short time window of 0 ms (delay=240000, deadline=240000). The functional constraints are not likely to be satisfied when the job runs.
+10-10 10:11:54.815   630  2887 W JobInfo : Job 'com.google.android.googlequicksearchbox/com.google.android.apps.gsa.tasks.BackgroundTasksJobService#-353' has a deadline with functional constraints and an extremely short time window of 0 ms (delay=240000, deadline=240000). The functional constraints are not likely to be satisfied when the job runs.
+10-10 10:11:54.821   630  2887 W JobInfo : Job 'com.google.android.googlequicksearchbox/com.google.android.apps.gsa.tasks.BackgroundTasksJobService#-353' has a deadline with functional constraints and an extremely short time window of 0 ms (delay=240000, deadline=240000). The functional constraints are not likely to be satisfied when the job runs.
+10-10 10:11:54.831   630  2887 W JobScheduler: Job didn't exist in JobStore: 22f3d5d #u0a146/-353 com.google.android.googlequicksearchbox/com.google.android.apps.gsa.tasks.BackgroundTasksJobService
+10-10 10:11:55.039  5518  6590 W chromium: [1010/101155.039574:WARNING:url_request_context_config.cc(715)] Unrecognized Cronet experimental option "enable_telemetry" with params "true
+10-10 10:11:55.039  5518  6590 W chromium: 
+10-10 10:11:56.960   630  3062 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+10-10 10:11:56.988  6598  6598 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: window
+10-10 10:11:57.016   630   941 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:11:57.030   630   665 W system_server: Missing inline cache for void android.net.LinkProperties.writeToParcel(android.os.Parcel, int)
+10-10 10:11:57.067   630   775 W InputDispatcher: Not sending touch gesture to ec255cd ActivityRecordInputSink com.billkul.app/.MainActivity because it has config NO_INPUT_CHANNEL
+10-10 10:11:57.537   630   758 W JobServiceContext: Sending onNetworkChanged for a job that isn't started. JobStatus{2b3e2a androidx.work.systemjobscheduler:u0a135/27 @androidx.work.systemjobscheduler@com.google.android.dialer/androidx.work.impl.background.systemjob.SystemJobService u=0 s=10135 TIME=-27s514ms:none NET READY}
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: com.android.dialer.voicemail.service.impl.vvmclients.rest.RestVvmCarrierService.getMsisdn:420 Retrieved phone number in an unexpected format: +15551234567 [CONTEXT disable_client_error_logging=true ]
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: zxo: MEDIUM
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at a.cN(PG:15)
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at pxq.apply(PG:489)
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at zcp.apply(PG:13)
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at aaka.d(PG:3)
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at aakb.run(PG:38)
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at umz.run(PG:7)
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at aadu.run(PG:44)
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at tdt.run(PG:78)
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at cp.run(PG:143)
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at java.lang.Thread.run(Thread.java:1119)
+10-10 10:11:57.655  2973  3105 E DialerRestVvmCarrierService: 	at uoe.run(PG:61)
+10-10 10:11:57.659  2973  3056 W DialerGbaCredentialProvider: com.android.dialer.voicemail.service.impl.vvmclients.rest.GbaCredentialProvider$1.onAuthenticationFailure:93 GBA failed with reason: 1 [CONTEXT disable_client_error_logging=true ]
+10-10 10:11:57.874   630   775 W InputDispatcher: Window 4084ae6 com.billkul.app/com.billkul.app.MainActivity is unresponsive: 4084ae6 com.billkul.app/com.billkul.app.MainActivity is not responding. Waited 5000ms for FocusEvent(hasFocus=false)
+10-10 10:11:57.874   630   775 W InputDispatcher: Canceling events for 4084ae6 com.billkul.app/com.billkul.app.MainActivity because it is unresponsive
+10-10 10:11:57.892   630   678 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_ORIENTATION_OVERRIDE
+10-10 10:11:57.964   630  6627 E android.os.Debug: Failed to get binder state info for pid: 3139 status: -2: Socket operation on non-socket
+10-10 10:11:58.006  2973  6622 W Settings: Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: com.android.dialer.voicemail.service.impl.scheduler.VvmExecutorImpl.executeWorkOnCarrierService:406 Exception during vvm work for ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0} [CONTEXT enable_persistent_logger=true disable_client_error_logging=true ]
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: pul: VVM failure reason: 2
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: 	at qca.onAuthenticationFailure(PG:93)
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: 	at android.telephony.TelephonyManager$18.lambda$onAuthenticationFailure$1(TelephonyManager.java:18343)
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: 	at android.telephony.TelephonyManager$18$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: 	at umz.run(PG:7)
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: 	at aadu.run(PG:44)
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: 	at tdt.run(PG:78)
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: 	at cp.run(PG:143)
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: 	at java.lang.Thread.run(Thread.java:1119)
+10-10 10:11:58.024  2973  3105 E DialerVvmExecutorImpl: 	at uoe.run(PG:61)
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: com.android.dialer.voicemail.service.impl.scheduler.VvmExecutorImpl.execute:294 Recoverable VVM error: [GeneralFailureReason: UNSPECIFIED, RestFailureReason: GBA_AUTHENTICATION_FAILURE_FEATURE_NOT_SUPPORTED, OmtpFailureReason: OMTP_UNSPECIFIED] for ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0}
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: pul: VVM failure reason: 2
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: 	at qca.onAuthenticationFailure(PG:93)
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: 	at android.telephony.TelephonyManager$18.lambda$onAuthenticationFailure$1(TelephonyManager.java:18343)
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: 	at android.telephony.TelephonyManager$18$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: 	at umz.run(PG:7)
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: 	at aadu.run(PG:44)
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: 	at tdt.run(PG:78)
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: 	at cp.run(PG:143)
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: 	at java.lang.Thread.run(Thread.java:1119)
+10-10 10:11:58.036  2973  3056 W DialerVvmExecutorImpl: 	at uoe.run(PG:61)
+10-10 10:11:58.285  2973  6622 W Settings: Setting airplane_mode_on has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: com.android.dialer.voicemail.service.impl.vvmclients.rest.RestVvmCarrierService.getMsisdn:420 Retrieved phone number in an unexpected format: +15551234567 [CONTEXT disable_client_error_logging=true ]
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: zxo: MEDIUM
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at a.cN(PG:15)
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at pxq.apply(PG:489)
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at zcp.apply(PG:13)
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at aaka.d(PG:3)
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at aakb.run(PG:38)
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at umz.run(PG:7)
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at aadu.run(PG:44)
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at tdt.run(PG:78)
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at cp.run(PG:143)
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at java.lang.Thread.run(Thread.java:1119)
+10-10 10:11:58.338  2973  3105 E DialerRestVvmCarrierService: 	at uoe.run(PG:61)
+10-10 10:11:58.342  2973  3105 W DialerGbaCredentialProvider: com.android.dialer.voicemail.service.impl.vvmclients.rest.GbaCredentialProvider$1.onAuthenticationFailure:93 GBA failed with reason: 1 [CONTEXT disable_client_error_logging=true ]
+10-10 10:11:58.345  2973  3056 W DialerVvmExecutorImpl: com.android.dialer.voicemail.service.impl.scheduler.VvmExecutorImpl.executeWorkOnCarrierService:444 Could not complete vvm work with action: SYNC. Error: [GeneralFailureReason: UNSPECIFIED, RestFailureReason: GBA_AUTHENTICATION_FAILURE_FEATURE_NOT_SUPPORTED, OmtpFailureReason: OMTP_UNSPECIFIED] for ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0} [CONTEXT disable_client_error_logging=true enable_persistent_logger=true ]
+10-10 10:11:58.391  2973  6622 W IPCThreadState: Transaction failed because process frozen.
+10-10 10:11:58.391  2973  6622 E IPCThreadState: Binder transaction failure. id: 411528, BR_*: 29202, error: 0 (Success)
+10-10 10:11:58.391   630  1924 W ActivityManager: pid 2973 com.google.android.dialer sent binder code 24 with flags 0 to frozen apps and got error -2147483646
+10-10 10:11:58.418  2973  6622 E JavaBinder: !!! FAILED BINDER TRANSACTION !!!  (parcel size = 84)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: com.android.dialer.voicemail.service.impl.vvmclients.rest.RestVvmCarrierService.getMsisdn:420 Retrieved phone number in an unexpected format: +15551234567 [CONTEXT disable_client_error_logging=true ]
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: zxo: MEDIUM
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at a.cN(PG:15)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at pxq.apply(PG:489)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at zcp.apply(PG:13)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at aaka.d(PG:3)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at aakb.run(PG:38)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at umz.run(PG:7)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at aadu.run(PG:44)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at tdt.run(PG:78)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at cp.run(PG:143)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at java.lang.Thread.run(Thread.java:1119)
+10-10 10:11:58.428  2973  3056 E DialerRestVvmCarrierService: 	at uoe.run(PG:61)
+10-10 10:11:58.435  2973  3056 W DialerGbaCredentialProvider: com.android.dialer.voicemail.service.impl.vvmclients.rest.GbaCredentialProvider$1.onAuthenticationFailure:93 GBA failed with reason: 1 [CONTEXT disable_client_error_logging=true ]
+10-10 10:11:58.437  2973  3056 W DialerVvmExecutorImpl: com.android.dialer.voicemail.service.impl.scheduler.VvmExecutorImpl.executeWorkOnCarrierService:444 Could not complete vvm work with action: UPDATE_STATUS. Error: [GeneralFailureReason: UNSPECIFIED, RestFailureReason: GBA_AUTHENTICATION_FAILURE_FEATURE_NOT_SUPPORTED, OmtpFailureReason: OMTP_UNSPECIFIED] for ComponentInfo{com.android.phone/com.android.services.telephony.TelephonyConnectionService}, 1, UserHandle{0} [CONTEXT disable_client_error_logging=true enable_persistent_logger=true ]
+10-10 10:11:58.438   630  2887 W IPCThreadState: Transaction failed because process frozen.
+10-10 10:11:58.439   630  2887 E IPCThreadState: Binder transaction failure. id: 411553, BR_*: 29202, error: 0 (Success)
+10-10 10:11:58.460  2973  3105 E aakf    : Got more than one input Future failure. Logging failures after the first
+10-10 10:11:58.460  2973  3105 E aakf    : yke: android.os.DeadObjectException: Transaction failed on small parcel; remote process probably died, but this could also be caused by running out of binder buffer space
+10-10 10:11:58.460  2973  3105 E aakf    : 	at wts.ai(PG:70)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at wts.u(PG:20)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at ylx.a(PG:19)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at xkr.d(PG:6)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at xkt.run(PG:74)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at zcr.run(PG:21)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at umz.run(PG:7)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1156)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:651)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at tdt.run(PG:78)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at ubo.run(PG:476)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at java.lang.Thread.run(Thread.java:1119)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at uoe.run(PG:61)
+10-10 10:11:58.460  2973  3105 E aakf    : Caused by: android.os.DeadObjectException: Transaction failed on small parcel; remote process probably died, but this could also be caused by running out of binder buffer space
+10-10 10:11:58.460  2973  3105 E aakf    : 	at android.os.BinderProxy.transactNative(Native Method)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at android.os.BinderProxy.transact(BinderProxy.java:592)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at android.content.ContentProviderProxy.createCancellationSignal(ContentProviderNative.java:832)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at android.content.ContentProviderClient.query(ContentProviderClient.java:193)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at android.content.ContentProviderClient.query(ContentProviderClient.java:178)
+10-10 10:11:58.460  2973  3105 E aakf    : 	at wts.ai(PG:23)
+10-10 10:11:58.460  2973  3105 E aakf    : 	... 12 more
+10-10 10:11:58.551   272   272 W tombstoned: skipping tombstone file creation due to intercept
+10-10 10:11:58.554   630  6628 E ActivityManager: ANR in com.billkul.app (com.billkul.app/.MainActivity)
+10-10 10:11:58.554   630  6628 E ActivityManager: PID: 3139
+10-10 10:11:58.554   630  6628 E ActivityManager: Reason: Input dispatching timed out (4084ae6 com.billkul.app/com.billkul.app.MainActivity is not responding. Waited 5000ms for FocusEvent(hasFocus=false)).
+10-10 10:11:58.554   630  6628 E ActivityManager: Parent: com.billkul.app/.MainActivity
+10-10 10:11:58.554   630  6628 E ActivityManager: ErrorId: 2b6a04a4-381e-40b8-ad94-7f80a8fd7fd5
+10-10 10:11:58.554   630  6628 E ActivityManager: Frozen: false
+10-10 10:11:58.554   630  6628 E ActivityManager: Load: 5.78 / 11.24 / 5.95
+10-10 10:11:58.554   630  6628 E ActivityManager: ----- Output from /proc/pressure/memory -----
+10-10 10:11:58.554   630  6628 E ActivityManager: some avg10=0.46 avg60=1.13 avg300=3.17 total=21463559
+10-10 10:11:58.554   630  6628 E ActivityManager: full avg10=0.00 avg60=0.17 avg300=0.46 total=3949218
+10-10 10:11:58.554   630  6628 E ActivityManager: ----- End output from /proc/pressure/memory -----
+10-10 10:11:58.554   630  6628 E ActivityManager: ----- Output from /proc/pressure/cpu -----
+10-10 10:11:58.554   630  6628 E ActivityManager: some avg10=21.15 avg60=28.25 avg300=36.39 total=213507296
+10-10 10:11:58.554   630  6628 E ActivityManager: full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+10-10 10:11:58.554   630  6628 E ActivityManager: ----- End output from /proc/pressure/cpu -----
+10-10 10:11:58.554   630  6628 E ActivityManager: ----- Output from /proc/pressure/io -----
+10-10 10:11:58.554   630  6628 E ActivityManager: some avg10=4.71 avg60=2.81 avg300=4.85 total=33349541
+10-10 10:11:58.554   630  6628 E ActivityManager: full avg10=0.00 avg60=0.14 avg300=0.52 total=5488658
+10-10 10:11:58.554   630  6628 E ActivityManager: ----- End output from /proc/pressure/io -----
+10-10 10:11:58.554   630  6628 E ActivityManager: 
+10-10 10:11:58.554   630  6628 E ActivityManager: CPU usage from 10196ms to -4ms ago (2026-10-10 10:11:47.698 to 2026-10-10 10:11:57.898):
+10-10 10:11:58.554   630  6628 E ActivityManager:   81% 6364/com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:1: 81% user + 0.3% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:   10% 484/android.hardware.graphics.composer3-service.ranchu: 0.2% user + 10% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:   5.2% 630/system_server: 2.8% user + 2.4% kernel / faults: 10670 minor 357 major
+10-10 10:11:58.554   630  6628 E ActivityManager:   3.8% 5518/com.google.android.googlequicksearchbox:search: 2.8% user + 0.9% kernel / faults: 2832 minor 4048 major
+10-10 10:11:58.554   630  6628 E ActivityManager:   3.4% 520/surfaceflinger: 0.6% user + 2.7% kernel / faults: 81 minor 19 major
+10-10 10:11:58.554   630  6628 E ActivityManager:   3.3% 2973/com.google.android.dialer: 2.3% user + 0.9% kernel / faults: 12933 minor 2770 major
+10-10 10:11:58.554   630  6628 E ActivityManager:   2.8% 1283/com.google.android.apps.nexuslauncher: 0.5% user + 2.2% kernel / faults: 403 minor 219 major
+10-10 10:11:58.554   630  6628 E ActivityManager:   1.7% 1026/com.android.systemui: 0.5% user + 1.1% kernel / faults: 196 minor 76 major
+10-10 10:11:58.554   630  6628 E ActivityManager:   1.1% 478/android.hardware.sensors-service.multihal: 0.4% user + 0.6% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:   0.6% 3139/com.billkul.app: 0.5% user + 0% kernel / faults: 295 minor
+10-10 10:11:58.554   630  6628 E ActivityManager: 63% TOTAL: 50% user + 12% kernel + 0% iowait + 0.8% irq + 0.1% softirq
+10-10 10:11:58.554   630  6628 E ActivityManager: CPU usage from 50ms to 360ms later (2026-10-10 10:11:57.944 to 2026-10-10 10:11:58.255):
+10-10 10:11:58.554   630  6628 E ActivityManager:   72% 2973/com.google.android.dialer: 56% user + 16% kernel / faults: 6813 minor 38 major
+10-10 10:11:58.554   630  6628 E ActivityManager:     44% 2980/HeapTaskDaemon: 36% user + 8% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:     20% 6622/Blocking Thread: 16% user + 4% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:     4% 3105/Lite Thread #1: 4% user + 0% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:   59% 630/system_server: 38% user + 20% kernel / faults: 741 minor 28 major
+10-10 10:11:58.554   630  6628 E ActivityManager:     31% 666/HeapTaskDaemon: 27% user + 3.4% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:     20% 6629/AnrAuxiliaryTas: 6.9% user + 13% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:     3.4% 668/FinalizerDaemon: 0% user + 3.4% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:   41% 6364/com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:1: 37% user + 4.6% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:     46% 6374/CrRendererMain: 41% user + 4.6% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:   16% 3139/com.billkul.app: 8.1% user + 8.1% kernel / faults: 850 minor 69 major
+10-10 10:11:58.554   630  6628 E ActivityManager:     16% 3144/Signal Catcher: 8.1% user + 8.1% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:    +0% 6630/binder:3139_9: 0% user + 0% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager:   4.4% 4673/kworker/1:9H-kverityd: 0% user + 4.4% kernel
+10-10 10:11:58.554   630  6628 E ActivityManager: 98% TOTAL: 70% user + 28% kernel
+10-10 10:11:58.655  5518  6582 W abht    : (REDACTED) [%s] response code: %d
+10-10 10:11:59.088   630   679 W Looper  : Slow dispatch took 482ms android.ui app=system_server main=false group=TOP_APP h=android.view.Choreographer$FrameHandler c=android.view.Choreographer$FrameDisplayEventReceiver@1fe2c3b m=0
+10-10 10:11:59.093  6634  6634 W screencap: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: SurfaceFlingerAIDL
+10-10 10:11:59.097  6634  6634 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+10-10 10:11:59.097   630   679 W Looper  : Slow delivery took 497ms android.ui app=system_server main=false group=TOP_APP h=com.android.server.wm.DisplayPolicy$PolicyHandler c=com.android.server.wm.DisplayPolicy$$ExternalSyntheticLambda14@b54ff58 m=0
+10-10 10:11:59.097  6634  6634 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+10-10 10:11:59.104   520   918 E HwcComposer: getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+10-10 10:11:59.104   520   918 E HWComposer: getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+10-10 10:11:59.573   630   679 W Looper  : Drained
+10-10 10:11:59.573   630   679 W Looper  : Slow dispatch took 378ms android.ui app=system_server main=false group=TOP_APP h=android.view.Choreographer$FrameHandler c=android.view.Choreographer$FrameDisplayEventReceiver@1fe2c3b m=0
+10-10 10:11:59.607   630   679 W Looper  : Slow delivery took 365ms android.ui app=system_server main=false group=TOP_APP h=android.view.Choreographer$FrameHandler c=android.view.Choreographer$FrameDisplayEventReceiver@1fe2c3b m=0
+10-10 10:11:59.612   630   679 W Looper  : Drained
+10-10 10:11:59.835  6646  6646 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: window
+10-10 10:11:59.958  6651  6651 W screencap: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: SurfaceFlingerAIDL
+10-10 10:11:59.958  6651  6651 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+10-10 10:11:59.958  6651  6651 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+10-10 10:11:59.962   520   619 E HwcComposer: getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+10-10 10:11:59.962   520   619 E HWComposer: getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+10-10 10:12:03.829  3960  3960 W JobService: onNetworkChanged() not implemented in androidx.work.impl.background.systemjob.SystemJobService. Must override in a subclass.
+10-10 10:12:03.964   630   681 W ActivityTaskManager: Launch timeout has expired, giving up wake lock!
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.987   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.988   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.988   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.988   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.988   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.988   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.990   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.990   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.990   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.991   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.991   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.992   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.992   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.992   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.992   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.992   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.992   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:03.992   630   681 W IPCThreadState: Sending oneway calls to frozen process.
+10-10 10:12:04.073  1283  1293 W System  : A resource failed to call release. 
+10-10 10:12:04.075  1283  1293 W System  : A resource failed to call release. 
+10-10 10:12:04.075  1283  1293 W System  : A resource failed to call release. 
+10-10 10:12:04.076  1283  1293 W System  : A resource failed to call release. 

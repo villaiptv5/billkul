@@ -1,0 +1,74 @@
+Performing Streamed Install
+Success
+14 Physical size: 1080x2400
+   another app was not responding; tapped Wait
+the app did not come to the front; trying again: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+   another app was not responding; tapped Wait
+the app did not come to the front; trying again: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+   another app was not responding; tapped Wait
+the app did not come to the front; trying again: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+   another app was not responding; tapped Wait
+the app did not come to the front; trying again: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+saved 01-signin-en.png
+saved 02-signin-ur.png
+   another app was not responding; tapped Wait
+saved 03-signin-number.png
+   another app was not responding; tapped Wait
+saved 04-signin-code.png
+saved 05-set-password.png
+   another app was not responding; tapped Wait
+   another app was not responding; tapped Wait
+   another app was not responding; tapped Wait
+!! not found: setpw-new
+saved 06-setup-ur.png
+   another app was not responding; tapped Wait
+!! not found: setup-skip
+   another app was not responding; tapped Wait
+   another app was not responding; tapped Wait
+   another app was not responding; tapped Wait
+!! not found: setup-skip
+saved 07-home.png
+   another app was not responding; tapped Wait
+!! could not get back to the tabs: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+!! not found: tab-Documents
+saved 08-empty-documents-quotes.png
+!! not found: tab-invoices
+saved 09-empty-documents-invoices.png
+!! not found: tab-Cash
+saved 10-empty-cash.png
+!! not found: cash-print
+!! not found: money-in
+!! not found: tab-Home
+!! not found: new-invoice
+!! could not get back to the tabs: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+!! not found: tab-Home
+saved 11-home-data.png
+!! not found: tab-Documents
+saved 12-documents-quotes.png
+!! not found: tab-invoices
+saved 13-documents-invoices.png
+!! not found: tab-Cash
+saved 14-cash.png
+!! not found: money-out
+!! could not get back to the tabs: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+saved 15-cash-entries.png
+!! not found: cash-expenses
+saved 16-cash-expenses.png
+!! not found: cash-print
+!! could not get back to the tabs: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+!! not found: tab-Customers
+saved 17-customers.png
+!! not found: tab-Items
+saved 18-items.png
+!! not found: tab-Home
+!! not found: home-due
+!! could not get back to the tabs: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+!! not found: home-profit
+!! could not get back to the tabs: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+!! not found: tab-Home
+!! not found: open-menu
+!! could not get back to the tabs: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+!! not found: tab-Home
+!! not found: open-menu
+!! could not get back to the tabs: mCurrentFocus=Window{ccde8b2 u0 com.google.android.apps.nexuslauncher/com.google.android.apps.nexuslauncher.NexusLauncherActivity}
+done

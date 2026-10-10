@@ -1,0 +1,70 @@
+Performing Streamed Install
+Success
+15 Physical size: 1080x2400
+saved 01-signin-en.png
+saved 02-signin-ur.png
+saved 03-signin-number.png
+saved 04-signin-code.png
+saved 05-set-password.png
+saved 06-setup-ur.png
+!! not found: setup-skip
+saved 07-home.png
+saved 08-drive-offer.png
+saved 09-drive-google.png
+after choosing a Google account: mCurrentFocus=Window{f84589f u0 com.google.android.gms/com.google.android.gms.auth.uiflows.minutemaid.MinuteMaidActivity}
+saved 10-drive-after.png
+saved 11-empty-documents-quotes.png
+saved 12-empty-documents-invoices.png
+saved 13-empty-cash.png
+saved 14-empty-cash-report.png
+saved 15-empty-cash-report-both.png
+report screen: mCurrentFocus=Window{7c496ab u0 com.billkul.app/com.billkul.app.MainActivity}
+!! not found: sheet-close
+saved 16-empty-cash-form.png
+saved 17-editor-empty.png
+saved 18-new-item.png
+saved 19-editor.png
+saved 20-hold.png
+saved 21-editor-after-hold.png
+saved 22-home-on-hold.png
+saved 23-complete.png
+saved 24-preview.png
+preview: 95 controls read in 1.9s; mCurrentFocus=Window{7c496ab u0 com.billkul.app/com.billkul.app.MainActivity}
+saved 25-receipt.png
+saved 26-receipt-58.png
+after send-image: mCurrentFocus=Window{877a6cb u0 com.android.intentresolver/com.android.intentresolver.ChooserActivityLauncher}
+shared picture: /data/data/com.billkul.app/cache/Invoice INV-00014835489769725312116.png
+saved 27-preview-paid.png
+!! not found: sheet-close
+saved 28-home-data.png
+saved 29-documents-quotes.png
+saved 30-documents-invoices.png
+saved 31-cash.png
+saved 32-cash-form.png
+!! not found: cash-save
+saved 33-cash-entries.png
+saved 34-cash-expenses.png
+saved 35-cash-report.png
+saved 36-cash-report-out.png
+!! not found: sheet-close
+saved 37-customers.png
+saved 38-items.png
+saved 39-due.png
+!! not found: sheet-close
+saved 40-sales.png
+saved 41-sales-day.png
+PHONE BACK BUTTON returns to day by day: True
+saved 42-sales-calendar.png
+saved 43-sales-calendar-prev.png
+saved 44-sales-calendar-months.png
+saved 45-sales-print.png
+!! not found: sheet-close
+saved 46-menu.png
+saved 47-menu-sales.png
+!! not found: sheet-close
+saved 48-settings.png
+PHONE BACK BUTTON leaves Settings: True mCurrentFocus=Window{7c496ab u0 com.billkul.app/com.billkul.app.MainActivity}
+saved 49-settings-lower.png
+!! not found: account-change-number
+!! not found: sheet-close
+done
