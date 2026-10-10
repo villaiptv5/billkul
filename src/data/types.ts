@@ -1,7 +1,8 @@
 export type Lang = 'en' | 'ur';
 export type DocType = 'quote' | 'invoice';
 // Quotes move draft -> sent -> accepted. Invoices move draft -> due -> paid.
-export type DocStatus = 'draft' | 'sent' | 'accepted' | 'due' | 'paid';
+/** 'rejected' is a quote the customer turned down; 'cancelled' is an invoice that was called off with it. Neither counts in any total. */
+export type DocStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'due' | 'paid' | 'cancelled';
 export type TemplateId = 'classic' | 'simple';
 /** Roll width of a thermal (POS) receipt printer: 80 mm or 58 mm. */
 export type ReceiptPaper = 'r80' | 'r58';

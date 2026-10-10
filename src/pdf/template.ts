@@ -157,10 +157,18 @@ export function buildDocHtml({ doc, settings, lang, template }: DocHtmlInput): s
     .join('\n');
 
   // A paid invoice carries a green PAID stamp with the day it was paid; an issued, unpaid one a red UNPAID stamp with its date.
+  // A quote shows ACCEPTED (green) or REJECTED (red); a cancelled invoice shows CANCELLED.
+  const stamp = (key: 'acceptedStamp' | 'rejectedStamp' | 'cancelledStamp', red: boolean) => `<div><span class="paid${red ? ' unpaid' : ''} display">${escapeHtml(t(key))}</span></div>`;
   const paid =
     doc.type !== 'invoice'
-      ? ''
-      : doc.status === 'paid'
+      ? doc.status === 'accepted'
+        ? stamp('acceptedStamp', false)
+        : doc.status === 'rejected'
+          ? stamp('rejectedStamp', true)
+          : ''
+      : doc.status === 'cancelled'
+        ? stamp('cancelledStamp', true)
+        : doc.status === 'paid'
         ? `<div><span class="paid display">${escapeHtml(t('paidStamp'))}${doc.paidOn ? `<small>${escapeHtml(formatDate(doc.paidOn, lang))}</small>` : ''}</span></div>`
         : doc.status === 'due'
           ? `<div><span class="paid unpaid display">${escapeHtml(t('unpaidStamp'))}<small>${escapeHtml(formatDate(doc.date, lang))}</small></span></div>`

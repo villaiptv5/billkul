@@ -205,3 +205,48 @@ describe('completing and holding', () => {
     expect(store.getState().docs.find((d) => d.id === a.id)?.heldAt).toBeUndefined();
   });
 });
+
+describe('rejecting quotes', () => {
+  const line = { id: 'l', itemId: '', name: 'Tiles', unit: '', qty: 1, price: 30000 };
+  const make = () => {
+    const q = store.createDoc('quote', '2026-10-09');
+    store.saveDoc({ ...q, lines: [line] });
+    store.markSent(q.id);
+    return q.id;
+  };
+  const get = (id: string) => store.getState().docs.find((d) => d.id === id)!;
+
+  it('rejects a sent quote', () => {
+    const id = make();
+    expect(store.rejectQuote(id)).toBeNull();
+    expect(get(id).status).toBe('rejected');
+  });
+
+  it('cancels the unpaid invoice made from it, and a new one can be made later', () => {
+    const id = make();
+    const inv = store.convertToInvoice(id, '2026-10-09')!;
+    expect(store.rejectQuote(id)).toBeNull();
+    expect(get(inv.id).status).toBe('cancelled');
+    const again = store.convertToInvoice(id, '2026-10-10')!;
+    expect(again.id).not.toBe(inv.id);
+    expect(get(id)).toMatchObject({ status: 'accepted', invoiceId: again.id });
+  });
+
+  it('will not reject while the invoice from it is paid', () => {
+    const id = make();
+    const inv = store.convertToInvoice(id, '2026-10-09')!;
+    store.markPaid(inv.id, '2026-10-09');
+    expect(store.rejectQuote(id)?.id).toBe(inv.id);
+    expect(get(id).status).toBe('accepted');
+  });
+
+  it('leaves rejected and cancelled out of the dashboard figures', async () => {
+    const { monthStats } = await import('../src/logic/stats');
+    const id = make();
+    store.convertToInvoice(id, '2026-10-09');
+    const before = monthStats(store.getState().docs, '2026-10-09');
+    expect(before).toMatchObject({ quoted: 30000, invoiced: 30000, due: 30000 });
+    store.rejectQuote(id);
+    expect(monthStats(store.getState().docs, '2026-10-09')).toMatchObject({ quoted: 0, invoiced: 0, due: 0 });
+  });
+});

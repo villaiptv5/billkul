@@ -113,7 +113,7 @@ export interface StatementInput {
 /** A customer's statement: every invoice issued to them, what is paid, and what is still due. */
 export function buildStatementHtml({ customer, summary, date, settings, lang }: StatementInput): string {
   const t = (key: StringKey, vars?: Vars) => translate(lang, key, vars);
-  const issued = summary.invoices.filter((d) => d.status !== 'draft').sort((a, b) => a.date.localeCompare(b.date) || a.seq - b.seq);
+  const issued = summary.invoices.filter((d) => d.status !== 'draft' && d.status !== 'cancelled').sort((a, b) => a.date.localeCompare(b.date) || a.seq - b.seq);
 
   const rows = issued
     .map((doc) => {

@@ -133,7 +133,7 @@ These go in Play Console under "App content". They changed when sign-in was adde
 |---|---|
 | App access | "All or some functionality is restricted". Give a test number and its fixed code, added first on the admin page under "Test numbers", so the reviewer can sign in. |
 | Data safety: does the app collect data | Yes |
-| Data collected | Phone number (account management, app functionality). App interactions: counts of documents and cash book entries made (app functionality). Device or other IDs: a one-way fingerprint of the app's Android ID, so the free allowance follows the phone (app functionality, fraud prevention). All encrypted in transit; not shared; the user can ask for deletion in the app. |
+| Data collected | Phone number (account management, app functionality). App interactions: counts of documents and cash book entries made (app functionality). Device or other IDs: a one-way fingerprint of the app's Android ID, so the free allowance follows the phone (app functionality, fraud prevention). Pro only, optional: the shop's own records (customers' names and phone numbers, items, quotations, invoices, cash book) are kept on our server to sync the user's phone and computer: declare under Personal info (name, phone number of customers) and Financial info (purchase history), purpose App functionality, deletable with the account. All encrypted in transit; not shared; the user can ask for deletion in the app. |
 | Data shared with others | No |
 | Data encrypted in transit | Yes |
 | Can users ask for data to be deleted | Yes. In the app: Settings, "Delete my account". |

@@ -15,6 +15,8 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 
 export const ERRORS: Record<ApiError, StringKey> = {
+  not_pro: 'errOffline',
+  too_large: 'errOffline',
   bad_phone: 'errBadPhone',
   same_phone: 'errSamePhone',
   number_taken: 'errNumberTaken',

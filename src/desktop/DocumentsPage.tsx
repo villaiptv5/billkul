@@ -17,13 +17,14 @@ import { T } from '../ui/T';
 import { PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
 import { useDesk } from './route';
 import { useLimits } from '../screens/limits';
+import { liveInvoiceOf, useRejectQuote } from '../screens/finish';
 
 const FILTERS: Record<DocType, DocStatus[]> = {
-  quote: ['draft', 'sent', 'accepted'],
+  quote: ['draft', 'sent', 'accepted', 'rejected'],
   invoice: ['draft', 'due', 'paid'],
 };
 
-const COLS: Col[] = [{ width: 110 }, { flex: 1 }, { width: 110 }, { width: 140, end: true }, { width: 110 }, { width: 250, end: true }];
+const COLS: Col[] = [{ width: 110 }, { flex: 1 }, { width: 110 }, { width: 140, end: true }, { width: 110 }, { width: 290, end: true }];
 // On a narrower window the date column is left out.
 const SNUG_COLS = COLS.filter((_, i) => i !== 2);
 
@@ -51,8 +52,9 @@ export function DocumentsPage({ type, onNew }: { type: DocType; onNew: (type: Do
   };
 
   const limits = useLimits();
+  const reject = useRejectQuote();
   const convert = (quote: Doc) => {
-    if (!quote.invoiceId && !limits.allowDoc()) return;
+    if (!liveInvoiceOf(docs, quote) && !limits.allowDoc()) return;
     const invoice = store.convertToInvoice(quote.id);
     if (invoice) go({ page: 'editor', docId: invoice.id });
   };
@@ -64,13 +66,21 @@ export function DocumentsPage({ type, onNew }: { type: DocType; onNew: (type: Do
   const action = (doc: Doc) => {
     if (doc.status === 'draft') return null;
     if (doc.type === 'quote') {
-      const invoice = doc.invoiceId ? docs.find((d) => d.id === doc.invoiceId) : undefined;
+      const invoice = liveInvoiceOf(docs, doc);
+      const rejectButton = doc.status === 'sent' || doc.status === 'accepted' ? <IconButton icon="close" label={`${t('rejectQuote')} ${doc.number}`} color={C.danger} onPress={() => void reject(doc)} testID={`reject-${doc.number}`} /> : null;
       return invoice ? (
-        <Button label={invoice.number} variant="ghost" size="sm" onPress={() => go({ page: 'editor', docId: invoice.id })} />
+        <>
+          <Button label={invoice.number} variant="ghost" size="sm" onPress={() => go({ page: 'editor', docId: invoice.id })} />
+          {rejectButton}
+        </>
       ) : (
-        <Button label={t('convertToInvoice')} size="sm" onPress={() => convert(doc)} testID={`convert-${doc.number}`} />
+        <>
+          <Button label={t('convertToInvoice')} size="sm" onPress={() => convert(doc)} testID={`convert-${doc.number}`} />
+          {rejectButton}
+        </>
       );
     }
+    if (doc.status === 'cancelled') return <T size={13.5} color={C.muted}>{t('stCancelled')}</T>;
     return <PaidLine doc={doc} />;
   };
 

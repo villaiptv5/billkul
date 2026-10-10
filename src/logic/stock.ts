@@ -3,7 +3,7 @@ import { round2 } from './money';
 
 /** An invoice takes stock once it has gone to the customer. Drafts and quotes never do. */
 function takesStock(doc: Doc): boolean {
-  return doc.type === 'invoice' && doc.status !== 'draft';
+  return doc.type === 'invoice' && doc.status !== 'draft' && doc.status !== 'cancelled';
 }
 
 /** How many of each tracked item are in stock: what was put in, less what the invoices sold. */

@@ -71,6 +71,17 @@ export interface SetupInput {
   logo: string;
 }
 
+export type SyncKind = 'settings' | 'doc' | 'customer' | 'item' | 'cash' | 'stock';
+export interface SyncRecord {
+  kind: SyncKind;
+  id: string;
+  /** null when the record was deleted. */
+  body: unknown;
+}
+
+/** The shop settings every device shares. Language, set-up and backup details belong to each device. */
+const SHARED_SETTINGS: (keyof Settings)[] = ['businessType', 'shopName', 'phone', 'address', 'logo', 'currency', 'taxLabel', 'taxPercent', 'quotePrefix', 'invoicePrefix', 'nextQuote', 'nextInvoice', 'template', 'receiptPaper', 'footerNote'];
+
 export const BACKUP_APP = 'billkul';
 export const BACKUP_VERSION = 2;
 
@@ -167,8 +178,9 @@ export function createStore(kv: KV) {
     updateSettings({ ...input, shopName: input.shopName.trim(), phone: input.phone.trim(), setupDone: true });
     if (withSampleItems && state.items.length === 0) {
       const now = new Date().toISOString();
-      const items = SAMPLE_ITEMS[input.businessType][input.language].map((s) => ({
-        id: uid(),
+      // Fixed ids, so the same sample items made on a phone and on a PC are one list once they sync.
+      const items = SAMPLE_ITEMS[input.businessType][input.language].map((s, i) => ({
+        id: `seed-${input.businessType}-${input.language}-${i}`,
         name: s.name,
         unit: s.unit,
         price: 0,
@@ -473,12 +485,27 @@ export function createStore(kv: KV) {
     if (doc && doc.type === 'invoice' && doc.status === 'paid') patchDoc(id, { status: 'due', paidOn: '' });
   }
 
-  /** One tap from quote to invoice. Asking twice returns the invoice already made. */
+  /**
+   * The customer turned the quote down. Its invoice, if one was made and not paid, is cancelled with it,
+   * so neither counts in any total or takes stock. A paid invoice must be marked unpaid first: that
+   * money came in. Returns the paid invoice in the way, or null when the quote was rejected.
+   */
+  function rejectQuote(id: string): Doc | null {
+    const quote = state.docs.find((d) => d.id === id);
+    if (!quote || quote.type !== 'quote') return null;
+    const invoice = quote.invoiceId ? state.docs.find((d) => d.id === quote.invoiceId) : undefined;
+    if (invoice && invoice.status === 'paid') return invoice;
+    if (invoice && invoice.status !== 'cancelled') patchDoc(invoice.id, { status: 'cancelled', heldAt: undefined });
+    patchDoc(id, { status: 'rejected', issuedAt: quote.issuedAt ?? new Date().toISOString() });
+    return null;
+  }
+
+  /** One tap from quote to invoice. Asking twice returns the invoice already made, unless it was cancelled. */
   function convertToInvoice(quoteId: string, today: string = isoDate()): Doc | undefined {
     const quote = state.docs.find((d) => d.id === quoteId);
     if (!quote || quote.type !== 'quote') return undefined;
     const existing = quote.invoiceId ? state.docs.find((d) => d.id === quote.invoiceId) : undefined;
-    if (existing) return existing;
+    if (existing && existing.status !== 'cancelled') return existing;
     const blank = createDoc('invoice', today);
     const invoice = saveDoc({
       ...blank,
@@ -543,8 +570,76 @@ export function createStore(kv: KV) {
     return true;
   }
 
+  // ---- sync between devices (Pro) ----
+
+  /** Every record that syncs, by key "kind:id". The shop settings are one record; device-only settings stay out. */
+  function syncRecords(): Map<string, SyncRecord> {
+    const out = new Map<string, SyncRecord>();
+    const shop: Record<string, unknown> = {};
+    for (const key of SHARED_SETTINGS) shop[key] = state.settings[key];
+    out.set('settings:shop', { kind: 'settings', id: 'shop', body: shop });
+    for (const d of state.docs) out.set(`doc:${d.id}`, { kind: 'doc', id: d.id, body: d });
+    for (const c of state.customers) out.set(`customer:${c.id}`, { kind: 'customer', id: c.id, body: c });
+    for (const i of state.items) out.set(`item:${i.id}`, { kind: 'item', id: i.id, body: i });
+    for (const e of state.cash) out.set(`cash:${e.id}`, { kind: 'cash', id: e.id, body: e });
+    for (const m of state.stockMoves) out.set(`stock:${m.id}`, { kind: 'stock', id: m.id, body: m });
+    return out;
+  }
+
+  /**
+   * Takes in records from the other devices: added, changed or deleted (body null). Document numbers
+   * never go backwards, so two devices do not hand out the same number twice in a row.
+   */
+  function applySyncRecords(records: SyncRecord[]) {
+    if (!records.length) return;
+    let { settings, customers, items, docs, cash, stockMoves } = state;
+    const upsert = <T extends { id: string }>(list: T[], id: string, body: T | null): T[] => {
+      const rest = list.filter((x) => x.id !== id);
+      if (!body) return rest;
+      const at = list.findIndex((x) => x.id === id);
+      if (at < 0) return [...list, body];
+      const copy = [...list];
+      copy[at] = body;
+      return copy;
+    };
+    const touched = new Set<string>();
+    for (const r of records) {
+      touched.add(r.kind);
+      if (r.kind === 'settings') {
+        if (!r.body) continue;
+        const remote = r.body as Partial<Settings>;
+        const shared: Partial<Settings> = {};
+        for (const key of SHARED_SETTINGS) if (remote[key] !== undefined) (shared as Record<string, unknown>)[key] = remote[key];
+        settings = {
+          ...settings,
+          ...shared,
+          nextQuote: Math.max(settings.nextQuote, Number(remote.nextQuote) || 1),
+          nextInvoice: Math.max(settings.nextInvoice, Number(remote.nextInvoice) || 1),
+          setupDone: true,
+        };
+      } else if (r.kind === 'doc') {
+        const old = docs.find((d) => d.id === r.id);
+        if (r.body) persistDoc(r.body as Doc);
+        else if (old) kv.removeItem(K.doc(r.id));
+        docs = upsert(docs, r.id, r.body as Doc | null);
+      } else if (r.kind === 'customer') customers = upsert(customers, r.id, r.body as Customer | null);
+      else if (r.kind === 'item') items = upsert(items, r.id, r.body ? normalItem(r.body as Item) : null);
+      else if (r.kind === 'cash') cash = upsert(cash, r.id, r.body as CashEntry | null);
+      else if (r.kind === 'stock') stockMoves = upsert(stockMoves, r.id, r.body as StockMove | null);
+    }
+    if (touched.has('settings')) persistSettings(settings);
+    if (touched.has('doc')) persistDocIndex(docs);
+    if (touched.has('customer')) kv.setItem(K.customers, JSON.stringify(customers));
+    if (touched.has('item')) kv.setItem(K.items, JSON.stringify(items));
+    if (touched.has('cash')) kv.setItem(K.cash, JSON.stringify(cash));
+    if (touched.has('stock')) kv.setItem(K.stock, JSON.stringify(stockMoves));
+    set({ settings, customers, items, docs, cash, stockMoves });
+  }
+
   return {
     getState: () => state,
+    syncRecords,
+    applySyncRecords,
     subscribe(fn: () => void) {
       listeners.add(fn);
       return () => void listeners.delete(fn);
@@ -568,6 +663,7 @@ export function createStore(kv: KV) {
     deleteDoc,
     discardIfEmpty,
     markSent,
+    rejectQuote,
     completeDoc,
     holdDoc,
     markAccepted,

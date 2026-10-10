@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { store, useAppState } from '../data/app';
 import { sortDocs } from '../data/store';
-import type { DocType } from '../data/types';
+import type { CashEntry, CashKind, DocType } from '../data/types';
 import { formatDayInline, formatMonth, formatTime, isoDate } from '../logic/dates';
 import { formatAmount } from '../logic/money';
 import { monthStats } from '../logic/stats';
@@ -16,9 +16,9 @@ import { Icon } from '../ui/Icon';
 import { Card, Empty } from '../ui/kit';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
-import { useCashBook, useStock } from './books';
+import { CashEntrySheet, useCashBook, useStock } from './books';
 import { HeldList } from './finish';
-import { ReceivedSheet } from './received';
+import { CashMonthSheet } from './cashMonth';
 import { useMonthSales } from './sales';
 import { DocRow, openDoc } from './shared';
 import { PlanNotice, useLimits } from './limits';
@@ -52,7 +52,7 @@ export function HomeScreen() {
   const nav = useNavigation<RootNav>();
   const insets = useSafeAreaInsets();
   const { t, lang, rtl } = useLocale();
-  const { settings, docs } = useAppState();
+  const { settings, docs, cash } = useAppState();
   const today = isoDate();
   const focused = useIsFocused();
   const stats = useMemo(() => monthStats(docs, today), [docs, today]);
@@ -61,7 +61,8 @@ export function HomeScreen() {
   const { low } = useStock();
   const sales = useMonthSales();
 
-  const [showReceived, setShowReceived] = useState(false);
+  const [monthSide, setMonthSide] = useState<CashKind | null>(null);
+  const [entry, setEntry] = useState<CashEntry | null>(null);
   const limits = useLimits();
   const create = (type: DocType) => {
     if (!limits.allowDoc()) return;
@@ -110,12 +111,13 @@ export function HomeScreen() {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             <Stat label={t('quoted')} value={stats.quoted} symbol={settings.currency.symbol} onPress={() => nav.navigate('Tabs', { screen: 'Documents', params: { type: 'quote' } })} testID="home-quoted" />
             <Stat label={t('invoiced')} value={stats.invoiced} symbol={settings.currency.symbol} onPress={() => nav.navigate('Tabs', { screen: 'Documents', params: { type: 'invoice' } })} testID="home-invoiced" />
-            <Stat label={t('received')} value={stats.received} symbol={settings.currency.symbol} color={C.green} onPress={() => setShowReceived(true)} testID="home-received" />
+            <Stat label={t('inThisMonth')} value={book.month.in} symbol={settings.currency.symbol} color={C.green} onPress={() => setMonthSide('in')} testID="home-month-in" />
+            <Stat label={t('outThisMonth')} value={book.month.out} symbol={settings.currency.symbol} color={C.orangeOnInk} onPress={() => setMonthSide('out')} testID="home-month-out" />
             <Stat label={t('due')} value={stats.due} symbol={settings.currency.symbol} color={C.orangeOnInk} onPress={() => nav.navigate('Due')} testID="home-due" />
+            <Stat label={t('cashInHand')} value={book.inHand} symbol={settings.currency.symbol} color={book.inHand < 0 ? C.orangeOnInk : C.onInk} onPress={() => nav.navigate('Tabs', { screen: 'Cash' })} testID="home-cash" />
           </View>
 
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Stat label={t('cashInHand')} value={book.inHand} symbol={settings.currency.symbol} color={book.inHand < 0 ? C.orangeOnInk : C.onInk} onPress={() => nav.navigate('Tabs', { screen: 'Cash' })} testID="home-cash" />
             <Stat label={t(sales.profit < 0 ? 'lossOnSales' : 'profitOnSales')} value={Math.round(Math.abs(sales.profit))} symbol={settings.currency.symbol} color={sales.profit < 0 ? C.orangeOnInk : C.green} onPress={() => nav.navigate('Sales')} testID="home-profit" />
           </View>
         </View>
@@ -167,14 +169,18 @@ export function HomeScreen() {
           </Card>
         </View>
       </ScrollView>
-      <ReceivedSheet
-        visible={showReceived}
-        onClose={() => setShowReceived(false)}
-        onOpen={(doc) => {
-          setShowReceived(false);
-          nav.navigate('Preview', { docId: doc.id });
+      <CashMonthSheet
+        kind={monthSide}
+        onClose={() => setMonthSide(null)}
+        onOpen={(row) => {
+          setMonthSide(null);
+          if (row.source === 'invoice') return nav.navigate('Preview', { docId: row.refId });
+          if (row.source === 'stock') return nav.navigate('ItemEdit', { id: row.refId });
+          const found = cash.find((e) => e.id === row.refId);
+          if (found) setEntry(found);
         }}
       />
+      <CashEntrySheet visible={!!entry} onClose={() => setEntry(null)} kind={entry?.kind ?? 'in'} entry={entry ?? undefined} />
     </View>
   );
 }

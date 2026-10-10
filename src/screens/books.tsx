@@ -22,7 +22,8 @@ export function useCashBook() {
   const { cash, docs, stockMoves, items } = useAppState();
   return useMemo(() => {
     const rows = cashRows({ cash, docs, stockMoves, items });
-    return { rows, inHand: cashInHand(rows), month: monthCash(rows, monthKey(isoDate())) };
+    const out = rows.reduce((sum, r) => (r.kind === 'out' ? sum + r.amount : sum), 0);
+    return { rows, inHand: cashInHand(rows), out: round2(out), month: monthCash(rows, monthKey(isoDate())) };
   }, [cash, docs, stockMoves, items]);
 }
 
@@ -279,7 +280,7 @@ export function lineStockNote(doc: Doc, line: DocLine, items: Item[], levels: Ma
   const item = items.find((i) => i.id === line.itemId);
   if (!item || !item.trackStock) return null;
   // An issued invoice has already taken its own lines out of the count, so they are put back first.
-  const taken = doc.type === 'invoice' && doc.status !== 'draft' ? doc.lines.filter((l) => l.itemId === item.id).reduce((sum, l) => sum + l.qty, 0) : 0;
+  const taken = doc.type === 'invoice' && doc.status !== 'draft' && doc.status !== 'cancelled' ? doc.lines.filter((l) => l.itemId === item.id).reduce((sum, l) => sum + l.qty, 0) : 0;
   const available = (levels.get(item.id) ?? 0) + taken;
   const wanted = doc.lines.filter((l) => l.itemId === item.id).reduce((sum, l) => sum + l.qty, 0);
   if (wanted > available) return { text: available > 0 ? t('onlyInStock', { n: formatAmount(available) }) : t('outOfStock'), warn: true };
