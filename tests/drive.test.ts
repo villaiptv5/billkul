@@ -56,6 +56,11 @@ function fakeDrive(opts: { expireFirstToken?: boolean } = {}) {
     }
     const id = decodeURIComponent(url.pathname.split('/').pop() ?? '');
     const file = files.find((f) => f.id === id && !f.trashed);
+    if (method === 'PATCH' && url.pathname.startsWith('/drive/v3/files/')) {
+      if (!file) return reply(404);
+      if (JSON.parse(String(init.body)).trashed) file.trashed = true;
+      return reply(200, { id });
+    }
     if (method === 'PATCH') {
       if (!file) return reply(404);
       file.body = String(init.body);
@@ -103,6 +108,34 @@ describe('backup on Google Drive', () => {
     const again = await saveToDrive(drive.deps, '{"v":2}', id);
     expect(again).not.toBe(id);
     expect(drive.files.filter((f) => f.mimeType.includes('folder'))).toHaveLength(1);
+  });
+  it('writes over the one file already there when this phone or PC has not saved before', async () => {
+    const drive = fakeDrive();
+    const id = await saveToDrive(drive.deps, '{"phone":1}');
+    // A PC, a new install, or the account chosen again: no file id kept on this device.
+    expect(await saveToDrive(drive.deps, '{"pc":1}')).toBe(id);
+    expect(await saveToDrive(drive.deps, '{"pc":2}', '')).toBe(id);
+    expect(drive.files.filter((f) => f.name === BACKUP_NAME)).toHaveLength(1);
+    expect(drive.files.find((f) => f.id === id)!.body).toBe('{"pc":2}');
+  });
+  it('moves extra copies left by older versions to the bin and keeps the one this device uses', async () => {
+    const drive = fakeDrive();
+    const first = await saveToDrive(drive.deps, '{"v":1}');
+    // Older versions made a new file each time.
+    const copies = ['{"v":2}', '{"v":3}', '{"v":4}'].map((body, i) => {
+      const file = { ...drive.files.find((f) => f.id === first)!, id: `old${i}`, body, modifiedTime: `2026-10-1${i}T00:00:00.000Z` };
+      drive.files.push(file);
+      return file;
+    });
+    expect(await saveToDrive(drive.deps, '{"v":5}', first)).toBe(first);
+    expect(drive.files.filter((f) => f.name === BACKUP_NAME && !f.trashed).map((f) => f.id)).toEqual([first]);
+    expect(copies.every((f) => f.trashed)).toBe(true);
+    // Without a kept id, the newest copy is the one written over.
+    const other = fakeDrive();
+    await saveToDrive(other.deps, '{"v":1}');
+    other.files.push({ ...other.files[1], id: 'newer', modifiedTime: '2027-01-01T00:00:00.000Z' });
+    expect(await saveToDrive(other.deps, '{"v":2}')).toBe('newer');
+    expect(other.files.filter((f) => f.name === BACKUP_NAME && !f.trashed)).toHaveLength(1);
   });
   it('finds the newest backup and reads it back', async () => {
     const drive = fakeDrive();
