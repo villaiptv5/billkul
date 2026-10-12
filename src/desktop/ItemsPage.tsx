@@ -12,6 +12,7 @@ import { useDeskSize } from '../ui/layout';
 import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { ItemDialog, PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
+import { usePaged } from '../ui/paged';
 
 const COLS: Col[] = [{ flex: 1 }, { width: 100 }, { width: 170 }, { width: 124, end: true }, { width: 124, end: true }, { width: 44 }];
 // On a narrower window the unit column is left out.
@@ -36,6 +37,7 @@ export function ItemsPage() {
     const sorted = lowOnly ? low : [...items].sort((a, b) => a.name.localeCompare(b.name));
     return q ? sorted.filter((i) => i.name.toLowerCase().includes(q)) : sorted;
   }, [items, query, lowOnly, low]);
+  const paged = usePaged(list, 100, `${query}|${lowOnly}`);
 
   return (
     <View style={{ gap: 20 }}>
@@ -60,13 +62,13 @@ export function ItemsPage() {
         {list.length ? (
           <>
             <TableHead cols={cols} labels={pick([t('itemName'), t('unit'), t('stock'), t('purchasePrice'), t('salePrice'), ''])} />
-            {list.map((item, i) => {
+            {paged.rows.map((item, i) => {
               const stock = item.trackStock ? stockText(item, levels.get(item.id) ?? 0, t) : null;
               return (
                 <TableRow
                   key={item.id}
                   cols={cols}
-                  last={i === list.length - 1}
+                  last={i === paged.rows.length - 1}
                   cells={pick([
                     <Pressable accessibilityRole="button" onPress={() => setDialog({ item })} testID={`item-${item.name}`} style={{ alignSelf: 'stretch', minHeight: 40, justifyContent: 'center' }}>
                       <T size={14.5} w="semibold" numberOfLines={1}>{item.name}</T>
@@ -97,6 +99,7 @@ export function ItemsPage() {
           <Empty title={t('noItemsYet')} hint={t('noItemsHint')} />
         )}
       </Panel>
+      {paged.more ? <Button label={t('showMore')} variant="ghost" onPress={paged.more} testID="items-more" /> : null}
 
       <ItemDialog visible={!!dialog} item={dialog?.item} onClose={() => setDialog(null)} />
       <StockSheet visible={!!adding} mode="add" item={adding ?? undefined} onClose={() => setAdding(null)} />

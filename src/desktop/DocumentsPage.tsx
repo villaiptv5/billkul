@@ -17,6 +17,7 @@ import { T } from '../ui/T';
 import { PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
 import { useDesk } from './route';
 import { useLimits } from '../screens/limits';
+import { usePaged } from '../ui/paged';
 import { liveInvoiceOf, useRejectQuote } from '../screens/finish';
 
 const FILTERS: Record<DocType, DocStatus[]> = {
@@ -45,6 +46,7 @@ export function DocumentsPage({ type, onNew }: { type: DocType; onNew: (type: Do
       (d) => d.type === type && (status === 'all' || d.status === status) && (!q || d.customerName.toLowerCase().includes(q) || d.number.toLowerCase().includes(q)),
     );
   }, [docs, type, status, query]);
+  const paged = usePaged(list, 100, `${type}|${status}|${query}`);
 
   const changeType = (next: DocType) => {
     setStatus('all');
@@ -114,11 +116,11 @@ export function DocumentsPage({ type, onNew }: { type: DocType; onNew: (type: Do
       <Panel>
         <TableHead cols={cols} labels={pick([t('colNumber'), t('customer'), t('date'), t('colAmount'), t('colStatus'), ''])} />
         {list.length ? (
-          list.map((doc, i) => (
+          paged.rows.map((doc, i) => (
             <TableRow
               key={doc.id}
               cols={cols}
-              last={i === list.length - 1}
+              last={i === paged.rows.length - 1}
               onPress={() => go({ page: 'editor', docId: doc.id })}
               testID={`doc-${doc.number}`}
               cells={pick([
@@ -142,6 +144,7 @@ export function DocumentsPage({ type, onNew }: { type: DocType; onNew: (type: Do
           )
         )}
       </Panel>
+      {paged.more ? <Button label={t('showMore')} variant="ghost" onPress={paged.more} testID="docs-more" /> : null}
     </View>
   );
 }

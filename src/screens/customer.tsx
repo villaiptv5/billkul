@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { store, useAppState } from '../data/app';
@@ -118,6 +118,8 @@ export function CustomerScreen() {
   const { t } = useLocale();
   const customer = useAppState().customers.find((c) => c.id === id);
   const summary = useCustomerSummary(id);
+  // A walk-in customer can have thousands of bills: show 50 at a time.
+  const [shown, setShown] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (!customer) nav.goBack();
@@ -127,19 +129,23 @@ export function CustomerScreen() {
   const start = (type: DocType) => {
     if (limits.allowDoc()) nav.navigate('Editor', { docId: newDocFor(type, customer).id });
   };
-  const section = (title: string, docs: Doc[]) =>
-    docs.length ? (
+  const section = (title: string, docs: Doc[], key: string) => {
+    const limit = shown[key] ?? 50;
+    const rows = docs.length > limit ? docs.slice(0, limit) : docs;
+    return docs.length ? (
       <View style={{ gap: 6 }}>
         <T size={13} w="semibold" color={C.muted} style={{ paddingHorizontal: 4 }}>
           {title}
         </T>
         <Card>
-          {docs.map((doc, i) => (
-            <HistoryRow key={doc.id} doc={doc} last={i === docs.length - 1} onPress={() => openDoc(nav, doc)} />
+          {rows.map((doc, i) => (
+            <HistoryRow key={doc.id} doc={doc} last={i === rows.length - 1} onPress={() => openDoc(nav, doc)} />
           ))}
         </Card>
+        {docs.length > limit ? <Button label={t('showMore')} variant="ghost" onPress={() => setShown({ ...shown, [key]: limit + 50 })} testID={`${key}-more`} /> : null}
       </View>
     ) : null;
+  };
 
   return (
     <Screen>
@@ -172,8 +178,8 @@ export function CustomerScreen() {
           </Card>
         ) : (
           <>
-            {section(t('invoices'), summary.invoices)}
-            {section(t('quotes'), summary.quotes)}
+            {section(t('invoices'), summary.invoices, 'cust-invoices')}
+            {section(t('quotes'), summary.quotes, 'cust-quotes')}
           </>
         )}
       </ScrollView>

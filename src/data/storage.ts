@@ -1,3 +1,5 @@
+import { webKV } from './webKV';
+
 /** The small part of the localStorage API the app relies on. */
 export interface KV {
   getItem(key: string): string | null;
@@ -16,10 +18,13 @@ export function memoryKV(seed: Record<string, string> = {}): KV {
 
 /**
  * On the phone, `expo-sqlite/localStorage/install` (imported in index.ts) backs
- * `localStorage` with SQLite. In a browser it is the browser's own storage.
+ * `localStorage` with SQLite. In a browser it is the browser's database, read in by `loadWebKV`
+ * before the app starts (see src/boot.web.ts); localStorage only when the browser has none.
  * If storage is blocked, the app still runs from memory for the session.
  */
 export function deviceKV(): KV {
+  const pc = webKV();
+  if (pc) return pc;
   try {
     const ls = (globalThis as { localStorage?: KV }).localStorage;
     if (ls) {
