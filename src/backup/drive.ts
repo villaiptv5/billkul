@@ -72,16 +72,27 @@ async function backupsOnDrive(deps: DriveDeps): Promise<{ id: string; modifiedTi
   return found.files;
 }
 
+/**
+ * Sends the backup with Google's resumable upload: it has no 5 MB ceiling like the simple upload,
+ * which a busy shop's backup passes within months. First a request opens the upload and Google
+ * answers with where to send the file; then the whole file goes there in one request.
+ */
+async function upload(deps: DriveDeps, open: Response, backup: string): Promise<string> {
+  const target = open.headers.get('Location') ?? open.headers.get('location');
+  if (!target) throw new DriveError('failed');
+  const sent = await json<{ id: string }>(await call(deps, target, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: backup }));
+  return sent.id;
+}
+
+const START_HEADERS = { 'Content-Type': 'application/json; charset=UTF-8', 'X-Upload-Content-Type': 'application/json' };
+
 async function writeOver(deps: DriveDeps, id: string, backup: string): Promise<boolean> {
-  const updated = await call(deps, `${UPLOAD}/files/${encodeURIComponent(id)}?uploadType=media&fields=id`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: backup,
-  });
-  if (updated.ok) return true;
+  const open = await call(deps, `${UPLOAD}/files/${encodeURIComponent(id)}?uploadType=resumable&fields=id`, { method: 'PATCH', headers: START_HEADERS, body: '{}' });
   // Deleted or moved to the bin on the Drive in the meantime.
-  if (updated.status === 404 || updated.status === 403) return false;
-  throw new DriveError('failed');
+  if (open.status === 404 || open.status === 403) return false;
+  if (!open.ok) throw new DriveError('failed');
+  await upload(deps, open, backup);
+  return true;
 }
 
 /** Moves extra copies to the Drive's bin (kept there 30 days). A copy that will not move is left alone. */
@@ -112,15 +123,13 @@ export async function saveToDrive(deps: DriveDeps, backup: string, fileId = ''):
     }
   }
   const parent = await folderId(deps);
-  const boundary = `billkul${Date.now().toString(36)}`;
-  const body =
-    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n` +
-    JSON.stringify({ name: BACKUP_NAME, parents: [parent], mimeType: 'application/json' }) +
-    `\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${backup}\r\n--${boundary}--`;
-  const made = await json<{ id: string }>(
-    await call(deps, `${UPLOAD}/files?uploadType=multipart&fields=id`, { method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${boundary}` }, body }),
-  );
-  return made.id;
+  const open = await call(deps, `${UPLOAD}/files?uploadType=resumable&fields=id`, {
+    method: 'POST',
+    headers: START_HEADERS,
+    body: JSON.stringify({ name: BACKUP_NAME, parents: [parent], mimeType: 'application/json' }),
+  });
+  if (!open.ok) throw new DriveError('failed');
+  return upload(deps, open, backup);
 }
 
 export interface DriveBackup {

@@ -14,8 +14,10 @@ interface FakeFile {
 }
 
 /** A small stand-in for the Google Drive API: just the calls the backup makes. */
-function fakeDrive(opts: { expireFirstToken?: boolean } = {}) {
+function fakeDrive(opts: { expireFirstToken?: boolean; maxPut?: number } = {}) {
   const files: FakeFile[] = [];
+  const sessions = new Map<string, { meta?: { name: string; mimeType: string; parents: string[] }; id?: string }>();
+  const puts: number[] = [];
   const seen: string[] = [];
   let clock = 0;
   let tokens = 0;
@@ -27,7 +29,7 @@ function fakeDrive(opts: { expireFirstToken?: boolean } = {}) {
     const url = new URL(String(input));
     const method = init.method ?? 'GET';
     const auth = (init.headers as Record<string, string>)?.Authorization ?? '';
-    seen.push(`${method} ${url.pathname}`);
+    seen.push(`${method} ${url.pathname}${url.search}`);
     if (!auth.startsWith('Bearer ')) return reply(401);
     if (expired && auth === 'Bearer t1') return reply(401);
     if (method === 'GET' && url.pathname === '/drive/v3/files') {
@@ -45,26 +47,41 @@ function fakeDrive(opts: { expireFirstToken?: boolean } = {}) {
       files.push(file);
       return reply(200, { id: file.id });
     }
-    if (method === 'POST' && url.pathname === '/upload/drive/v3/files') {
+    // Resumable upload: opening returns a Location; the file body then goes there with PUT.
+    if (url.searchParams.get('uploadType') === 'resumable') {
+      if (url.pathname === '/upload/drive/v3/files' && method === 'POST') {
+        const meta = JSON.parse(String(init.body));
+        sessions.set(`s${sessions.size + 1}`, { meta });
+      } else if (method === 'PATCH') {
+        const id = decodeURIComponent(url.pathname.split('/').pop() ?? '');
+        if (!files.find((f) => f.id === id && !f.trashed)) return reply(404);
+        sessions.set(`s${sessions.size + 1}`, { id });
+      } else return reply(400);
+      return new Response('', { status: 200, headers: { Location: `https://www.googleapis.com/upload/session/s${sessions.size}` } });
+    }
+    if (method === 'PUT' && url.pathname.startsWith('/upload/session/')) {
+      const session = sessions.get(url.pathname.split('/').pop()!);
+      if (!session) return reply(404);
       const body = String(init.body);
-      const boundary = /boundary=(\S+)/.exec((init.headers as Record<string, string>)['Content-Type'])![1];
-      const parts = body.split(`--${boundary}`).slice(1, 3).map((p) => p.split('\r\n\r\n').slice(1).join('\r\n\r\n').replace(/\r\n$/, ''));
-      const meta = JSON.parse(parts[0]);
-      const file = { id: `id${files.length + 1}`, name: meta.name, mimeType: meta.mimeType, parents: meta.parents, body: parts[1], modifiedTime: stamp(), trashed: false };
+      if (body.length > (opts.maxPut ?? Infinity)) return reply(413);
+      puts.push(body.length);
+      if (session.id) {
+        const file = files.find((f) => f.id === session.id)!;
+        file.body = body;
+        file.modifiedTime = stamp();
+        return reply(200, { id: file.id });
+      }
+      const file = { id: `id${files.length + 1}`, name: session.meta!.name, mimeType: session.meta!.mimeType, parents: session.meta!.parents, body, modifiedTime: stamp(), trashed: false };
       files.push(file);
       return reply(200, { id: file.id });
     }
+    // The old simple and multipart uploads stop at 5 MB.
+    if (url.pathname.startsWith('/upload/') && String(init.body ?? '').length > 5 * 1024 * 1024) return reply(413);
     const id = decodeURIComponent(url.pathname.split('/').pop() ?? '');
     const file = files.find((f) => f.id === id && !f.trashed);
     if (method === 'PATCH' && url.pathname.startsWith('/drive/v3/files/')) {
       if (!file) return reply(404);
       if (JSON.parse(String(init.body)).trashed) file.trashed = true;
-      return reply(200, { id });
-    }
-    if (method === 'PATCH') {
-      if (!file) return reply(404);
-      file.body = String(init.body);
-      file.modifiedTime = stamp();
       return reply(200, { id });
     }
     if (method === 'GET' && url.searchParams.get('alt') === 'media') return file ? reply(200, file.body) : reply(404);
@@ -78,7 +95,7 @@ function fakeDrive(opts: { expireFirstToken?: boolean } = {}) {
     },
     fetch: fetchFn,
   };
-  return { files, seen, deps };
+  return { files, seen, deps, puts };
 }
 
 describe('backup on Google Drive', () => {
@@ -136,6 +153,15 @@ describe('backup on Google Drive', () => {
     other.files.push({ ...other.files[1], id: 'newer', modifiedTime: '2027-01-01T00:00:00.000Z' });
     expect(await saveToDrive(other.deps, '{"v":2}')).toBe('newer');
     expect(other.files.filter((f) => f.name === BACKUP_NAME && !f.trashed)).toHaveLength(1);
+  });
+  it('saves a big shop backup, far past the 5 MB the simple upload allows', async () => {
+    const drive = fakeDrive();
+    const big = JSON.stringify({ docs: 'x'.repeat(30 * 1024 * 1024) });
+    const id = await saveToDrive(drive.deps, big);
+    expect(drive.puts).toEqual([big.length]);
+    expect(await saveToDrive(drive.deps, big + ' ', id)).toBe(id);
+    expect(await readFromDrive(drive.deps, id)).toBe(big + ' ');
+    expect(drive.seen.some((c) => c.includes('uploadType=media') || c.includes('multipart'))).toBe(false);
   });
   it('finds the newest backup and reads it back', async () => {
     const drive = fakeDrive();

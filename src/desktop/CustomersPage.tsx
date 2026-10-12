@@ -13,6 +13,7 @@ import { useLocale } from '../ui/locale';
 import { T } from '../ui/T';
 import { CustomerDialog, PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
 import { useDesk } from './route';
+import { usePaged } from '../ui/paged';
 
 const COLS: Col[] = [{ flex: 1.6 }, { width: 170 }, { width: 140 }, { width: 170, end: true }];
 
@@ -23,6 +24,7 @@ export function CustomersPage() {
   const [query, setQuery] = useState('');
   const [dialog, setDialog] = useState<{ customer?: Customer } | null>(null);
   const list = useMemo(() => matchCustomers(customers, query), [customers, query]);
+  const paged = usePaged(list, 100, query);
 
   return (
     <View style={{ gap: 20 }}>
@@ -38,14 +40,14 @@ export function CustomersPage() {
         {list.length ? (
           <>
             <TableHead cols={COLS} labels={[t('name'), t('phone'), t('colDocuments'), t('due')]} />
-            {list.map((customer, i) => {
+            {paged.rows.map((customer, i) => {
               const due = customerDue(docs, customer.id);
               const count = customerDocCount(docs, customer.id);
               return (
                 <TableRow
                   key={customer.id}
                   cols={COLS}
-                  last={i === list.length - 1}
+                  last={i === paged.rows.length - 1}
                   onPress={() => go({ page: 'customer', id: customer.id })}
                   testID={`customer-${customer.name}`}
                   cells={[
@@ -71,6 +73,7 @@ export function CustomersPage() {
           <Empty title={query.trim() ? t('noMatch', { q: query.trim() }) : t('noCustomersYet')} />
         )}
       </Panel>
+      {paged.more ? <Button label={t('showMore')} variant="ghost" onPress={paged.more} testID="customers-more" /> : null}
 
       <CustomerDialog visible={!!dialog} customer={dialog?.customer} onClose={() => setDialog(null)} />
     </View>

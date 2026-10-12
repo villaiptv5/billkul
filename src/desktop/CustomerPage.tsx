@@ -51,6 +51,8 @@ export function CustomerPage({ id }: { id: string }) {
   const customer = customers.find((c) => c.id === id);
   const summary = useCustomerSummary(id);
   const [editing, setEditing] = useState(false);
+  // A walk-in customer can have thousands of bills: show 50 at a time.
+  const [shown, setShown] = useState<Record<string, number>>({});
   if (!customer) return null;
 
   const symbol = settings.currency.symbol;
@@ -61,6 +63,8 @@ export function CustomerPage({ id }: { id: string }) {
   const table = (title: string, docs: Doc[], testID: string) => {
     const invoices = docs === summary.invoices;
     const cols = invoices ? INVOICE_HISTORY : QUOTE_HISTORY;
+    const limit = shown[testID] ?? 50;
+    const rows = docs.length > limit ? docs.slice(0, limit) : docs;
     return (
     <View style={[{ gap: 10, minWidth: 0 }, snug ? null : { flex: 1 }]}>
       <T size={17} w="semibold" head accessibilityRole="header">
@@ -70,11 +74,11 @@ export function CustomerPage({ id }: { id: string }) {
         {docs.length ? (
           <>
             <TableHead cols={cols} labels={invoices ? [t('colNumber'), t('colStatus'), t('colAmount')] : [t('colNumber'), t('date'), t('colAmount'), t('colStatus')]} />
-            {docs.map((doc, i) => (
+            {rows.map((doc, i) => (
               <TableRow
                 key={doc.id}
                 cols={cols}
-                last={i === docs.length - 1}
+                last={i === rows.length - 1}
                 onPress={() => go({ page: 'editor', docId: doc.id })}
                 testID={`history-${doc.number}`}
                 cells={
@@ -98,6 +102,7 @@ export function CustomerPage({ id }: { id: string }) {
           <Empty title={t(invoices ? 'noInvoices' : 'noQuotes')} />
         )}
       </Panel>
+      {docs.length > limit ? <Button label={t('showMore')} variant="ghost" onPress={() => setShown({ ...shown, [testID]: limit + 50 })} testID={`${testID}-more`} /> : null}
     </View>
     );
   };

@@ -593,16 +593,26 @@ export function createStore(kv: KV) {
   function applySyncRecords(records: SyncRecord[]) {
     if (!records.length) return;
     let { settings, customers, items, docs, cash, stockMoves } = state;
-    const upsert = <T extends { id: string }>(list: T[], id: string, body: T | null): T[] => {
-      const rest = list.filter((x) => x.id !== id);
-      if (!body) return rest;
-      const at = list.findIndex((x) => x.id === id);
-      if (at < 0) return [...list, body];
-      const copy = [...list];
-      copy[at] = body;
-      return copy;
+    // Changes are gathered per list and applied in one pass, so a new PC taking in a shop with
+    // tens of thousands of records does not walk the whole list once for every record.
+    const changes = { doc: new Map<string, unknown>(), customer: new Map<string, unknown>(), item: new Map<string, unknown>(), cash: new Map<string, unknown>(), stock: new Map<string, unknown>() };
+    const apply = <T extends { id: string }>(list: T[], changed: Map<string, unknown>): T[] => {
+      if (!changed.size) return list;
+      const out: T[] = [];
+      const seen = new Set<string>();
+      for (const x of list) {
+        if (!changed.has(x.id)) out.push(x);
+        else {
+          seen.add(x.id);
+          const body = changed.get(x.id) as T | null;
+          if (body) out.push(body);
+        }
+      }
+      for (const [id, body] of changed) if (body && !seen.has(id)) out.push(body as T);
+      return out;
     };
     const touched = new Set<string>();
+    const docIds = new Set(docs.map((d) => d.id));
     for (const r of records) {
       touched.add(r.kind);
       if (r.kind === 'settings') {
@@ -618,15 +628,17 @@ export function createStore(kv: KV) {
           setupDone: true,
         };
       } else if (r.kind === 'doc') {
-        const old = docs.find((d) => d.id === r.id);
         if (r.body) persistDoc(r.body as Doc);
-        else if (old) kv.removeItem(K.doc(r.id));
-        docs = upsert(docs, r.id, r.body as Doc | null);
-      } else if (r.kind === 'customer') customers = upsert(customers, r.id, r.body as Customer | null);
-      else if (r.kind === 'item') items = upsert(items, r.id, r.body ? normalItem(r.body as Item) : null);
-      else if (r.kind === 'cash') cash = upsert(cash, r.id, r.body as CashEntry | null);
-      else if (r.kind === 'stock') stockMoves = upsert(stockMoves, r.id, r.body as StockMove | null);
+        else if (docIds.has(r.id)) kv.removeItem(K.doc(r.id));
+        changes.doc.set(r.id, r.body ?? null);
+      } else if (r.kind === 'item') changes.item.set(r.id, r.body ? normalItem(r.body as Item) : null);
+      else if (r.kind in changes) changes[r.kind as 'customer' | 'cash' | 'stock'].set(r.id, r.body ?? null);
     }
+    docs = apply(docs, changes.doc);
+    customers = apply(customers, changes.customer);
+    items = apply(items, changes.item);
+    cash = apply(cash, changes.cash);
+    stockMoves = apply(stockMoves, changes.stock);
     if (touched.has('settings')) persistSettings(settings);
     if (touched.has('doc')) persistDocIndex(docs);
     if (touched.has('customer')) kv.setItem(K.customers, JSON.stringify(customers));

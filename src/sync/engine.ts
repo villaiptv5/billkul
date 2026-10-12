@@ -69,9 +69,22 @@ export function createSync(store: Store, kv: KV, server: SyncServer) {
   };
   const write = (m: Memory) => kv.setItem(KEY, JSON.stringify(m));
 
+  // The store never changes a record in place; every change makes a new object. So a record's
+  // fingerprint is worked out once and remembered, and each round only reads the records that changed
+  // since: a shop with years of bills is not read in full every few seconds.
+  const prints = new WeakMap<object, string>();
+  const printOf = (body: unknown): string => {
+    if (!body || typeof body !== 'object') return fingerprint(JSON.stringify(body ?? null));
+    let print = prints.get(body);
+    if (print === undefined) {
+      print = fingerprint(JSON.stringify(body));
+      prints.set(body, print);
+    }
+    return print;
+  };
   const snapshot = () => {
     const out = new Map<string, { record: SyncRecord; print: string }>();
-    for (const [key, record] of store.syncRecords()) out.set(key, { record, print: fingerprint(JSON.stringify(record.body)) });
+    for (const [key, record] of store.syncRecords()) out.set(key, { record, print: printOf(record.body) });
     return out;
   };
 
@@ -105,7 +118,7 @@ export function createSync(store: Store, kv: KV, server: SyncServer) {
           i++;
         }
         const result = await server.push(token, batch.map((b) => b.record));
-        if (!result.ok) return failure(result.error, memory);
+        if (!result.ok) return failure(result.error);
         for (const b of batch) {
           if (b.print === null) delete memory.sent[b.key];
           else memory.sent[b.key] = b.print;
@@ -117,9 +130,9 @@ export function createSync(store: Store, kv: KV, server: SyncServer) {
     // 2. Take in what changed elsewhere, page by page.
     for (let page = 0; page < 1000; page++) {
       const result = await server.pull(token, memory.rev);
-      if (!result.ok) return failure(result.error, memory);
+      if (!result.ok) return failure(result.error);
       // Read again: something may have been changed here while the request was out.
-      const here = snapshot();
+      const here = result.changes.length ? snapshot() : new Map<string, { record: SyncRecord; print: string }>();
       const take: SyncRecord[] = [];
       for (const change of result.changes) {
         const key = `${change.kind}:${change.id}`;
@@ -137,15 +150,18 @@ export function createSync(store: Store, kv: KV, server: SyncServer) {
         if (!local || local.print !== print) take.push(change);
       }
       store.applySyncRecords(take);
-      memory.rev = result.rev;
-      write(memory);
+      // Nothing new (the usual answer every few seconds): nothing to save either.
+      if (result.changes.length || memory.rev !== result.rev) {
+        memory.rev = result.rev;
+        write(memory);
+      }
       if (!result.more) break;
     }
     return 'ok';
   }
 
-  function failure(error: string, memory: Memory): SyncResult {
-    write(memory);
+  function failure(error: string): SyncResult {
+    // Every change to the memory is saved as it happens; while offline, polling writes nothing.
     if (error === 'not_pro') return 'not_pro';
     if (error === 'signed_out') return 'signed_out';
     return 'offline';
