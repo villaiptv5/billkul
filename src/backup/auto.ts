@@ -54,7 +54,7 @@ export async function startDriveBackup(): Promise<DriveResult | 'cancelled'> {
     const chosen = await chooseGoogleAccount(clientId);
     store.updateSettings({ driveAsked: true });
     if (!chosen) return 'cancelled';
-    store.updateSettings({ driveEmail: chosen.email, driveFileId: '' });
+    store.updateSettings({ driveEmail: chosen.email });
   } catch {
     return 'failed';
   }

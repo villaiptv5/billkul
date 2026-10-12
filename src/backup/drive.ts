@@ -65,17 +65,51 @@ async function folderId(deps: DriveDeps): Promise<string> {
   return made.id;
 }
 
-/** Saves the backup, over the file saved last time when it is still there. Returns the file's id. */
+async function backupsOnDrive(deps: DriveDeps): Promise<{ id: string; modifiedTime: string }[]> {
+  const found = await json<{ files: { id: string; modifiedTime: string }[] }>(
+    await call(deps, `${API}/files?${query(`name = '${BACKUP_NAME}' and trashed = false`, { orderBy: 'modifiedTime desc', pageSize: '100', fields: 'files(id,modifiedTime)' })}`),
+  );
+  return found.files;
+}
+
+async function writeOver(deps: DriveDeps, id: string, backup: string): Promise<boolean> {
+  const updated = await call(deps, `${UPLOAD}/files/${encodeURIComponent(id)}?uploadType=media&fields=id`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: backup,
+  });
+  if (updated.ok) return true;
+  // Deleted or moved to the bin on the Drive in the meantime.
+  if (updated.status === 404 || updated.status === 403) return false;
+  throw new DriveError('failed');
+}
+
+/** Moves extra copies to the Drive's bin (kept there 30 days). A copy that will not move is left alone. */
+async function binExtraCopies(deps: DriveDeps, ids: string[]): Promise<void> {
+  for (const id of ids) {
+    try {
+      await call(deps, `${API}/files/${encodeURIComponent(id)}?fields=id`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trashed: true }) });
+    } catch {
+      // Tidying up is not worth failing the backup for.
+    }
+  }
+}
+
+/**
+ * Saves the backup over the one "BillKul backup.json" on the Drive. Every phone and PC of the shop
+ * writes to that same file; a new file is made only when there is none. Extra copies left by older
+ * versions of the app are moved to the bin. Returns the file's id.
+ */
 export async function saveToDrive(deps: DriveDeps, backup: string, fileId = ''): Promise<string> {
-  if (fileId) {
-    const updated = await call(deps, `${UPLOAD}/files/${encodeURIComponent(fileId)}?uploadType=media&fields=id`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: backup,
-    });
-    if (updated.ok) return fileId;
-    // Deleted or moved to the bin on the Drive: make a new one.
-    if (updated.status !== 404 && updated.status !== 403) throw new DriveError('failed');
+  const existing = await backupsOnDrive(deps);
+  const ids = existing.map((f) => f.id);
+  // The file this device saved last time first, then the newest one.
+  const order = fileId && ids.includes(fileId) ? [fileId, ...ids.filter((id) => id !== fileId)] : ids;
+  for (let i = 0; i < order.length; i++) {
+    if (await writeOver(deps, order[i], backup)) {
+      await binExtraCopies(deps, order.slice(i + 1));
+      return order[i];
+    }
   }
   const parent = await folderId(deps);
   const boundary = `billkul${Date.now().toString(36)}`;
