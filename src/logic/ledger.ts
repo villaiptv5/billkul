@@ -11,7 +11,7 @@ export function isExpenseCategory(value: string): value is ExpenseCategory {
   return (EXPENSE_CATEGORIES as readonly string[]).includes(value);
 }
 
-/** One line of the cash book. Some are typed by hand; the rest come from paid invoices and stock bought. */
+/** One line of the cash book. Some are typed by hand; the rest come from paid invoices (and refunds of cancelled ones) and stock bought. */
 export interface CashRow {
   key: string;
   date: string;
@@ -55,10 +55,16 @@ export function cashRows({ cash, docs, stockMoves, items }: CashSources): CashRo
     });
   }
   for (const doc of docs) {
-    if (doc.type !== 'invoice' || doc.status !== 'paid') continue;
+    if (doc.type !== 'invoice') continue;
+    // A paid invoice cancelled later: the money still came in that day, and went back the day it was cancelled.
+    const refunded = doc.status === 'cancelled' && doc.cancelledFrom === 'paid';
+    if (doc.status !== 'paid' && !refunded) continue;
     const amount = docTotals(doc).total;
     if (!(amount > 0)) continue;
     rows.push({ key: `d:${doc.id}`, date: doc.paidOn || doc.date, kind: 'in', amount, category: '', source: 'invoice', refId: doc.id, note: doc.customerName, label: doc.number, createdAt: doc.paidAt || doc.issuedAt || doc.updatedAt });
+    if (refunded) {
+      rows.push({ key: `r:${doc.id}`, date: doc.cancelledOn || doc.paidOn || doc.date, kind: 'out', amount, category: '', source: 'invoice', refId: doc.id, note: doc.customerName, label: doc.number, createdAt: doc.cancelledAt || doc.updatedAt });
+    }
   }
   const names = new Map(items.map((i) => [i.id, i.name]));
   for (const move of stockMoves) {

@@ -16,11 +16,11 @@ import { T } from '../ui/T';
 import { PaidLine } from './customer';
 import { DocSummary, openDoc } from './shared';
 import { useLimits } from './limits';
-import { liveInvoiceOf, useRejectQuote } from './finish';
+import { liveInvoiceOf, useCancelInvoice, useRejectQuote } from './finish';
 
 const FILTERS: Record<DocType, DocStatus[]> = {
   quote: ['draft', 'sent', 'accepted', 'rejected'],
-  invoice: ['draft', 'due', 'paid'],
+  invoice: ['draft', 'due', 'paid', 'cancelled'],
 };
 
 export function DocumentsScreen() {
@@ -59,6 +59,7 @@ export function DocumentsScreen() {
 
   const limits = useLimits();
   const reject = useRejectQuote();
+  const cancelInvoice = useCancelInvoice();
   const convert = (quote: Doc) => {
     if (!liveInvoiceOf(docs, quote) && !limits.allowDoc()) return;
     const invoice = store.convertToInvoice(quote.id);
@@ -173,7 +174,7 @@ export function DocumentsScreen() {
               </T>
             ) : null}
             <Button label={t('open')} variant="secondary" onPress={() => { const d = menuFor; setMenuFor(null); nav.navigate('Preview', { docId: d.id }); }} testID="menu-open" />
-            <Button label={t('edit')} icon="pencil" variant="secondary" onPress={() => { const d = menuFor; setMenuFor(null); nav.navigate('Editor', { docId: d.id }); }} testID="menu-edit" />
+            {menuFor.status === 'cancelled' ? null : <Button label={t('edit')} icon="pencil" variant="secondary" onPress={() => { const d = menuFor; setMenuFor(null); nav.navigate('Editor', { docId: d.id }); }} testID="menu-edit" />}
             {menuFor.type === 'quote' && (menuFor.status === 'sent' || menuFor.status === 'rejected') ? (
               <Button label={t('markAccepted')} variant="secondary" onPress={() => { store.markAccepted(menuFor.id); setMenuFor(null); }} testID="menu-accept" />
             ) : null}
@@ -195,6 +196,22 @@ export function DocumentsScreen() {
             ) : null}
             {menuFor.type === 'invoice' && menuFor.status === 'paid' ? (
               <Button label={t('markUnpaid')} variant="secondary" onPress={() => { store.markUnpaid(menuFor.id); setMenuFor(null); }} testID="menu-unpaid" />
+            ) : null}
+            {menuFor.type === 'invoice' && (menuFor.status === 'due' || menuFor.status === 'paid') ? (
+              <Button
+                label={t('cancelInvoice')}
+                icon="close"
+                variant="secondary"
+                onPress={() => {
+                  const d = menuFor;
+                  setMenuFor(null);
+                  void cancelInvoice(d);
+                }}
+                testID="menu-cancel"
+              />
+            ) : null}
+            {menuFor.type === 'invoice' && menuFor.status === 'cancelled' && menuFor.cancelledFrom ? (
+              <Button label={t('restoreInvoice')} variant="secondary" onPress={() => { store.restoreInvoice(menuFor.id); setMenuFor(null); }} testID="menu-restore" />
             ) : null}
             <Button label={t('delete')} icon="trash" variant="danger" onPress={() => remove(menuFor)} testID="menu-delete" />
           </SheetScroll>

@@ -18,7 +18,7 @@ import { T } from '../ui/T';
 import { ReceiptSheet } from './receipt';
 import { PaidLine } from './customer';
 import { showDoc } from './shared';
-import { CompleteSheet } from './finish';
+import { CancelledNote, CompleteSheet, useCancelInvoice } from './finish';
 
 const SHADOW = Platform.select({
   web: { boxShadow: '0 6px 20px rgba(11,31,23,0.14)' },
@@ -67,6 +67,7 @@ export function PreviewScreen() {
   const [receipt, setReceipt] = useState(false);
   const pageRef = useRef<View>(null);
   const capture = useCapture();
+  const cancelInvoice = useCancelInvoice();
 
   useEffect(() => {
     if (!doc) nav.goBack();
@@ -133,9 +134,10 @@ export function PreviewScreen() {
         title={t('preview')}
         subtitle={doc.customerName ? `${doc.number} · ${doc.customerName}` : doc.number}
         onBack={() => nav.goBack()}
-        right={<Button label={t('edit')} variant="ghost" size="sm" onPress={() => showDoc(nav, 'Editor', docId)} testID="preview-edit" style={{ paddingHorizontal: 12 }} />}
+        right={doc.status === 'cancelled' ? undefined : <Button label={t('edit')} variant="ghost" size="sm" onPress={() => showDoc(nav, 'Editor', docId)} testID="preview-edit" style={{ paddingHorizontal: 12 }} />}
       />
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 14, gap: 14 }}>
+        <CancelledNote doc={doc} onOpenQuote={(quote) => nav.push('Preview', { docId: quote.id })} />
         <View onLayout={onLayout} style={[{ borderRadius: 6, backgroundColor: C.surface, overflow: 'hidden' }, SHADOW]} testID="doc-preview">
           {width > 0 ? <DocView ref={pageRef} html={html} width={width} capturing={capture.capturing} /> : <View style={{ height: 420 }} />}
         </View>
@@ -171,6 +173,9 @@ export function PreviewScreen() {
               <Button label={t('markUnpaid')} variant="ghost" size="sm" onPress={() => store.markUnpaid(doc.id)} testID="mark-unpaid" style={{ paddingHorizontal: 8 }} />
             )}
           </View>
+        ) : null}
+        {doc.type === 'invoice' && (doc.status === 'due' || doc.status === 'paid') ? (
+          <Button label={t('cancelInvoice')} icon="close" variant="ghost" size="sm" onPress={() => void cancelInvoice(doc)} testID="cancel-invoice" style={{ alignSelf: 'flex-start', paddingHorizontal: 8 }} />
         ) : null}
 
         {IS_PHONE ? (
