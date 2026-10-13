@@ -453,7 +453,7 @@ export function createStore(kv: KV) {
    */
   function completeDoc(id: string, paid: boolean, today: string = isoDate()) {
     const doc = state.docs.find((d) => d.id === id);
-    if (!doc) return;
+    if (!doc || doc.status === 'cancelled') return;
     const issuedAt = doc.issuedAt ?? new Date().toISOString();
     if (doc.type === 'quote') {
       patchDoc(id, { status: doc.status === 'draft' ? 'sent' : doc.status, heldAt: undefined, issuedAt });
@@ -477,7 +477,7 @@ export function createStore(kv: KV) {
 
   function markPaid(id: string, today: string = isoDate()) {
     const doc = state.docs.find((d) => d.id === id);
-    if (doc && doc.type === 'invoice') patchDoc(id, { status: 'paid', paidOn: today, paidAt: new Date().toISOString() });
+    if (doc && doc.type === 'invoice' && doc.status !== 'cancelled') patchDoc(id, { status: 'paid', paidOn: today, paidAt: new Date().toISOString() });
   }
 
   function markUnpaid(id: string) {
@@ -495,9 +495,29 @@ export function createStore(kv: KV) {
     if (!quote || quote.type !== 'quote') return null;
     const invoice = quote.invoiceId ? state.docs.find((d) => d.id === quote.invoiceId) : undefined;
     if (invoice && invoice.status === 'paid') return invoice;
-    if (invoice && invoice.status !== 'cancelled') patchDoc(invoice.id, { status: 'cancelled', heldAt: undefined });
+    if (invoice && invoice.status !== 'cancelled') patchDoc(invoice.id, { status: 'cancelled', heldAt: undefined, cancelledAt: new Date().toISOString(), cancelledOn: isoDate(), cancelledFrom: undefined });
     patchDoc(id, { status: 'rejected', issuedAt: quote.issuedAt ?? new Date().toISOString() });
     return null;
+  }
+
+  /**
+   * Calls off a completed invoice (a wrong bill, or a sale that fell through) but keeps it and its
+   * number on record. It leaves every total and gives its items back to stock. When it was paid, the
+   * money is shown going back to the customer on the day it is cancelled; the day it came in stays as it was.
+   */
+  function cancelInvoice(id: string, today: string = isoDate()): boolean {
+    const doc = state.docs.find((d) => d.id === id);
+    if (!doc || doc.type !== 'invoice' || (doc.status !== 'due' && doc.status !== 'paid')) return false;
+    patchDoc(id, { status: 'cancelled', cancelledFrom: doc.status, cancelledAt: new Date().toISOString(), cancelledOn: today, heldAt: undefined });
+    return true;
+  }
+
+  /** Undoes cancelInvoice: back to due or paid. An invoice cancelled with its rejected quote comes back by accepting the quote instead. */
+  function restoreInvoice(id: string): boolean {
+    const doc = state.docs.find((d) => d.id === id);
+    if (!doc || doc.status !== 'cancelled' || !doc.cancelledFrom) return false;
+    patchDoc(id, { status: doc.cancelledFrom, cancelledFrom: undefined, cancelledAt: undefined, cancelledOn: undefined });
+    return true;
   }
 
   /** One tap from quote to invoice. Asking twice returns the invoice already made, unless it was cancelled. */
@@ -676,6 +696,8 @@ export function createStore(kv: KV) {
     discardIfEmpty,
     markSent,
     rejectQuote,
+    cancelInvoice,
+    restoreInvoice,
     completeDoc,
     holdDoc,
     markAccepted,

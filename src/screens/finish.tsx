@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { store, useAppState } from '../data/app';
 import type { Customer, Doc } from '../data/types';
-import { formatTime } from '../logic/dates';
+import { formatDate, formatTime } from '../logic/dates';
 import { money } from '../logic/money';
 import { docTotals } from '../logic/totals';
 import { C } from '../theme';
@@ -182,4 +182,64 @@ export function useRejectQuote(): (quote: Doc) => Promise<boolean> {
 /** The invoice made from a quote, unless it was cancelled. */
 export function liveInvoiceOf(docs: Doc[], quote: Doc): Doc | undefined {
   return quote.invoiceId ? docs.find((d) => d.id === quote.invoiceId && d.status !== 'cancelled') : undefined;
+}
+
+/** Cancelling a due or paid invoice, after saying what it does. */
+export function useCancelInvoice(): (invoice: Doc) => Promise<boolean> {
+  const { t } = useLocale();
+  const { confirm, notify } = useDialogs();
+  const { settings } = useAppState();
+  return async (invoice: Doc) => {
+    const paid = invoice.status === 'paid';
+    const body = paid ? t('cancelPaidBody', { amount: money(docTotals(invoice).total, settings.currency) }) : t('cancelDueBody');
+    if (!(await confirm({ title: t('cancelInvoiceTitle', { number: invoice.number }), body, confirmLabel: t('cancelInvoice'), cancelLabel: t('keepInvoice'), danger: true }))) return false;
+    const done = store.cancelInvoice(invoice.id);
+    if (done) notify(t('invoiceCancelled', { number: invoice.number }));
+    return done;
+  };
+}
+
+/** Why a cancelled invoice was cancelled, and the way back: restore it, or open the quote that was rejected. */
+export function CancelledNote({ doc, onOpenQuote }: { doc: Doc; onOpenQuote: (quote: Doc) => void }) {
+  const { t, lang } = useLocale();
+  const { notify } = useDialogs();
+  const { docs, settings } = useAppState();
+  if (doc.status !== 'cancelled') return null;
+  const quote = doc.quoteId ? docs.find((d) => d.id === doc.quoteId) : undefined;
+  const date = formatDate(doc.cancelledOn || (doc.cancelledAt ?? doc.updatedAt).slice(0, 10), lang);
+  const text = doc.cancelledFrom
+    ? doc.cancelledFrom === 'paid'
+      ? t('cancelledRefund', { date, amount: money(docTotals(doc).total, settings.currency) })
+      : t('cancelledByHand', { date })
+    : quote
+      ? t('cancelledByQuote', { date, quote: quote.number })
+      : t('cancelledByHand', { date });
+  return (
+    <View testID="cancelled-note" style={{ borderRadius: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line, padding: 14, gap: 10 }}>
+      <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
+        <Icon name="close" size={18} color={C.muted} stroke={2.4} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <T size={14.5} w="semibold">
+            {text}
+          </T>
+          <T size={13} color={C.muted}>
+            {t('cancelledLocked')}
+          </T>
+        </View>
+      </View>
+      {doc.cancelledFrom ? (
+        <Button
+          label={t('restoreInvoice')}
+          variant="secondary"
+          size="sm"
+          onPress={() => {
+            if (store.restoreInvoice(doc.id)) notify(t('invoiceRestored', { number: doc.number }));
+          }}
+          testID="restore-invoice"
+        />
+      ) : quote ? (
+        <Button label={t('openQuote', { number: quote.number })} variant="secondary" size="sm" onPress={() => onOpenQuote(quote)} testID="open-quote" />
+      ) : null}
+    </View>
+  );
 }

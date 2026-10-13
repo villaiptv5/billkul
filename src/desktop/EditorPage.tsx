@@ -24,7 +24,7 @@ import { T } from '../ui/T';
 import { Panel } from './parts';
 import { useDesk } from './route';
 import { useLimits } from '../screens/limits';
-import { CompleteSheet, HoldSheet, liveInvoiceOf, useRejectQuote } from '../screens/finish';
+import { CancelledNote, CompleteSheet, HoldSheet, liveInvoiceOf, useCancelInvoice, useRejectQuote } from '../screens/finish';
 import { NewItemSheet } from '../screens/NewItemSheet';
 
 // Keeps the preview in view while the form beside it scrolls.
@@ -67,8 +67,11 @@ export function EditorPage({ docId }: { docId: string }) {
   }, [status]);
   const limits = useLimits();
   const reject = useRejectQuote();
+  const cancelInvoice = useCancelInvoice();
   if (!editor || !doc) return null;
   const draft = doc.status === 'draft';
+  // A cancelled invoice is a record: it can be printed, restored or deleted, not changed.
+  const locked = doc.status === 'cancelled';
 
   const finishFirst = (action: () => void) => {
     if (!doc.lines.length) return notify(t('needLine'));
@@ -195,12 +198,14 @@ export function EditorPage({ docId }: { docId: string }) {
         {isQuote && (doc.status === 'sent' || doc.status === 'accepted') ? <Button label={t('rejectQuote')} icon="close" variant="secondary" onPress={() => void reject(doc)} testID="reject-quote" /> : null}
         {!isQuote && doc.status === 'due' ? <Button label={t('markPaid')} onPress={() => store.markPaid(doc.id)} testID="mark-paid" /> : null}
         {!isQuote && doc.status === 'paid' ? <Button label={t('markUnpaid')} variant="secondary" onPress={() => store.markUnpaid(doc.id)} testID="mark-unpaid" /> : null}
+        {!isQuote && (doc.status === 'due' || doc.status === 'paid') ? <Button label={t('cancelInvoice')} icon="close" variant="secondary" onPress={() => void cancelInvoice(doc)} testID="cancel-invoice" /> : null}
         <IconButton icon="trash" label={t('delete')} color={C.muted} onPress={remove} testID="delete-doc" />
       </View>
 
       <View style={snug ? { gap: 24 } : { flexDirection: 'row', alignItems: 'flex-start', gap: 24 }}>
         {/* The form */}
         <View style={[{ gap: 16, minWidth: 0 }, snug ? null : { flex: 1.15 }]}>
+          <CancelledNote doc={doc} onOpenQuote={(quote) => go({ page: 'editor', docId: quote.id })} />
           <Panel style={{ padding: 16, gap: 10 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={{ flex: 1 }}>
@@ -225,8 +230,12 @@ export function EditorPage({ docId }: { docId: string }) {
                     </T>
                   ) : null}
                 </View>
-                <Button label={t('change')} variant="ghost" size="sm" onPress={() => setPickingCustomer(true)} testID="change-customer" style={{ paddingHorizontal: 12 }} />
+                {locked ? null : <Button label={t('change')} variant="ghost" size="sm" onPress={() => setPickingCustomer(true)} testID="change-customer" style={{ paddingHorizontal: 12 }} />}
               </View>
+            ) : locked ? (
+              <T size={15} color={C.muted}>
+                {t('noCustomer')}
+              </T>
             ) : (
               <Pressable
                 accessibilityRole="button"
@@ -243,8 +252,8 @@ export function EditorPage({ docId }: { docId: string }) {
           </Panel>
 
           <Panel style={{ padding: 16, gap: 12 }}>
-            <SearchBox value={query} onChangeText={setQuery} placeholder={t('searchAddItem')} testID="item-search" onSubmit={submitSearch} />
-            {name ? (
+            {locked ? null : <SearchBox value={query} onChangeText={setQuery} placeholder={t('searchAddItem')} testID="item-search" onSubmit={submitSearch} />}
+            {locked ? null : name ? (
               <View style={{ borderWidth: 1, borderColor: C.line, borderRadius: 12 }}>
                 {suggestions.map((item, i) => (
                   <Pressable
@@ -320,14 +329,27 @@ export function EditorPage({ docId }: { docId: string }) {
                       ) : null}
                       <LineStock doc={doc} line={line} levels={levels} />
                     </View>
-                    <NumberField label={t('qty')} value={line.qty} onChange={(qty) => changeLine(line, { qty })} width={64} testID={`qty-${i}`} />
-                    <NumberField label={t('price')} value={line.price} onChange={(price) => changeLine(line, { price })} width={100} blankZero testID={`price-${i}`} />
+                    {locked ? (
+                      <>
+                        <View style={{ width: 64 }}>
+                          <T size={14.5} latin center testID={`qty-${i}`}>{formatAmount(line.qty)}</T>
+                        </View>
+                        <View style={{ width: 100 }}>
+                          <T size={14.5} latin center testID={`price-${i}`}>{formatAmount(line.price)}</T>
+                        </View>
+                      </>
+                    ) : (
+                      <>
+                        <NumberField label={t('qty')} value={line.qty} onChange={(qty) => changeLine(line, { qty })} width={64} testID={`qty-${i}`} />
+                        <NumberField label={t('price')} value={line.price} onChange={(price) => changeLine(line, { price })} width={100} blankZero testID={`price-${i}`} />
+                      </>
+                    )}
                     <View style={{ width: 92 }}>
                       <T size={14.5} w="semibold" latin end testID={`line-total-${i}`}>
                         {formatAmount(lineTotal(line))}
                       </T>
                     </View>
-                    <IconButton icon="trash" label={t('removeItem', { name: line.name })} color={C.muted} size={40} onPress={() => editor.removeLine(line)} testID={`remove-${i}`} />
+                    {locked ? <View style={{ width: 40 }} /> : <IconButton icon="trash" label={t('removeItem', { name: line.name })} color={C.muted} size={40} onPress={() => editor.removeLine(line)} testID={`remove-${i}`} />}
                   </View>
                 ))
               )}
@@ -336,7 +358,16 @@ export function EditorPage({ docId }: { docId: string }) {
 
           <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-start' }}>
             <View style={{ flex: 1 }}>
-              <Field label={`${t('notes')} (${t('optional')})`} value={doc.notes} onChangeText={(notes) => save({ notes })} placeholder={t('notesPh')} multiline testID="notes" />
+              {locked ? (
+                doc.notes ? (
+                  <View style={{ gap: 6 }}>
+                    <T size={13} w="semibold" color={C.muted}>{t('notes')}</T>
+                    <T size={14.5}>{doc.notes}</T>
+                  </View>
+                ) : null
+              ) : (
+                <Field label={`${t('notes')} (${t('optional')})`} value={doc.notes} onChangeText={(notes) => save({ notes })} placeholder={t('notesPh')} multiline testID="notes" />
+              )}
             </View>
             <Panel style={{ width: 320, paddingHorizontal: 16, paddingVertical: 6 }}>
               <View style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -346,12 +377,16 @@ export function EditorPage({ docId }: { docId: string }) {
               <Divider />
               <View style={{ minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <T size={14.5} color={C.muted}>{t('discount')}</T>
-                <NumberField label={t('discount')} value={doc.discount} onChange={(discount) => save({ discount })} height={40} align="end" blankZero testID="discount" />
+                {locked ? (
+                  <T size={14.5} w="semibold" latin testID="discount">{formatAmount(doc.discount)}</T>
+                ) : (
+                  <NumberField label={t('discount')} value={doc.discount} onChange={(discount) => save({ discount })} height={40} align="end" blankZero testID="discount" />
+                )}
               </View>
               <Divider />
-              <Pressable accessibilityRole="button" onPress={() => setEditingTax(true)} testID="tax-row" style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Pressable accessibilityRole="button" disabled={locked} onPress={() => setEditingTax(true)} testID="tax-row" style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <T size={14.5} color={C.muted}>{doc.taxPercent > 0 ? `${taxName} ${formatAmount(doc.taxPercent)}%` : t('tax')}</T>
-                {doc.taxPercent > 0 ? <T size={14.5} w="semibold" latin>{formatAmount(totals.tax)}</T> : <T size={14.5} w="semibold" color={C.greenText}>{t('addTax')}</T>}
+                {doc.taxPercent > 0 ? <T size={14.5} w="semibold" latin>{formatAmount(totals.tax)}</T> : locked ? <T size={14.5} latin color={C.muted}>0</T> : <T size={14.5} w="semibold" color={C.greenText}>{t('addTax')}</T>}
               </Pressable>
               <View style={{ height: 2, backgroundColor: C.ink }} />
               <View style={{ minHeight: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>

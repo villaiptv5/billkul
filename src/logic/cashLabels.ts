@@ -21,7 +21,7 @@ export function categoryKey(category: ExpenseCategory): StringKey {
 
 /** First line of a cash book row: what it was. */
 export function cashTitle(row: CashRow, t: Translate): string {
-  if (row.source === 'invoice') return t('cashFromInvoice', { number: row.label });
+  if (row.source === 'invoice') return t(row.kind === 'out' ? 'cashRefund' : 'cashFromInvoice', { number: row.label });
   if (row.kind === 'out' && row.category) return t(categoryKey(row.category));
   return row.note || t('moneyIn');
 }

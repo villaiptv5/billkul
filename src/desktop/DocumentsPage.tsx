@@ -18,11 +18,11 @@ import { PageHeader, Panel, TableHead, TableRow, type Col } from './parts';
 import { useDesk } from './route';
 import { useLimits } from '../screens/limits';
 import { usePaged } from '../ui/paged';
-import { liveInvoiceOf, useRejectQuote } from '../screens/finish';
+import { liveInvoiceOf, useCancelInvoice, useRejectQuote } from '../screens/finish';
 
 const FILTERS: Record<DocType, DocStatus[]> = {
   quote: ['draft', 'sent', 'accepted', 'rejected'],
-  invoice: ['draft', 'due', 'paid'],
+  invoice: ['draft', 'due', 'paid', 'cancelled'],
 };
 
 const COLS: Col[] = [{ width: 110 }, { flex: 1 }, { width: 110 }, { width: 140, end: true }, { width: 110 }, { width: 370, end: true }];
@@ -55,6 +55,7 @@ export function DocumentsPage({ type, onNew }: { type: DocType; onNew: (type: Do
 
   const limits = useLimits();
   const reject = useRejectQuote();
+  const cancelInvoice = useCancelInvoice();
   const convert = (quote: Doc) => {
     if (!liveInvoiceOf(docs, quote) && !limits.allowDoc()) return;
     const invoice = store.convertToInvoice(quote.id);
@@ -84,7 +85,12 @@ export function DocumentsPage({ type, onNew }: { type: DocType; onNew: (type: Do
       );
     }
     if (doc.status === 'cancelled') return <T size={13.5} color={C.muted}>{t('stCancelled')}</T>;
-    return <PaidLine doc={doc} />;
+    return (
+      <>
+        <PaidLine doc={doc} />
+        <IconButton icon="close" label={`${t('cancelInvoice')} ${doc.number}`} color={C.danger} onPress={() => void cancelInvoice(doc)} testID={`cancel-${doc.number}`} />
+      </>
+    );
   };
 
   return (

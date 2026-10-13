@@ -43,6 +43,11 @@ export function EditorScreen() {
   useEffect(() => {
     if (!doc) nav.goBack();
   }, [doc, nav]);
+  // A cancelled invoice cannot be changed: it opens as a page to view instead.
+  const cancelled = doc?.status === 'cancelled';
+  useEffect(() => {
+    if (cancelled) nav.replace('Preview', { docId });
+  }, [cancelled, nav, docId]);
 
   const suggestions = useMemo(() => matchItems(items, query), [items, query]);
   if (!editor || !doc) return null;

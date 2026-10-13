@@ -246,6 +246,8 @@ interface ConfirmOptions {
   title: string;
   body?: string;
   confirmLabel: string;
+  /** The other button; "Cancel" unless that would be confusing (as when the action itself is to cancel). */
+  cancelLabel?: string;
   danger?: boolean;
 }
 
@@ -306,7 +308,7 @@ export function DialogHost({ children }: { children: React.ReactNode }) {
               </T>
             ) : null}
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
-              <Button label={t('cancel')} variant="secondary" onPress={() => answer(false)} style={{ flex: 1 }} testID="confirm-cancel" />
+              <Button label={ask?.cancelLabel ?? t('cancel')} variant="secondary" onPress={() => answer(false)} style={{ flex: 1 }} testID="confirm-cancel" />
               <Button label={ask?.confirmLabel ?? ''} variant={ask?.danger ? 'danger' : 'primary'} onPress={() => answer(true)} style={{ flex: 1 }} testID="confirm-ok" />
             </View>
           </View>

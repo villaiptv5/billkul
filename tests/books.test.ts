@@ -393,3 +393,54 @@ describe('due and customer history', () => {
     expect(s.quotes.map((d) => d.number)).toEqual(['Q-0001']);
   });
 });
+
+describe('cancelling an invoice by hand', () => {
+  const get = (id: string) => store.getState().docs.find((d) => d.id === id)!;
+  it('a due invoice: kept on record, out of every total, stock back, and it can be restored', async () => {
+    const { monthStats } = await import('../src/logic/stats');
+    const item = store.saveItem({ name: 'Mouse', price: 1500, trackStock: true });
+    store.setStock(item.id, 10);
+    const inv = invoiceFor(item.id, 'Mouse', 2, 1500, '2026-10-06');
+    store.completeDoc(inv.id, false, '2026-10-06');
+    expect(levels().get(item.id)).toBe(8);
+    expect(store.cancelInvoice(inv.id, '2026-10-07')).toBe(true);
+    expect(get(inv.id)).toMatchObject({ status: 'cancelled', cancelledFrom: 'due', cancelledOn: '2026-10-07', number: 'INV-0001' });
+    expect(levels().get(item.id)).toBe(10);
+    expect(monthStats(store.getState().docs, '2026-10-07')).toMatchObject({ invoiced: 0, due: 0 });
+    expect(rows()).toHaveLength(0);
+    store.markPaid(inv.id);
+    expect(get(inv.id).status).toBe('cancelled');
+    expect(store.restoreInvoice(inv.id)).toBe(true);
+    expect(get(inv.id)).toMatchObject({ status: 'due' });
+    expect(get(inv.id).cancelledFrom).toBeUndefined();
+    expect(levels().get(item.id)).toBe(8);
+  });
+  it('a paid invoice: the money stays in on the day it came, and goes back out on the day it is cancelled', () => {
+    const inv = invoiceFor('', 'Laptop', 1, 77000, '2026-10-01');
+    store.completeDoc(inv.id, true, '2026-10-01');
+    store.cancelInvoice(inv.id, '2026-10-05');
+    const book = rows();
+    expect(book.map((r) => [r.date, r.kind, r.amount, r.category])).toEqual([
+      ['2026-10-05', 'out', 77000, ''],
+      ['2026-10-01', 'in', 77000, ''],
+    ]);
+    expect(cashInHand(book)).toBe(0);
+    // A refund is not an expense.
+    expect(expenseSummary(book, '2026-10').total).toBe(0);
+    store.restoreInvoice(inv.id);
+    expect(get(inv.id).status).toBe('paid');
+    expect(cashInHand(rows())).toBe(77000);
+  });
+  it('drafts and invoices cancelled with a rejected quote are not cancelled or restored this way', () => {
+    const draft = store.createDoc('invoice');
+    expect(store.cancelInvoice(draft.id)).toBe(false);
+    const q = store.createDoc('quote');
+    store.saveDoc({ ...q, lines: [{ id: 'l', itemId: '', name: 'Tiles', unit: '', qty: 1, price: 100 }] });
+    store.markSent(q.id);
+    const inv = store.convertToInvoice(q.id)!;
+    store.rejectQuote(q.id);
+    expect(get(inv.id).status).toBe('cancelled');
+    expect(get(inv.id).cancelledAt).toBeTruthy();
+    expect(store.restoreInvoice(inv.id)).toBe(false);
+  });
+});

@@ -138,6 +138,12 @@ export interface Doc {
   issuedAt?: string;
   /** When the invoice was marked paid, as an ISO timestamp: the time on the cash book line. */
   paidAt?: string;
+  /** When a cancelled invoice was cancelled, as an ISO timestamp. */
+  cancelledAt?: string;
+  /** Local date it was cancelled, yyyy-mm-dd: the day a refund shows in the cash book. */
+  cancelledOn?: string;
+  /** What the invoice was before it was cancelled by hand ('due' or 'paid'), so it can be restored. Not set when its quote was rejected. */
+  cancelledFrom?: 'due' | 'paid';
   createdAt: string;
   updatedAt: string;
 }
