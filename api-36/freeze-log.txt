@@ -1,0 +1,296 @@
+--------- beginning of main
+10-13 09:04:26.280   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:26.280   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:26.281  1016  1016 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-13 09:04:27.274  6363  6363 W AccessibilityNodeInfoDumper: Fetch time: 4ms
+--------- beginning of system
+10-13 09:04:27.276   660  1208 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+10-13 09:04:27.276   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.276   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.276   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.276   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.276   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.276   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.276   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.276   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.276   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.277  6363  6371 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-13 09:04:27.277  6363  6375 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-13 09:04:27.278  6363  6372 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-13 09:04:27.279   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.279   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:27.284  1016  1016 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-13 09:04:28.124   660  1706 W AS.PlaybackActivityMon: No piid assigned for invalid/internal port id 15
+10-13 09:04:28.136  3583  3583 W WindowOnBackDispatcher: sendCancelIfRunning: isInProgress=false callback=android.view.ViewRootImpl$$ExternalSyntheticLambda13@65f562a
+10-13 09:04:28.212   660  1208 W PackageConfigPersister: App-specific configuration not found for packageName: com.billkul.app and userId: 0
+10-13 09:04:29.424  6384  6384 W app_process: Unexpected CPU variant for x86: x86_64.
+10-13 09:04:29.424  6384  6384 W app_process: Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, goldmont-without-sha-xsaves, tremont, kabylake, alderlake, default
+10-13 09:04:29.425  6384  6384 W app_process: ClassLoaderContext shared library size mismatch. Expected=2, found=0 (PCL[]{PCL[/system/framework/android.test.base.jar*2789897741]#PCL[/system/framework/android.test.mock.jar*3361312393]} | PCL[])
+10-13 09:04:29.425  6384  6384 W app_process: ClassLoaderContext classpath size mismatch. expected=0, found=1 (PCL[]{PCL[/system/framework/android.test.runner.jar*895143020]#PCL[/system/framework/android.test.base.jar*2789897741]} | PCL[/system/framework/android.test.runner.jar*895143020])
+10-13 09:04:29.443  6384  6384 E FeatureFlagsImplExport: android.os.flagging.AconfigStorageReadException: ERROR_PACKAGE_NOT_FOUND: package android.xr cannot be found on the device
+10-13 09:04:29.444  6384  6384 W UiAutomation: Created with deprecatead constructor, assumes DEFAULT_DISPLAY
+10-13 09:04:29.447   660  2114 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450  1016  1016 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.450   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.457   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.457   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.457   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.458   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.458   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.458   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.458   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.458   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.458   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.458   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.458   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.458   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.458   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.466   660  2114 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+10-13 09:04:29.468   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.468   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.469   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.470   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.471   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.471   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:29.474  1016  1016 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-13 09:04:30.495  6384  6384 W AccessibilityNodeInfoDumper: Fetch time: 19ms
+10-13 09:04:30.496   660  2114 W MagnificationConnectionManager: requestConnection duplicated request: connect=false, mConnectionState=DISCONNECTED
+10-13 09:04:30.497   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.497   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.497   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.497   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.497   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.497   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.497   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.497   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.497   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499  6384  6392 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-13 09:04:30.499  6384  6393 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-13 09:04:30.499  6384  6396 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-13 09:04:30.499  6384  6397 W IPCThreadState: call to talkWithDriver in joinThreadPool returned error: -9 (Bad file descriptor), FD: -1
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.499   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.500   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.500   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.500   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.501   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.501   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.501   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.502   660   660 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:30.507  1016  1016 W PageIndicator: Total number of pages invalid: 0. Assuming 1 page.
+10-13 09:04:31.104   660   689 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:31.105   660   689 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:31.359   660  2114 W AS.PlaybackActivityMon: No piid assigned for invalid/internal port id 15
+10-13 09:04:32.107   660   689 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:35.350  6405  6405 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: window
+10-13 09:04:35.372   660  1550 W AdbDebuggingManager: Read failed with count -1
+10-13 09:04:35.373  1766  1766 E abb     : Failed to read message: protocol fault (couldn't read status length): Success: Success
+10-13 09:04:35.379   660  1550 E AdbDebuggingManager: Caught an exception opening the socket: java.io.IOException: Connection refused
+10-13 09:04:36.283   660   689 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:36.283   660   689 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:37.283   660   689 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:39.459   660   689 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:39.471   660   689 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.507   660   689 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.509   660   682 W ActivityTaskManager: callingPackage for (uid=-1, pid=0) has no WPC
+10-13 09:04:40.509   660   682 W ActivityStartInterceptor: Starting home with component specified, uid=0
+10-13 09:04:40.510   660   682 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_OVERRIDE
+10-13 09:04:40.510   660   682 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_FULLSCREEN_OVERRIDE
+10-13 09:04:40.510   660   682 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_RESIZEABLE_ACTIVITY_OVERRIDES
+10-13 09:04:40.510   660   682 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_MIN_ASPECT_RATIO_OVERRIDE
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.523   660   684 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.524   596   596 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.524   596   596 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.660  1016  1105 W Looper  : Slow dispatch took 87ms wmshell.main app=com.android.systemui main=false group=FOREGROUND h=android.os.Handler c=com.android.wm.shell.transition.Transitions$TransitionPlayerImpl$$ExternalSyntheticLambda0@c537cf3 m=0
+10-13 09:04:40.716   596   596 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.716   596   596 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.716   596   596 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.716   596   596 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:40.735   660  2111 W PackageConfigPersister: App-specific configuration not found for packageName: com.google.android.apps.nexuslauncher and userId: 0
+10-13 09:04:40.941   660  6432 W HWUI    : Failed to initialize 101010-2 format, error = EGL_SUCCESS
+10-13 09:04:41.012   660   684 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{128789612 u0 com.billkul.app/.MainActivity t8}
+10-13 09:04:41.521   660  2119 W ActivityTaskManager: callingPackage for (uid=0, pid=6435) has no WPC
+10-13 09:04:41.522   660  2119 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_OVERRIDE
+10-13 09:04:41.522   660  2119 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_USER_ASPECT_RATIO_FULLSCREEN_OVERRIDE
+10-13 09:04:41.522   660  2119 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_RESIZEABLE_ACTIVITY_OVERRIDES
+10-13 09:04:41.522   660  2119 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_MIN_ASPECT_RATIO_OVERRIDE
+10-13 09:04:41.525  1289  1289 W SplitSelectStateCtor: Missing session instanceIds
+10-13 09:04:41.530   596   596 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:41.530   596   596 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:41.530   596  2147 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:41.530   596  2147 W IPCThreadState: Sending oneway calls to frozen process.
+10-13 09:04:44.525   660  3022 E TaskPersister: File error accessing recents directory (directory doesn't exist?).
+10-13 09:04:44.541  6438  6438 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: window
+10-13 09:04:44.573   660   770 W InputDispatcher: Not sending touch gesture to 6671cbe ActivityRecordInputSink com.billkul.app/.MainActivity because it has config NO_INPUT_CHANNEL
+10-13 09:04:45.567   660   770 W InputDispatcher: Window 4484767 com.billkul.app/com.billkul.app.MainActivity is unresponsive: 4484767 com.billkul.app/com.billkul.app.MainActivity is not responding. Waited 5000ms for FocusEvent(hasFocus=false)
+10-13 09:04:45.568   660   770 W InputDispatcher: Canceling events for 4484767 com.billkul.app/com.billkul.app.MainActivity because it is unresponsive
+10-13 09:04:45.572   660   681 W OptProp : Cannot read opt property android.window.PROPERTY_COMPAT_ALLOW_ORIENTATION_OVERRIDE
+10-13 09:04:45.590   660  6448 E android.os.Debug: Failed to get binder state info for pid: 3583 status: -2: Socket operation on non-socket
+10-13 09:04:45.740   279   279 W tombstoned: skipping tombstone file creation due to intercept
+10-13 09:04:45.835   660  6449 E ActivityManager: ANR in com.billkul.app (com.billkul.app/.MainActivity)
+10-13 09:04:45.835   660  6449 E ActivityManager: PID: 3583
+10-13 09:04:45.835   660  6449 E ActivityManager: Reason: Input dispatching timed out (4484767 com.billkul.app/com.billkul.app.MainActivity is not responding. Waited 5000ms for FocusEvent(hasFocus=false)).
+10-13 09:04:45.835   660  6449 E ActivityManager: Parent: com.billkul.app/.MainActivity
+10-13 09:04:45.835   660  6449 E ActivityManager: ErrorId: 42de2ffd-d28a-4b07-8456-5f41bfdcc0a6
+10-13 09:04:45.835   660  6449 E ActivityManager: Frozen: false
+10-13 09:04:45.835   660  6449 E ActivityManager: Load: 3.34 / 5.85 / 3.09
+10-13 09:04:45.835   660  6449 E ActivityManager: ----- Output from /proc/pressure/memory -----
+10-13 09:04:45.835   660  6449 E ActivityManager: some avg10=0.00 avg60=0.58 avg300=1.78 total=11789816
+10-13 09:04:45.835   660  6449 E ActivityManager: full avg10=0.00 avg60=0.13 avg300=0.37 total=2925822
+10-13 09:04:45.835   660  6449 E ActivityManager: ----- End output from /proc/pressure/memory -----
+10-13 09:04:45.835   660  6449 E ActivityManager: ----- Output from /proc/pressure/cpu -----
+10-13 09:04:45.835   660  6449 E ActivityManager: some avg10=9.19 avg60=15.31 avg300=18.98 total=107284960
+10-13 09:04:45.835   660  6449 E ActivityManager: full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+10-13 09:04:45.835   660  6449 E ActivityManager: ----- End output from /proc/pressure/cpu -----
+10-13 09:04:45.835   660  6449 E ActivityManager: ----- Output from /proc/pressure/io -----
+10-13 09:04:45.835   660  6449 E ActivityManager: some avg10=1.21 avg60=2.12 avg300=5.49 total=35360653
+10-13 09:04:45.835   660  6449 E ActivityManager: full avg10=0.00 avg60=0.16 avg300=0.52 total=4226900
+10-13 09:04:45.835   660  6449 E ActivityManager: ----- End output from /proc/pressure/io -----
+10-13 09:04:45.835   660  6449 E ActivityManager: 
+10-13 09:04:45.835   660  6449 E ActivityManager: CPU usage from 267736ms to -1ms ago (2026-10-13 09:00:17.837 to 2026-10-13 09:04:45.574):
+10-13 09:04:45.835   660  6449 E ActivityManager:   9.3% 660/system_server: 6.3% user + 3% kernel / faults: 274130 minor 6718 major
+10-13 09:04:45.835   660  6449 E ActivityManager:   6.7% 528/surfaceflinger: 0.4% user + 6.2% kernel / faults: 3278 minor 1168 major
+10-13 09:04:45.835   660  6449 E ActivityManager:   6.1% 482/android.hardware.graphics.composer3-service.ranchu: 0% user + 6% kernel / faults: 29 minor 481 major
+10-13 09:04:45.835   660  6449 E ActivityManager:   1.9% 593/logcat: 0% user + 1.8% kernel / faults: 6 minor 5 major
+10-13 09:04:45.835   660  6449 E ActivityManager:   1.5% 43/kswapd0: 0% user + 1.5% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:   1.5% 208/kworker/1:2-virtio_vsock: 0% user + 1.5% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:   0.7% 41/kworker/1:1-virtio_vsock: 0% user + 0.7% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:   0.7% 26/ksoftirqd/1: 0% user + 0.7% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:   0.6% 211/logd: 0.1% user + 0.4% kernel / faults: 11544 minor 632 major
+10-13 09:04:45.835   660  6449 E ActivityManager:   0.5% 473/android.hardware.sensors-service.multihal: 0.1% user + 0.3% kernel / faults: 7 minor 33 major
+10-13 09:04:45.835   660  6449 E ActivityManager: 54% TOTAL: 28% user + 24% kernel + 0.7% iowait + 1.1% softirq
+10-13 09:04:45.835   660  6449 E ActivityManager: CPU usage from 18ms to 256ms later (2026-10-13 09:04:45.591 to 2026-10-13 09:04:45.829):
+10-13 09:04:45.835   660  6449 E ActivityManager:   87% 6243/com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:1: 82% user + 4.8% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:     92% 6253/CrRendererMain: 87% user + 4.8% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:   33% 3583/com.billkul.app: 14% user + 18% kernel / faults: 1255 minor 240 major
+10-13 09:04:45.835   660  6449 E ActivityManager:     28% 3584/Signal Catcher: 18% user + 9.4% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:   13% 660/system_server: 0% user + 13% kernel / faults: 571 minor 3 major
+10-13 09:04:45.835   660  6449 E ActivityManager:     8.7% 6450/AnrAuxiliaryTas: 0% user + 8.7% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:   4.2% 11/kworker/u4:1-ext4-rsv-conversion: 0% user + 4.2% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:   4.2% 41/kworker/1:1-virtio_vsock: 0% user + 4.2% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:   4.2% 72/kworker/1:2H-kverityd: 0% user + 4.2% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager:   4.3% 473/android.hardware.sensors-service.multihal: 4.3% user + 0% kernel
+10-13 09:04:45.835   660  6449 E ActivityManager: 73% TOTAL: 50% user + 21% kernel + 2.1% iowait
+10-13 09:04:46.259  6456  6456 W screencap: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: SurfaceFlingerAIDL
+10-13 09:04:46.259  6456  6456 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+10-13 09:04:46.260  6456  6456 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+10-13 09:04:46.301   660   682 W Looper  : Slow dispatch took 416ms android.ui app=system_server main=false group=TOP_APP h=android.view.Choreographer$FrameHandler c=android.view.Choreographer$FrameDisplayEventReceiver@d61ecf7 m=0
+10-13 09:04:46.301   660   682 W Looper  : Slow delivery took 432ms android.ui app=system_server main=false group=TOP_APP h=com.android.server.wm.DisplayPolicy$PolicyHandler c=com.android.server.wm.DisplayPolicy$$ExternalSyntheticLambda14@6ef5764 m=0
+10-13 09:04:46.302   528   553 E HwcComposer: getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+10-13 09:04:46.302   528   553 E HWComposer: getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
+10-13 09:04:46.306   660   682 W Looper  : Drained
+10-13 09:04:46.495   660   682 W Looper  : Slow dispatch took 111ms android.ui app=system_server main=false group=TOP_APP h=android.view.Choreographer$FrameHandler c=android.view.Choreographer$FrameDisplayEventReceiver@d61ecf7 m=0
+10-13 09:04:46.687  6466  6466 W dumpsys : Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: window
+10-13 09:04:46.790  6471  6471 W screencap: Thread Pool max thread count is 0. Cannot cache binder as linkToDeath cannot be implemented. serviceName: SurfaceFlingerAIDL
+10-13 09:04:46.791  6471  6471 W BpBinder: Linking to death on android.gui.ISurfaceComposer but there are no threads (yet?) listening to incoming transactions. See ProcessState::startThreadPool and ProcessState::setThreadPoolMaxThreadCount. Generally you should setup the binder threadpool before other initialization steps.
+10-13 09:04:46.791  6471  6471 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+10-13 09:04:46.793   528   553 E HwcComposer: getLuts failed Status(-8, EX_SERVICE_SPECIFIC): '8: '
+10-13 09:04:46.793   528   553 E HWComposer: getLuts: getLuts failed for display 4619827259835644672: UNSUPPORTED (8)
